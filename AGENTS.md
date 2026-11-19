@@ -31,6 +31,9 @@ CMS website profil siap pakai untuk satuan kerja Pengadilan Agama / Mahkamah Sya
 
 - **CHECKPOINT FIGMA (WAJIB):** Sebelum memulai implementasi tampilan **halaman website utama (public frontend)**, STOP dan beri tahu Master terlebih dahulu agar Master dapat menyiapkan prototipe di Figma (terhubung via Figma MCP desktop bridge).
 - **Git Workflow:** Gunakan commit kecil dan atomik dengan Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `test:`) per unit pekerjaan yang logis.
+- **Graphify (Navigasi Hemat Token):** Saat `graphify-out/graph.json` tersedia, AI pada sesi baru WAJIB memeriksa graf pengetahuan terlebih dahulu sebelum membaca banyak file mentah:
+  - Jalankan `C:\Python312\Scripts\graphify.exe query "<pertanyaan>"` (atau `explain` / `path`), atau baca `graphify-out/GRAPH_REPORT.md` untuk peta arsitektur singkat.
+  - Setelah perubahan kode signifikan, perbarui graf dengan `C:\Python312\Scripts\graphify.exe update .` (atau biarkan Git `post-commit` hook memperbaruinya otomatis).
 
 === foundation rules ===
 

@@ -1,0 +1,17 @@
+.agents/
+.claude/
+.git/
+vendor/
+node_modules/
+storage/
+public/build/
+public/storage/
+bootstrap/cache/
+AGENTS.md
+CLAUDE.md
+README.md
+public/robots.txt
+composer.lock
+package-lock.json
+*.pdf
+
