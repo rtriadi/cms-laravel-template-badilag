@@ -5,10 +5,12 @@ namespace App\Models;
 use App\Support\SafeHtml;
 use Database\Factories\MenuItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 #[Fillable([
     'parent_id',
@@ -40,6 +42,129 @@ class MenuItem extends Model
             'is_visible' => 'boolean',
             'sort_order' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function (): void {
+            self::flushPublicCache();
+        });
+
+        static::deleted(function (): void {
+            self::flushPublicCache();
+        });
+    }
+
+    public static function flushPublicCache(): void
+    {
+        Cache::forget('public_menus.pertama');
+        Cache::forget('public_menus.banding');
+        Cache::forget('public_menus.all');
+    }
+
+    /**
+     * Load and cache header, footer, and shortcut menus using plain array payloads
+     * compatible with Laravel 13 serializable_classes=false cache drivers.
+     *
+     * @return array{header: Collection<int, self>, footer: Collection<int, self>, shortcut: Collection<int, self>}
+     */
+    public static function cachedPublicMenus(string $activeTingkat): array
+    {
+        $cacheKey = 'public_menus.'.$activeTingkat;
+        $raw = Cache::get($cacheKey);
+
+        if (! is_array($raw) || ! isset($raw['header'], $raw['footer'], $raw['shortcut'])) {
+            $header = static::query()
+                ->with([
+                    'page:id,slug',
+                    'children' => fn ($q) => $q
+                        ->where('is_visible', true)
+                        ->whereIn('tingkat_scope', ['all', $activeTingkat])
+                        ->with([
+                            'page:id,slug',
+                            'children' => fn ($gq) => $gq
+                                ->where('is_visible', true)
+                                ->whereIn('tingkat_scope', ['all', $activeTingkat])
+                                ->with('page:id,slug')
+                                ->orderBy('sort_order'),
+                        ])
+                        ->orderBy('sort_order'),
+                ])
+                ->where('location', 'header')
+                ->whereNull('parent_id')
+                ->where('is_visible', true)
+                ->whereIn('tingkat_scope', ['all', $activeTingkat])
+                ->orderBy('sort_order')
+                ->limit(6)
+                ->get();
+
+            $footer = static::query()
+                ->with('page:id,slug')
+                ->where('location', 'footer')
+                ->whereNull('parent_id')
+                ->where('is_visible', true)
+                ->whereIn('tingkat_scope', ['all', $activeTingkat])
+                ->orderBy('sort_order')
+                ->get();
+
+            $shortcut = static::query()
+                ->with('page:id,slug')
+                ->where('location', 'shortcut')
+                ->whereNull('parent_id')
+                ->where('is_visible', true)
+                ->whereIn('tingkat_scope', ['all', $activeTingkat])
+                ->orderBy('sort_order')
+                ->limit(8)
+                ->get();
+
+            $raw = [
+                'header' => $header->map(fn (self $m): array => self::dehydrateMenuNode($m))->all(),
+                'footer' => $footer->map(fn (self $m): array => self::dehydrateMenuNode($m))->all(),
+                'shortcut' => $shortcut->map(fn (self $m): array => self::dehydrateMenuNode($m))->all(),
+            ];
+
+            Cache::forever($cacheKey, $raw);
+        }
+
+        return [
+            'header' => new Collection(array_map([self::class, 'hydrateMenuNode'], $raw['header'])),
+            'footer' => new Collection(array_map([self::class, 'hydrateMenuNode'], $raw['footer'])),
+            'shortcut' => new Collection(array_map([self::class, 'hydrateMenuNode'], $raw['shortcut'])),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function dehydrateMenuNode(self $item): array
+    {
+        return [
+            'attributes' => $item->getAttributes(),
+            'page' => $item->relationLoaded('page') && $item->page !== null
+                ? $item->page->getAttributes()
+                : null,
+            'children' => $item->relationLoaded('children')
+                ? $item->children->map(fn (self $c): array => self::dehydrateMenuNode($c))->all()
+                : [],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $node
+     */
+    private static function hydrateMenuNode(array $node): self
+    {
+        $item = (new static)->newFromBuilder($node['attributes'] ?? []);
+        $pageAttrs = $node['page'] ?? null;
+        $item->setRelation('page', is_array($pageAttrs) ? (new Page)->newFromBuilder($pageAttrs) : null);
+
+        $childrenNodes = is_array($node['children'] ?? null) ? $node['children'] : [];
+        $item->setRelation(
+            'children',
+            new Collection(array_map([self::class, 'hydrateMenuNode'], $childrenNodes))
+        );
+
+        return $item;
     }
 
     /**

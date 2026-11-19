@@ -42,6 +42,14 @@ class Page extends Model
 
     protected static function booted(): void
     {
+        static::saved(function (): void {
+            MenuItem::flushPublicCache();
+        });
+
+        static::deleted(function (): void {
+            MenuItem::flushPublicCache();
+        });
+
         static::updating(function (self $page): void {
             if ($page->isDirty('slug')) {
                 $oldSlug = (string) $page->getOriginal('slug');

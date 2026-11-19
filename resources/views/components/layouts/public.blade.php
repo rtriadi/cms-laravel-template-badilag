@@ -8,38 +8,9 @@
     $satkerName = $satker?->nama_satker ?: 'Satuan Kerja Peradilan Agama';
     $tingkatLabel = config("satker.tingkat.{$activeTingkat}", 'Tingkat Pertama');
 
-    $headerMenus = \App\Models\MenuItem::query()
-        ->with([
-            'page',
-            'children' => fn ($q) => $q
-                ->where('is_visible', true)
-                ->whereIn('tingkat_scope', ['all', $activeTingkat])
-                ->with([
-                    'page',
-                    'children' => fn ($gq) => $gq
-                        ->where('is_visible', true)
-                        ->whereIn('tingkat_scope', ['all', $activeTingkat])
-                        ->with('page')
-                        ->orderBy('sort_order'),
-                ])
-                ->orderBy('sort_order'),
-        ])
-        ->where('location', 'header')
-        ->whereNull('parent_id')
-        ->where('is_visible', true)
-        ->whereIn('tingkat_scope', ['all', $activeTingkat])
-        ->orderBy('sort_order')
-        ->limit(6)
-        ->get();
-
-    $footerMenus = \App\Models\MenuItem::query()
-        ->with('page')
-        ->where('location', 'footer')
-        ->whereNull('parent_id')
-        ->where('is_visible', true)
-        ->whereIn('tingkat_scope', ['all', $activeTingkat])
-        ->orderBy('sort_order')
-        ->get();
+    $cachedMenus = \App\Models\MenuItem::cachedPublicMenus($activeTingkat);
+    $headerMenus = $cachedMenus['header'];
+    $footerMenus = $cachedMenus['footer'];
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -62,7 +33,7 @@
             }
         } catch (e) {}
     </script>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/public.css', 'resources/js/app.js'])
 </head>
 <body class="flex min-h-screen flex-col bg-mist font-sans text-ink antialiased">
     <a href="#konten-utama" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">
@@ -491,6 +462,52 @@
             } else {
                 revealItems.forEach((el) => el.classList.add('is-visible'));
             }
+
+            // Instant Hover & Touch Link Prefetcher for Internal Public Routes
+            const prefetched = new Set();
+            const canPrefetch = (anchor) => {
+                if (!anchor || !anchor.href || anchor.target === '_blank' || anchor.hasAttribute('download')) {
+                    return false;
+                }
+                try {
+                    const u = new URL(anchor.href, window.location.origin);
+                    if (u.origin !== window.location.origin || u.href === window.location.href || u.hash) {
+                        return false;
+                    }
+                    if (u.pathname.startsWith('/panel-admin') || u.pathname.startsWith('/setup') || u.pathname.startsWith('/storage')) {
+                        return false;
+                    }
+                    return !prefetched.has(u.href);
+                } catch (e) {
+                    return false;
+                }
+            };
+            const triggerPrefetch = (href) => {
+                if (prefetched.has(href) || prefetched.size > 20) {
+                    return;
+                }
+                prefetched.add(href);
+                const link = document.createElement('link');
+                link.rel = 'prefetch';
+                link.href = href;
+                link.as = 'document';
+                document.head.appendChild(link);
+            };
+            let hoverTimer = null;
+            document.addEventListener('mouseover', (e) => {
+                const a = e.target.closest && e.target.closest('a[href]');
+                if (!canPrefetch(a)) {
+                    return;
+                }
+                clearTimeout(hoverTimer);
+                hoverTimer = setTimeout(() => triggerPrefetch(a.href), 65);
+            }, { passive: true });
+            document.addEventListener('touchstart', (e) => {
+                const a = e.target.closest && e.target.closest('a[href]');
+                if (canPrefetch(a)) {
+                    triggerPrefetch(a.href);
+                }
+            }, { passive: true });
         })();
     </script>
 </body>

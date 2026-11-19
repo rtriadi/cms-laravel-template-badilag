@@ -25,6 +25,7 @@ class PublicSearchController extends Controller
             $like = "%{$escaped}%";
 
             $pages = Page::query()
+                ->select(['id', 'title', 'slug', 'criteria_code'])
                 ->where('is_published', true)
                 ->where(function ($q) use ($like): void {
                     $q->where('title', 'like', $like)
@@ -44,6 +45,7 @@ class PublicSearchController extends Controller
                 });
 
             $posts = Post::query()
+                ->select(['id', 'title', 'slug', 'category', 'published_at'])
                 ->where('is_published', true)
                 ->where(function ($q) use ($like): void {
                     $q->where('title', 'like', $like)

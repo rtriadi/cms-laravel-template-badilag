@@ -67,6 +67,7 @@ class PublicComplianceController extends Controller
         $satker = SatkerSetting::current();
 
         $pages = Page::query()
+            ->select(['id', 'title', 'slug', 'criteria_code'])
             ->where('is_published', true)
             ->orderBy('slug')
             ->get()
@@ -79,6 +80,7 @@ class PublicComplianceController extends Controller
             });
 
         $posts = Post::query()
+            ->select(['id', 'title', 'slug', 'published_at'])
             ->where('is_published', true)
             ->orderByDesc('published_at')
             ->limit(40)

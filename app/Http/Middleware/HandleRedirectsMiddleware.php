@@ -20,12 +20,13 @@ class HandleRedirectsMiddleware
             $path = '/'.ltrim($request->path(), '/');
 
             if ($path !== '/') {
-                $redirect = Redirect::query()->where('from_path', $path)->first();
+                $map = Redirect::cachedMap();
+                $matched = $map[$path] ?? null;
 
-                if ($redirect !== null) {
-                    $redirect->increment('hits');
+                if ($matched !== null) {
+                    Redirect::query()->whereKey($matched['id'])->increment('hits');
 
-                    return redirect()->to($redirect->to_path, $redirect->status_code);
+                    return redirect()->to($matched['to_path'], $matched['status_code']);
                 }
             }
         }

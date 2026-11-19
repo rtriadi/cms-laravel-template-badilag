@@ -39,6 +39,7 @@ class PublicHomeController extends Controller
             });
 
         $sertaMerta = Post::query()
+            ->select(['id', 'title', 'slug', 'category', 'is_pinned', 'published_at', 'created_at'])
             ->where('is_published', true)
             ->where('category', 'serta_merta')
             ->where(function ($q): void {
@@ -50,6 +51,7 @@ class PublicHomeController extends Controller
             ->get();
 
         $latestNews = Post::query()
+            ->select(['id', 'title', 'slug', 'category', 'excerpt', 'featured_image_path', 'featured_image_alt', 'is_pinned', 'published_at', 'created_at'])
             ->where('is_published', true)
             ->whereIn('category', ['berita', 'layanan_hukum', 'inovasi', 'opini', 'infografis'])
             ->orderByDesc('is_pinned')
@@ -59,6 +61,7 @@ class PublicHomeController extends Controller
             ->get();
 
         $announcements = Post::query()
+            ->select(['id', 'title', 'slug', 'category', 'is_pinned', 'published_at', 'created_at'])
             ->where('is_published', true)
             ->where('category', 'pengumuman')
             ->orderByDesc('is_pinned')
@@ -68,6 +71,7 @@ class PublicHomeController extends Controller
             ->get();
 
         $transparencyPages = Page::query()
+            ->select(['id', 'title', 'slug', 'criteria_code'])
             ->where('is_published', true)
             ->where('slug', 'like', 'transparansi/%')
             ->whereIn('tingkat_scope', ['all', $activeTingkat])
@@ -83,6 +87,7 @@ class PublicHomeController extends Controller
             });
 
         $servicePages = Page::query()
+            ->select(['id', 'title', 'slug', 'criteria_code'])
             ->where('is_published', true)
             ->where('slug', 'like', 'layanan-hukum/%')
             ->whereIn('tingkat_scope', ['all', $activeTingkat])
@@ -97,15 +102,7 @@ class PublicHomeController extends Controller
                 return $page;
             });
 
-        $customShortcuts = MenuItem::query()
-            ->with('page')
-            ->where('location', 'shortcut')
-            ->whereNull('parent_id')
-            ->where('is_visible', true)
-            ->whereIn('tingkat_scope', ['all', $activeTingkat])
-            ->orderBy('sort_order')
-            ->limit(8)
-            ->get();
+        $customShortcuts = MenuItem::cachedPublicMenus($activeTingkat)['shortcut'];
 
         $shortcuts = $customShortcuts->isNotEmpty()
             ? $customShortcuts->map(fn (MenuItem $item): array => [

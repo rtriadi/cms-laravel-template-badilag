@@ -24,17 +24,26 @@ class TrackPageVisitMiddleware
         }
 
         try {
-            $path = '/'.ltrim($request->path(), '/');
-            $visit = PageVisit::query()->firstOrCreate(
-                [
-                    'visit_date' => now()->toDateString(),
-                    'path' => substr($path, 0, 255),
-                ],
-                [
-                    'visits_count' => 0,
-                ],
-            );
-            $visit->increment('visits_count');
+            $today = now()->toDateString();
+            $cleanPath = substr('/'.ltrim($request->path(), '/'), 0, 255);
+
+            $updated = PageVisit::query()
+                ->where('visit_date', $today)
+                ->where('path', $cleanPath)
+                ->increment('visits_count');
+
+            if ($updated === 0) {
+                $visit = PageVisit::query()->firstOrCreate(
+                    [
+                        'visit_date' => $today,
+                        'path' => $cleanPath,
+                    ],
+                    [
+                        'visits_count' => 0,
+                    ],
+                );
+                $visit->increment('visits_count');
+            }
         } catch (Throwable) {
             // Never block public portal rendering if visit tracking fails
         }
