@@ -73,7 +73,7 @@ return [
     |
     */
 
-    'home' => '/home',
+    'home' => '/'.env('ADMIN_PATH', 'panel-admin'),
 
     /*
     |--------------------------------------------------------------------------
@@ -86,7 +86,7 @@ return [
     |
     */
 
-    'prefix' => '',
+    'prefix' => env('ADMIN_PATH', 'panel-admin'),
 
     'domain' => null,
 
@@ -162,7 +162,7 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // Features::registration(),
         Features::resetPasswords(),
         // Features::emailVerification(),
         Features::updateProfileInformation(),
@@ -171,9 +171,6 @@ return [
             'confirm' => true,
             'confirmPassword' => true,
             // 'window' => 0,
-        ]),
-        Features::passkeys([
-            'confirmPassword' => true,
         ]),
     ],
 

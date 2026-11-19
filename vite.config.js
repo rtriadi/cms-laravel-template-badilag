@@ -9,8 +9,17 @@ export default defineConfig({
             input: ['resources/css/app.css', 'resources/js/app.js'],
             refresh: true,
             fonts: [
-                bunny('Instrument Sans', {
+                bunny('Source Serif 4', {
+                    weights: [600, 700],
+                    optimizedFallbacks: false,
+                }),
+                bunny('Plus Jakarta Sans', {
+                    weights: [400, 500, 600, 700],
+                    optimizedFallbacks: false,
+                }),
+                bunny('IBM Plex Mono', {
                     weights: [400, 500, 600],
+                    optimizedFallbacks: false,
                 }),
             ],
         }),

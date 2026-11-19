@@ -1,9 +1,136 @@
 @import 'tailwindcss';
+@import '../../vendor/livewire/flux/dist/flux.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
+@source '../../vendor/livewire/flux/stubs/**/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+
+    --color-primary: #056e4f;
+    --color-primary-deep: #033d2c;
+    --color-primary-hover: #04543c;
+    --color-primary-soft: #f0f7f4;
+    --color-gold: #ff9900;
+    --color-mist: #f8faf9;
+    --color-hairline: #d8e2dd;
+    --color-ink: #111827;
+    --color-ink-body: #374151;
+    --color-ink-muted: #52525b;
+
+    --color-accent: #056e4f;
+    --color-accent-content: #056e4f;
+    --color-accent-foreground: #ffffff;
+}
+
+@layer base {
+    a[href],
+    button:not(:disabled),
+    summary,
+    select:not(:disabled),
+    label[for],
+    label:has(> input[type='checkbox']:not(:disabled)),
+    label:has(> input[type='radio']:not(:disabled)),
+    input[type='checkbox']:not(:disabled),
+    input[type='radio']:not(:disabled),
+    [role='button']:not([aria-disabled='true']),
+    [role='tab']:not([aria-disabled='true']),
+    [role='switch']:not([aria-disabled='true']) {
+        cursor: pointer;
+    }
+
+    button:disabled,
+    input:disabled,
+    select:disabled,
+    textarea:disabled,
+    [aria-disabled='true'] {
+        cursor: not-allowed;
+    }
+
+    :focus-visible {
+        outline: 2px solid #056e4f;
+        outline-offset: 2px;
+    }
+}
+
+/* Public Accessibility Widget Modes */
+html.a11y-hc,
+html.a11y-hc body {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+html.a11y-hc header,
+html.a11y-hc nav,
+html.a11y-hc main,
+html.a11y-hc section,
+html.a11y-hc article,
+html.a11y-hc aside,
+html.a11y-hc footer,
+html.a11y-hc div,
+html.a11y-hc table,
+html.a11y-hc th,
+html.a11y-hc td,
+html.a11y-hc input,
+html.a11y-hc select,
+html.a11y-hc textarea {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #ffff00 !important;
+}
+
+html.a11y-hc a,
+html.a11y-hc button,
+html.a11y-hc [role='button'] {
+    background-color: #000000 !important;
+    color: #ffff00 !important;
+    border: 1px solid #ffff00 !important;
+}
+
+html.a11y-hc :focus-visible {
+    outline: 3px solid #ffff00 !important;
+    outline-offset: 2px;
+}
+
+html.a11y-dyslexia body {
+    font-family: var(--font-sans) !important;
+    letter-spacing: 0.04em;
+    word-spacing: 0.12em;
+    line-height: 1.75;
+}
+
+html.a11y-highlight-links a {
+    text-decoration: underline !important;
+    text-decoration-thickness: 2px !important;
+    text-underline-offset: 3px !important;
+    background-color: #fef08a !important;
+    color: #111827 !important;
+}
+
+html.a11y-no-motion *,
+html.a11y-no-motion *::before,
+html.a11y-no-motion *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
 }

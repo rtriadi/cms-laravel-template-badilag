@@ -104,3 +104,4 @@ Sesuai SK Dirjen Badilag Bab III.B.1, warna utama (`#056E4F`) dan sekunder (`#FF
 3. **Halaman `03 · Admin Panel (Flux UI)`:**
    - **Admin Shell & Link SINOVA (1440px):** Sidebar terkelompok dengan penanda aktif jelas, ringkasan kesiapan tautan nyata (bukan kartu metrik palsu), akordion seluruh kode kriteria SINOVA (`1.a.1` hingga `3.c`), dan baris tabel berisi URL auto/override, status kesehatan, tombol Salin URL, dan tombol Buka.
    - **Login Admin 2FA & Setup Wizard (1440px):** Alur masuk wajib captcha lokal + verifikasi TOTP 6 digit, serta wizard 4 langkah pengaturan awal satker termasuk penguncian Tingkat Pertama vs Tingkat Banding.
+

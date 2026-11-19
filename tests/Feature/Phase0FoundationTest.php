@@ -9,6 +9,8 @@ use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Role;
 
 it('sets security hardening headers and strips server fingerprint headers', function (): void {
+    SatkerSetting::factory()->setupCompleted()->create();
+
     $response = $this->get('/');
 
     $response->assertOk()
@@ -21,6 +23,8 @@ it('sets security hardening headers and strips server fingerprint headers', func
 });
 
 it('sets strict transport security header on https requests', function (): void {
+    SatkerSetting::factory()->setupCompleted()->create();
+
     $response = $this->get('https://localhost/');
 
     $response->assertOk()

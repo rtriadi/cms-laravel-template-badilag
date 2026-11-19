@@ -24,3 +24,4 @@ CMS website profil siap pakai untuk satuan kerja Pengadilan Agama / Mahkamah Sya
 ## Checkpoints & Workflow
 - **CHECKPOINT FIGMA (WAJIB):** Sebelum memulai implementasi tampilan **halaman website utama (public frontend)**, STOP dan beri tahu Master terlebih dahulu agar Master dapat menyiapkan prototipe di Figma (terhubung via Figma MCP desktop bridge).
 - **Git Workflow:** Gunakan commit kecil dan atomik dengan Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `test:`) per unit pekerjaan yang logis.
+
