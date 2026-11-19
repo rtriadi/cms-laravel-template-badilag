@@ -44,13 +44,24 @@ class EditorMediaUploadController extends Controller
         $originalName = $uploaded->getClientOriginalName();
         $extension = strtolower($uploaded->getClientOriginalExtension());
         $isPdf = $extension === 'pdf' || $uploaded->getMimeType() === 'application/pdf';
+        $uploadedAt = now()->format('d M Y, H:i');
+
+        activity('document')
+            ->causedBy($user)
+            ->withProperties([
+                'name' => $originalName,
+                'url' => $url,
+                'is_pdf' => $isPdf,
+                'uploaded_at' => $uploadedAt,
+            ])
+            ->log('Mengunggah berkas media pada editor konten');
 
         return response()->json([
             'location' => $url,
             'url' => $url,
             'name' => $originalName,
             'is_pdf' => $isPdf,
+            'uploaded_at' => $uploadedAt,
         ]);
     }
 }
-

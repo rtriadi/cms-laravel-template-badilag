@@ -44,7 +44,7 @@ class Document extends Model
     {
         return LogOptions::defaults()
             ->useLogName('document')
-            ->logOnly(['collection_type', 'title', 'year', 'month', 'is_published'])
+            ->logOnly(['collection_type', 'title', 'year', 'month', 'status_label', 'file_path', 'external_url', 'is_published'])
             ->logOnlyDirty()
             ->dontLogEmptyChanges();
     }
@@ -72,20 +72,25 @@ class Document extends Model
             'laporan_tahunan' => 'Laporan Pelaksanaan Kegiatan / Tahunan',
             'dipa' => 'DIPA / RPD / Realisasi',
             'lra' => 'Laporan Realisasi Anggaran (LRA)',
-            'calk' => 'Catatan Atas Laporan Keuangan (CALK)',
-            'pbj' => 'Rencana Umum Pengadaan (PBJ)',
-            'lhkpn' => 'LHKPN Pejabat',
+            'calk' => 'Catatan Atas Laporan Keuangan (CALK) & Neraca',
+            'aset_bmn' => 'Ringkasan Daftar Aset dan Inventaris (BMN)',
+            'pbj' => 'Rencana Umum Pengadaan Barang & Jasa (PBJ)',
+            'lhkpn' => 'LHKPN / LHKASN Pejabat & Aparatur',
             'biaya_perkara' => 'Laporan Penggunaan Biaya Perkara',
             'sisa_panjar' => 'Pengembalian Sisa Panjar Perkara',
             'panggilan_ghaib' => 'Panggilan Ghaib (+ Relaas)',
-            'prodeo_posbakum' => 'Layanan Prodeo, Posbakum & Sidang Keliling (SK / Brosur / Formulir)',
+            'prodeo_posbakum' => 'Layanan Prodeo, Posbakum & Sidang Keliling (SK / SPK / Jadwal Piket / Laporan)',
             'biaya_radius' => 'SK Panjar Biaya Perkara & Radius Panggilan',
-            'prosedur_sop' => 'SOP & Panduan Prosedur Berperkara',
-            'standar_pelayanan' => 'SK Standar Pelayanan, Maklumat & Layanan Disabilitas',
-            'akses_informasi' => 'Laporan Akses Informasi (PPID)',
-            'rekap_pengaduan' => 'Laporan Rekapitulasi Pengaduan',
+            'prosedur_sop' => 'SOP Kepaniteraan, PTSP & Panduan Prosedur Berperkara',
+            'standar_pelayanan' => 'SK Standar Pelayanan PTSP, Maklumat & SOP Layanan Disabilitas',
+            'akses_informasi' => 'Laporan Layanan Akses Informasi Publik (PPID)',
+            'dip_ppid' => 'SK PPID, Daftar Informasi Publik (DIP), Informasi Dikecualikan & 7 SOP PPID',
+            'biaya_informasi' => 'SK Standar Biaya Perolehan Informasi & Formulir Permohonan/Keberatan PPID',
+            'rekap_pengaduan' => 'Laporan Rekapitulasi Pengaduan Masyarakat',
             'hukuman_disiplin' => 'Hukuman Disiplin Hasil Pengawasan',
-            'survei' => 'Laporan Survei SKM / SPAK / SPKP',
+            'survei' => 'Laporan Survei SKM / SPAK / SPKP (SI SURTI)',
+            'regulasi_sk' => 'Peraturan, Kebijakan, SK Tim Pengelola Website/Medsos, SK Meja e-Court & Pengaduan',
+            'sop_evakuasi' => 'SOP Peringatan Dini & Prosedur Evakuasi Keadaan Darurat',
         ];
     }
 }

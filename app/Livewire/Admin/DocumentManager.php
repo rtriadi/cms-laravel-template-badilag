@@ -120,6 +120,7 @@ class DocumentManager extends Component
 
         if ($existing !== null) {
             $existing->update($data);
+            $existing->touch();
             $this->statusNotice = 'Dokumen berhasil diperbarui.';
         } else {
             Document::query()->create($data);

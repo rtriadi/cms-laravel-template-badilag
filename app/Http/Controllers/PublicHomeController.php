@@ -141,6 +141,11 @@ class PublicHomeController extends Controller
                     'url' => route('public.page', ['slug' => 'layanan-publik/pengaduan-siwas']),
                     'tag' => 'Pengawasan',
                 ],
+                [
+                    'label' => 'Survei Kepuasan (SKM, SPAK & SPKP)',
+                    'url' => route('public.page', ['slug' => 'layanan-publik/survei-pelayanan']),
+                    'tag' => 'SI SURTI',
+                ],
             ];
 
         return view('public.home', [

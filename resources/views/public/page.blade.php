@@ -25,6 +25,13 @@
                 @if ($page->summary)
                     <p class="mt-2 text-sm leading-relaxed text-ink-body">{{ $page->summary }}</p>
                 @endif
+
+                <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] text-ink-muted">
+                    <span>Diunggah: {{ ($page->published_at ?? $page->created_at)?->format('d M Y, H:i') ?? '-' }}</span>
+                    @if ($page->updated_at)
+                        <span>Terakhir diperbarui: {{ $page->updated_at->format('d M Y, H:i') }}</span>
+                    @endif
+                </div>
             </header>
 
             <div class="mt-6 space-y-8">

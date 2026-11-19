@@ -200,9 +200,10 @@
                         const data = await this.uploadFileToServer(file);
                         const safeName = this.escapeHtml(data.name || file.name);
                         const safeUrl = this.escapeHtml(data.location);
+                        const safeDate = this.escapeHtml(data.uploaded_at || '');
 
                         const html = (type === 'pdf' || data.is_pdf)
-                            ? `<p><a href="${safeUrl}" target="_blank" rel="noopener noreferrer"><strong>Unduh Dokumen PDF:</strong> ${safeName}</a></p>`
+                            ? `<p><a href="${safeUrl}" target="_blank" rel="noopener noreferrer"><strong>Unduh Dokumen PDF:</strong> ${safeName}</a>${safeDate ? ` <span class="text-xs text-ink-muted">(Diunggah: ${safeDate})</span>` : ''}</p>`
                             : `<p><img src="${safeUrl}" alt="${safeName}" /></p>`;
 
                         if (this.editorInstance) {

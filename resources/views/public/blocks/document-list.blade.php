@@ -65,6 +65,12 @@
                         @endif
                     </div>
                     <p class="mt-1 text-sm font-semibold text-ink">{{ $doc->title }}</p>
+                    <p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-[11px] text-ink-muted">
+                        <span>Diunggah: {{ $doc->created_at?->format('d M Y, H:i') ?? '-' }}</span>
+                        @if ($doc->updated_at && $doc->created_at && $doc->updated_at->gt($doc->created_at))
+                            <span>Diperbarui: {{ $doc->updated_at->format('d M Y, H:i') }}</span>
+                        @endif
+                    </p>
                     @if (is_array($doc->metadata) && $doc->metadata !== [])
                         <p class="mt-0.5 text-xs text-ink-muted">
                             @foreach ($doc->metadata as $mKey => $mVal)

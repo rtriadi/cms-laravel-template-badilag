@@ -15,8 +15,13 @@
                         {{ $categories[$post->category] ?? $post->category }}
                     </span>
                     <span class="font-mono text-ink-muted">
-                        {{ $post->published_at?->format('d M Y') ?? $post->created_at?->format('d M Y') }}
+                        Diunggah: {{ ($post->published_at ?? $post->created_at)?->format('d M Y, H:i') }}
                     </span>
+                    @if ($post->updated_at && $post->created_at && $post->updated_at->gt($post->created_at))
+                        <span class="font-mono text-ink-muted">
+                            · Diperbarui: {{ $post->updated_at->format('d M Y, H:i') }}
+                        </span>
+                    @endif
                 </div>
                 @auth
                     <a

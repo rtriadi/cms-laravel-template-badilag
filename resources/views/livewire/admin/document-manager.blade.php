@@ -124,6 +124,12 @@
                                     @endif
                                 </div>
                                 <p class="mt-1 truncate text-sm font-semibold text-ink">{{ $doc->title }}</p>
+                                <p class="mt-0.5 font-mono text-[11px] text-ink-muted">
+                                    Diunggah: {{ $doc->created_at?->format('d M Y, H:i') ?? '-' }}
+                                    @if ($doc->updated_at && $doc->created_at && $doc->updated_at->gt($doc->created_at))
+                                        · Diedit: {{ $doc->updated_at->format('d M Y, H:i') }}
+                                    @endif
+                                </p>
                                 @if ($doc->external_url)
                                     <p class="truncate font-mono text-xs text-ink-muted">{{ $doc->external_url }}</p>
                                 @endif

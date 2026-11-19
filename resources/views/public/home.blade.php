@@ -149,6 +149,12 @@
                         </li>
                     @endforeach
                 </ul>
+
+                <div class="mt-4 rounded-lg border border-emerald-200 bg-primary-soft/70 p-3 text-xs">
+                    <p class="font-bold text-primary-deep">Jam Pelayanan Pengadilan (PTSP)</p>
+                    <p class="mt-1 font-mono text-[11px] text-ink-body">Senin - Kamis: 08.00 - 16.30</p>
+                    <p class="font-mono text-[11px] text-ink-body">Jumat: 08.00 - 17.00 (Sabtu - Minggu Libur)</p>
+                </div>
             </aside>
         </section>
 

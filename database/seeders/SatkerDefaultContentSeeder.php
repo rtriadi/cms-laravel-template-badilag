@@ -323,7 +323,17 @@ class SatkerDefaultContentSeeder extends Seeder
             ['slug' => 'transparansi/lhkpn', 'title' => 'Laporan Harta Kekayaan Penyelenggara Negara (LHKPN)', 'criteria_code' => '1.a.3.1', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'lhkpn', 'heading' => 'Daftar Pejabat & Ikhtisar Kekayaan LHKPN (Min. 2 Tahun Terakhir)']]],
             ['slug' => 'transparansi/dipa', 'title' => 'Daftar Isian Pelaksanaan Anggaran (DIPA)', 'criteria_code' => '1.a.3.2', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'dipa', 'heading' => 'DIPA, Rencana Penggunaan Anggaran (RPD), dan Realisasi DIPA']]],
             ['slug' => 'transparansi/lra', 'title' => 'Laporan Realisasi Anggaran (LRA)', 'criteria_code' => '1.a.3.3', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'lra', 'heading' => 'Dokumen Laporan Realisasi Anggaran']]],
-            ['slug' => 'transparansi/calk', 'title' => 'Catatan Atas Laporan Keuangan (CALK)', 'criteria_code' => '1.a.3.4', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'calk', 'heading' => 'Dokumen Catatan Atas Laporan Keuangan']]],
+            [
+                'slug' => 'transparansi/calk',
+                'title' => 'Catatan Atas Laporan Keuangan (CALK) & Daftar Aset BMN',
+                'criteria_code' => '1.a.3.4',
+                'category_tag' => 'berkala',
+                'tingkat_scope' => 'all',
+                'blocks' => [
+                    ['type' => 'document_list', 'collection_type' => 'calk', 'heading' => 'Dokumen Catatan Atas Laporan Keuangan (CALK) & Neraca'],
+                    ['type' => 'document_list', 'collection_type' => 'aset_bmn', 'heading' => 'Ringkasan Daftar Aset dan Inventaris (BMN)'],
+                ],
+            ],
             ['slug' => 'transparansi/pengadaan-barang-jasa', 'title' => 'Rencana Umum Pengadaan Barang dan Jasa (PBJ)', 'criteria_code' => '1.a.3.5', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'pbj', 'heading' => 'Rencana Umum Pengadaan Barang dan Jasa']]],
             ['slug' => 'transparansi/renstra', 'title' => 'Rencana Strategis (Renstra)', 'criteria_code' => '1.a.3.6', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'renstra', 'heading' => 'Rancangan, Dokumen Utama, dan Reviu Renstra']]],
             ['slug' => 'transparansi/rkt', 'title' => 'Rencana Kinerja Tahunan (RKT)', 'criteria_code' => '1.a.3.7', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'rkt', 'heading' => 'Dokumen Rencana Kinerja Tahunan']]],
@@ -332,7 +342,28 @@ class SatkerDefaultContentSeeder extends Seeder
             ['slug' => 'transparansi/iku', 'title' => 'Indikator Kinerja Utama (IKU) dan Reviu IKU', 'criteria_code' => '1.a.3.10', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'iku', 'heading' => 'Dokumen IKU dan Reviu IKU']]],
             ['slug' => 'transparansi/lkjip', 'title' => 'Laporan Kinerja Instansi Pemerintah (LKjIP)', 'criteria_code' => '1.a.3.11', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'lkjip', 'heading' => 'Dokumen LKjIP']]],
             // Layanan Publik & Pengaduan
-            ['slug' => 'layanan-publik/laporan-akses-informasi', 'title' => 'Laporan Akses Informasi Publik (PPID)', 'criteria_code' => '1.a.4.1.1', 'category_tag' => 'setiap_saat', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'akses_informasi', 'heading' => 'Laporan Tahunan dan Berkala Layanan PPID']]],
+            [
+                'slug' => 'layanan-publik/laporan-akses-informasi',
+                'title' => 'Layanan Informasi Publik (PPID), DIP, SOP & Laporan Akses',
+                'criteria_code' => '1.a.4.1.1',
+                'category_tag' => 'setiap_saat',
+                'tingkat_scope' => 'all',
+                'blocks' => [
+                    [
+                        'type' => 'richtext',
+                        'heading' => '1. Tata Cara Memperoleh Informasi, Pengajuan Keberatan & Hak Pemohon',
+                        'content' => '<p>Layanan Informasi Publik pada {{satker.nama}} diselenggarakan oleh Pejabat Pengelola Informasi dan Dokumentasi (PPID) melalui Meja Informasi PTSP maupun secara elektronik sesuai SK KMA Nomor 2-144/KMA/SK/VIII/2022.</p><h3>Hak Pemohon Informasi</h3><ul><li>Setiap orang berhak memperoleh Informasi Publik yang terbuka dan akurat dari Pengadilan.</li><li>Pemohon berhak mengajukan keberatan secara tertulis kepada Atasan PPID apabila permohonan informasi ditolak, tidak ditanggapi, atau dikenakan biaya yang tidak wajar.</li></ul><h3>Standar Biaya Perolehan Salinan Informasi</h3><p>Pelayanan permintaan informasi publik pada {{satker.nama}} tidak dipungut biaya (Rp0). Apabila Pemohon meminta penggandaan/salinan fisik dokumen, biaya penggandaan ditetapkan berdasarkan SK Ketua {{satker.nama}} tentang Standar Biaya Perolehan Salinan Informasi.</p>',
+                    ],
+                    [
+                        'type' => 'richtext',
+                        'heading' => '2. Daftar Informasi Publik (DIP), Informasi Dikecualikan & 7 SOP PPID',
+                        'content' => '<p>PPID {{satker.nama}} memutakhirkan Daftar Informasi Publik (DIP) paling kurang 2 (dua) kali dalam 1 (satu) tahun, melakukan pengujian konsekuensi terhadap Informasi yang Dikecualikan sesuai Pasal 19 UU Nomor 14 Tahun 2008, serta menerapkan 7 (tujuh) SOP Layanan Informasi Publik:</p><ol><li>SOP Pengumuman Informasi</li><li>SOP Pengelolaan Permohonan Informasi</li><li>SOP Pengelolaan Keberatan atas Informasi</li><li>SOP Penanganan Sengketa Informasi Publik oleh Atasan PPID</li><li>SOP Penetapan dan Pemutakhiran DIP</li><li>SOP Pengujian tentang Konsekuensi</li><li>SOP Pendokumentasian Informasi Publik</li></ol>',
+                    ],
+                    ['type' => 'document_list', 'collection_type' => 'akses_informasi', 'heading' => 'Laporan Tahunan & Berkala Layanan Akses Informasi Publik (PPID)'],
+                    ['type' => 'document_list', 'collection_type' => 'dip_ppid', 'heading' => 'SK PPID, Daftar Informasi Publik (DIP), Informasi Dikecualikan & 7 SOP PPID'],
+                    ['type' => 'document_list', 'collection_type' => 'biaya_informasi', 'heading' => 'SK Standar Biaya Perolehan Salinan Informasi & Formulir Permohonan/Keberatan'],
+                ],
+            ],
             ['slug' => 'layanan-publik/rekapitulasi-pengaduan', 'title' => 'Laporan Rekapitulasi Pengaduan Masyarakat', 'criteria_code' => '1.a.4.2.1', 'category_tag' => 'setiap_saat', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'rekap_pengaduan', 'heading' => 'Rekapitulasi Pengaduan dan Tindak Lanjut (Inisial Pelapor)']]],
             ['slug' => 'layanan-publik/hukuman-disiplin', 'title' => 'Hukuman Disiplin Hasil Pengawasan', 'criteria_code' => '1.a.4.3.1', 'category_tag' => 'setiap_saat', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'hukuman_disiplin', 'heading' => 'Daftar Hukuman Disiplin Hasil Pengawasan']]],
             [
@@ -356,7 +387,9 @@ class SatkerDefaultContentSeeder extends Seeder
                     ['type' => 'richtext', 'heading' => 'Maklumat Pelayanan {{satker.nama}}', 'content' => '<blockquote>Dengan ini, kami pimpinan dan seluruh aparatur {{satker.nama}} menyatakan sanggup menyelenggarakan pelayanan sesuai standar pelayanan yang telah ditetapkan dan apabila tidak menepati janji, kami siap menerima sanksi sesuai peraturan perundang-undangan yang berlaku.</blockquote>'],
                     ['type' => 'richtext', 'heading' => 'Standar Pelayanan Terpadu Satu Pintu (PTSP)', 'content' => '<p>{{satker.nama}} menyelenggarakan pelayanan administrasi peradilan secara terintegrasi melalui meja PTSP dengan kepastian persyaratan, prosedur, jangka waktu penyelesaian, dan biaya yang transparan.</p>'],
                     ['type' => 'richtext', 'heading' => 'Layanan Kelompok Rentan & Disabilitas', 'content' => '<p>{{satker.nama}} menyediakan fasilitas kursi roda, jalur pemandu (guiding block), ruang tunggu ramah anak dan ibu menyusui, toilet khusus disabilitas, antrean prioritas, serta pendampingan petugas bagi pencari keadilan berkebutuhan khusus.</p>'],
-                    ['type' => 'document_list', 'collection_type' => 'standar_pelayanan', 'heading' => 'Dokumen SK Standar Pelayanan, Maklumat & Layanan Disabilitas'],
+                    ['type' => 'richtext', 'heading' => 'Prosedur Peringatan Dini & Evakuasi Keadaan Darurat', 'content' => '<p>Apabila terjadi keadaan darurat (kebakaran, gempa bumi, atau gangguan keamanan) di lingkungan kantor {{satker.nama}}, pengunjung dan aparatur wajib mengikuti arahan petugas keamanan menuju jalur evakuasi dan Titik Kumpul darurat yang tersedia di halaman kantor pengadilan.</p>'],
+                    ['type' => 'document_list', 'collection_type' => 'standar_pelayanan', 'heading' => 'Dokumen SK Standar Pelayanan, Maklumat & SOP Layanan Disabilitas'],
+                    ['type' => 'document_list', 'collection_type' => 'sop_evakuasi', 'heading' => 'Dokumen SOP Peringatan Dini & Prosedur Evakuasi Keadaan Darurat'],
                 ],
             ],
             // Pendukung
@@ -383,9 +416,14 @@ class SatkerDefaultContentSeeder extends Seeder
                         'content' => '<p>{{satker.nama}} menyelenggarakan persidangan di luar gedung pengadilan (Sidang Keliling) pada kecamatan atau lokasi yang telah dijadwalkan untuk membantu masyarakat pencari keadilan yang mengalami hambatan biaya, jarak tempuh, atau kondisi fisik menuju kantor pengadilan.</p>',
                     ],
                     [
+                        'type' => 'richtext',
+                        'heading' => '4. Hak-Hak Pokok Para Pihak dalam Proses Persidangan',
+                        'content' => '<ul><li>Hak diperlakukan sama di hadapan hukum tanpa diskriminasi.</li><li>Hak memperoleh bantuan hukum atau pendampingan advokat/Posbakum.</li><li>Hak mengajukan jawab-jinawab, alat bukti surat, saksi, maupun ahli di persidangan.</li><li>Hak memperoleh salinan putusan/penetapan dan Akta Cerai secara sah, serta hak mengajukan upaya hukum (Banding, Kasasi, Peninjauan Kembali) sesuai tenggang waktu undang-undang.</li></ul>',
+                    ],
+                    [
                         'type' => 'document_list',
                         'collection_type' => 'prodeo_posbakum',
-                        'heading' => 'Dokumen, SK, Brosur, dan Formulir Layanan Prodeo & Posbakum',
+                        'heading' => 'Dokumen, SK, SPK, Jadwal Piket, dan Laporan Layanan Prodeo & Posbakum',
                     ],
                     [
                         'type' => 'article_list',
@@ -394,7 +432,32 @@ class SatkerDefaultContentSeeder extends Seeder
                     ],
                 ],
             ],
-            ['slug' => 'layanan-publik/pengaduan-siwas', 'title' => 'Prosedur Pengaduan & SIWAS MARI', 'criteria_code' => null, 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'external_portal', 'heading' => 'Sistem Informasi Pengawasan Mahkamah Agung (SIWAS)', 'url_source' => 'siwas_url', 'default_url' => 'https://siwas.mahkamahagung.go.id', 'description' => 'Sampaikan pengaduan dugaan pelanggaran perilaku aparatur pengadilan secara rahasia melalui SIWAS MARI.']]],
+            [
+                'slug' => 'layanan-publik/pengaduan-siwas',
+                'title' => 'Prosedur Pengaduan, Hak Pelapor & SIWAS MARI',
+                'criteria_code' => null,
+                'category_tag' => 'berkala',
+                'tingkat_scope' => 'all',
+                'blocks' => [
+                    [
+                        'type' => 'external_portal',
+                        'heading' => 'Sistem Informasi Pengawasan Mahkamah Agung (SIWAS)',
+                        'url_source' => 'siwas_url',
+                        'default_url' => 'https://siwas.mahkamahagung.go.id',
+                        'description' => 'Sampaikan pengaduan dugaan pelanggaran perilaku hakim atau aparatur pengadilan secara daring melalui aplikasi resmi SIWAS Mahkamah Agung RI.',
+                    ],
+                    [
+                        'type' => 'richtext',
+                        'heading' => 'Tata Cara Pengaduan (Manual & Elektronik) serta Hak-Hak Pelapor',
+                        'content' => '<h3>1. Saluran Pengaduan</h3><ul><li><strong>Secara Elektronik:</strong> Melalui aplikasi <a href="https://siwas.mahkamahagung.go.id" target="_blank" rel="noopener noreferrer">SIWAS Mahkamah Agung RI</a> atau kanal pengaduan resmi {{satker.nama}}.</li><li><strong>Secara Manual / Langsung:</strong> Disampaikan secara tertulis maupun lisan melalui Meja Pengaduan pada PTSP {{satker.nama}} atau dimasukkan ke dalam Kotak Pengaduan resmi.</li></ul><h3>2. Hak-Hak Pelapor</h3><ul><li>Mendapatkan perlindungan kerahasiaan identitas (nama pelapor disamarkan dengan inisial pada rekapitulasi publik).</li><li>Mendapatkan nomor register pengaduan dan informasi perkembangan/status penanganan pengaduan secara transparan.</li><li>Bebas dari segala bentuk intimidasi atau perlakuan diskriminatif atas laporan yang disampaikan dengan iktikad baik.</li></ul>',
+                    ],
+                    [
+                        'type' => 'document_list',
+                        'collection_type' => 'regulasi_sk',
+                        'heading' => 'SK Petugas Meja Pengaduan, SOP Pengaduan, SK Tim Pengelola Website/Medsos & SK Meja e-Court',
+                    ],
+                ],
+            ],
         ];
 
         $pages = [];

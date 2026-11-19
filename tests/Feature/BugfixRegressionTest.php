@@ -11,6 +11,7 @@ use App\Models\CaseStatistic;
 use App\Models\CourtSchedule;
 use App\Models\CriteriaGroup;
 use App\Models\CriteriaItem;
+use App\Models\Document;
 use App\Models\LinkCheckLog;
 use App\Models\MenuItem;
 use App\Models\Official;
@@ -380,4 +381,37 @@ it('resolves SIPP list_jadwal_sidang and 7 SIMTEPA share categories automaticall
         ->assertSee('https://simtepa.mahkamahagung.go.id/share/profil_kesekretariatan/html/a87bd82962cda7f528247a68ee4ac2a5')
         ->assertSee('https://simtepa.mahkamahagung.go.id/share/profil_fungsional/html/a87bd82962cda7f528247a68ee4ac2a5')
         ->assertSee('https://simtepa.mahkamahagung.go.id/share/profil_pelaksana/html/a87bd82962cda7f528247a68ee4ac2a5');
+});
+
+it('displays document upload and edit timestamps publicly and covers Pedoman Pengawasan website requirements', function (): void {
+    SatkerSetting::factory()->setupCompleted()->create([
+        'nama_satker' => 'Pengadilan Agama Gorontalo',
+    ]);
+    app(SatkerDefaultContentSeeder::class)->run('pertama');
+
+    $doc = Document::factory()->create([
+        'collection_type' => 'lkjip',
+        'title' => 'Dokumen LKjIP Uji Timestamp',
+        'year' => 2026,
+        'is_published' => true,
+        'created_at' => now()->subDay(),
+        'updated_at' => now(),
+    ]);
+
+    $this->get('/halaman/transparansi/lkjip')
+        ->assertOk()
+        ->assertSee('Dokumen LKjIP Uji Timestamp')
+        ->assertSee('Diunggah: '.$doc->created_at->format('d M Y, H:i'))
+        ->assertSee('Diperbarui: '.$doc->updated_at->format('d M Y, H:i'));
+
+    $this->get('/')
+        ->assertOk()
+        ->assertSee('Jam Pelayanan Pengadilan (PTSP)')
+        ->assertSee('Mahkamah Agung Republik Indonesia')
+        ->assertSee('Direktorat Jenderal Badilag MARI');
+
+    $this->get('/halaman/layanan-publik/laporan-akses-informasi')
+        ->assertOk()
+        ->assertSee('SOP Pengujian tentang Konsekuensi')
+        ->assertSee('Standar Biaya Perolehan Salinan Informasi');
 });

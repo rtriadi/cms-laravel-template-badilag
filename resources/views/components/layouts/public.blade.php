@@ -304,6 +304,7 @@
                     @if ($satker?->email)
                         <div><dt class="inline font-semibold">Surel:</dt> <dd class="inline">{{ $satker->email }}</dd></div>
                     @endif
+                    <div><dt class="inline font-semibold">Jam Kerja:</dt> <dd class="inline">Senin - Kamis 08.00-16.30 | Jumat 08.00-17.00</dd></div>
                 </dl>
             </div>
 
@@ -330,8 +331,18 @@
             </div>
 
             <div>
-                <h2 class="font-serif text-base font-bold text-white">Portal Layanan Nasional</h2>
+                <h2 class="font-serif text-base font-bold text-white">Portal Layanan Nasional &amp; MARI</h2>
                 <ul class="mt-3 space-y-2 text-xs text-emerald-100">
+                    <li>
+                        <a href="https://www.mahkamahagung.go.id" target="_blank" rel="noopener noreferrer" class="hover:underline">
+                            Mahkamah Agung Republik Indonesia
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://badilag.mahkamahagung.go.id" target="_blank" rel="noopener noreferrer" class="hover:underline">
+                            Direktorat Jenderal Badilag MARI
+                        </a>
+                    </li>
                     <li>
                         <a href="{{ $satker?->sipp_url ?: 'https://sipp.mahkamahagung.go.id' }}" target="_blank" rel="noopener noreferrer" class="hover:underline">
                             Penelusuran Perkara (SIPP)
@@ -350,6 +361,11 @@
                     <li>
                         <a href="{{ $satker?->siwas_url ?: 'https://siwas.mahkamahagung.go.id' }}" target="_blank" rel="noopener noreferrer" class="hover:underline">
                             Pengawasan &amp; Pengaduan (SIWAS MARI)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ $satker?->skm_url ?: route('public.page', ['slug' => 'layanan-publik/survei-pelayanan']) }}" @if($satker?->skm_url) target="_blank" rel="noopener noreferrer" @endif class="hover:underline">
+                            Survei Kepuasan &amp; Anti Korupsi (SI SURTI / SKM &amp; SPAK)
                         </a>
                     </li>
                 </ul>
