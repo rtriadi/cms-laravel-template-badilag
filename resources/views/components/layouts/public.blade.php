@@ -472,6 +472,25 @@
                     }
                 }
             });
+
+            const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const revealItems = Array.from(document.querySelectorAll('.pub-reveal'));
+
+            if (!prefersReducedMotion && !document.documentElement.classList.contains('a11y-no-motion') && 'IntersectionObserver' in window && revealItems.length > 0) {
+                document.documentElement.classList.add('pub-motion-ready');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('is-visible');
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { rootMargin: '0px 0px -32px 0px', threshold: 0.05 });
+
+                revealItems.forEach((el) => observer.observe(el));
+            } else {
+                revealItems.forEach((el) => el.classList.add('is-visible'));
+            }
         })();
     </script>
 </body>

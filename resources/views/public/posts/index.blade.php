@@ -37,15 +37,18 @@
         @else
             <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($posts as $post)
-                    <article class="flex flex-col rounded-xl border border-hairline bg-white p-5">
+                    <article class="pub-card pub-reveal flex flex-col rounded-xl border border-hairline bg-white p-5" style="--stagger-delay: {{ min(240, $loop->index * 40) }}ms">
                         @if ($post->featured_image_path)
-                            <img
-                                src="{{ asset('storage/' . $post->featured_image_path) }}"
-                                alt="{{ $post->featured_image_alt ?: $post->title }}"
-                                width="400"
-                                height="220"
-                                class="mb-4 h-44 w-full rounded-lg object-cover"
-                            />
+                            <div class="mb-4 overflow-hidden rounded-lg">
+                                <img
+                                    src="{{ asset('storage/' . $post->featured_image_path) }}"
+                                    alt="{{ $post->featured_image_alt ?: $post->title }}"
+                                    width="400"
+                                    height="220"
+                                    loading="lazy"
+                                    class="pub-img-zoom h-44 w-full object-cover"
+                                />
+                            </div>
                         @endif
                         <span class="w-fit rounded bg-primary-soft px-2.5 py-0.5 text-[11px] font-semibold text-primary">
                             {{ $categories[$post->category] ?? $post->category }}

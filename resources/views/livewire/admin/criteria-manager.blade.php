@@ -29,8 +29,8 @@
     </div>
 
     @if ($tab === 'items')
-        <div class="grid gap-6 lg:grid-cols-12">
-            <div class="rounded-lg border border-hairline bg-white p-5 lg:col-span-5">
+        <div class="grid gap-6 xl:grid-cols-12">
+            <div class="rounded-lg border border-hairline bg-white p-5 xl:col-span-6">
                 <div class="flex items-center justify-between border-b border-hairline pb-3">
                     <h2 class="font-serif text-lg font-bold text-ink">
                         {{ $editingItemId ? 'Edit Butir Kriteria' : 'Tambah Butir Kriteria' }}
@@ -113,7 +113,7 @@
                 </form>
             </div>
 
-            <div class="rounded-lg border border-hairline bg-white p-5 lg:col-span-7">
+            <div class="rounded-lg border border-hairline bg-white p-5 xl:col-span-6">
                 <h2 class="border-b border-hairline pb-3 font-serif text-lg font-bold text-ink">Daftar Kelompok & Butir Juknis {{ $activeVersion }}</h2>
                 <div class="mt-4 space-y-5">
                     @forelse ($groups as $grp)

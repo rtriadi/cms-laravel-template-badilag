@@ -25,7 +25,7 @@
     <div class="mx-auto max-w-7xl space-y-10 px-4 py-8 sm:px-6 lg:px-8">
         <!-- Hero 8/4 Grid: Slider (3-5 Slide Tanpa Video) + Direktori Akses Cepat -->
         <section aria-label="Sorotan Utama dan Akses Cepat" class="grid gap-6 lg:grid-cols-12">
-            <div class="lg:col-span-8">
+            <div class="pub-reveal lg:col-span-8" style="--stagger-delay: 0ms">
                 @if ($sliders->isNotEmpty())
                     <div
                         data-hero-slider
@@ -47,6 +47,7 @@
                                             alt="{{ $slide->image_alt }}"
                                             width="860"
                                             height="420"
+                                            @if ($slideIndex === 0) fetchpriority="high" @else loading="lazy" @endif
                                             class="absolute inset-0 h-full w-full object-cover"
                                         />
                                         <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/15" aria-hidden="true"></div>
@@ -70,9 +71,10 @@
                                             <div class="pt-1">
                                                 <a
                                                     href="{{ str_starts_with($slide->cta_url, 'http') ? $slide->cta_url : url($slide->cta_url) }}"
-                                                    class="inline-flex min-h-11 items-center rounded-md bg-gold px-4 py-2 text-xs font-bold text-ink hover:opacity-90"
+                                                    class="pub-btn inline-flex min-h-11 items-center gap-2 rounded-md bg-gold px-4 py-2 text-xs font-bold text-ink hover:opacity-95"
                                                 >
-                                                    {{ $slide->cta_label }}
+                                                    <span>{{ $slide->cta_label }}</span>
+                                                    <span aria-hidden="true">&rarr;</span>
                                                 </a>
                                             </div>
                                         @endif
@@ -87,14 +89,14 @@
                                     <button
                                         type="button"
                                         data-slider-prev
-                                        class="min-h-11 cursor-pointer rounded border border-white/30 px-3 text-xs font-semibold text-white hover:bg-white/10"
+                                        class="pub-btn min-h-11 cursor-pointer rounded border border-white/30 px-3 text-xs font-semibold text-white hover:bg-white/10"
                                     >
                                         Sebelumnya
                                     </button>
                                     <button
                                         type="button"
                                         data-slider-next
-                                        class="min-h-11 cursor-pointer rounded border border-white/30 px-3 text-xs font-semibold text-white hover:bg-white/10"
+                                        class="pub-btn min-h-11 cursor-pointer rounded border border-white/30 px-3 text-xs font-semibold text-white hover:bg-white/10"
                                     >
                                         Berikutnya
                                     </button>
@@ -106,7 +108,7 @@
                                             type="button"
                                             data-slider-dot="{{ $dotIndex }}"
                                             aria-label="Pilih slide {{ $dotIndex + 1 }}"
-                                            class="min-h-11 min-w-11 cursor-pointer rounded-full border border-white/40 px-2 font-mono text-xs font-bold text-white"
+                                            class="pub-btn min-h-11 min-w-11 cursor-pointer rounded-full border border-white/40 px-2 font-mono text-xs font-bold text-white"
                                         >
                                             {{ $dotIndex + 1 }}
                                         </button>
@@ -123,7 +125,7 @@
                 @endif
             </div>
 
-            <aside aria-label="Akses Layanan Cepat" class="rounded-xl border border-hairline bg-white p-5 lg:col-span-4">
+            <aside aria-label="Akses Layanan Cepat" class="pub-reveal rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-5 shadow-2xs lg:col-span-4" style="--stagger-delay: 55ms">
                 <div class="border-b border-hairline pb-3">
                     <h2 class="font-serif text-lg font-bold text-ink">Akses Layanan Cepat</h2>
                     <p class="mt-0.5 text-xs text-ink-muted">Jalur langsung maksimal dua klik menuju informasi inti.</p>
@@ -134,11 +136,14 @@
                         <li>
                             <a
                                 href="{{ $shortcut['url'] }}"
-                                class="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-hairline bg-mist px-3.5 py-2 text-xs font-semibold text-ink hover:border-primary hover:bg-primary-soft hover:text-primary"
+                                class="pub-link-card flex min-h-11 items-center justify-between gap-2 rounded-lg border border-hairline bg-mist px-3.5 py-2 text-xs font-semibold text-ink hover:border-primary hover:bg-primary-soft hover:text-primary"
                             >
                                 <span>{{ $shortcut['label'] }}</span>
-                                <span class="rounded bg-white px-2 py-0.5 font-mono text-[10px] font-medium text-ink-muted">
-                                    {{ $shortcut['tag'] }}
+                                <span class="flex items-center gap-1.5">
+                                    <span class="rounded bg-white px-2 py-0.5 font-mono text-[10px] font-medium text-ink-muted">
+                                        {{ $shortcut['tag'] }}
+                                    </span>
+                                    <span aria-hidden="true" class="pub-chevron text-primary">&rarr;</span>
                                 </span>
                             </a>
                         </li>
@@ -149,7 +154,7 @@
 
         <!-- Berita & Pengumuman Resmi (7/5 Grid) -->
         <section aria-label="Berita dan Pengumuman" class="grid gap-6 lg:grid-cols-12">
-            <div class="rounded-xl border border-hairline bg-white p-6 lg:col-span-7">
+            <div class="pub-reveal rounded-xl border border-hairline bg-white p-6 shadow-2xs lg:col-span-7" style="--stagger-delay: 40ms">
                 <div class="flex items-center justify-between border-b border-hairline pb-3">
                     <h2 class="font-serif text-xl font-bold text-ink">Berita &amp; Inovasi Layanan</h2>
                     <a href="{{ route('public.posts') }}" class="text-xs font-semibold text-primary hover:underline">
@@ -162,15 +167,18 @@
                 @else
                     <div class="mt-4 grid gap-4 sm:grid-cols-2">
                         @foreach ($latestNews as $news)
-                            <article class="flex flex-col rounded-lg border border-hairline bg-mist p-4">
+                            <article class="pub-card flex flex-col rounded-lg border border-hairline bg-mist p-4">
                                 @if ($news->featured_image_path)
-                                    <img
-                                        src="{{ asset('storage/' . $news->featured_image_path) }}"
-                                        alt="{{ $news->featured_image_alt ?: $news->title }}"
-                                        width="360"
-                                        height="200"
-                                        class="mb-3 h-36 w-full rounded object-cover"
-                                    />
+                                    <div class="mb-3 overflow-hidden rounded">
+                                        <img
+                                            src="{{ asset('storage/' . $news->featured_image_path) }}"
+                                            alt="{{ $news->featured_image_alt ?: $news->title }}"
+                                            width="360"
+                                            height="200"
+                                            loading="lazy"
+                                            class="pub-img-zoom h-36 w-full object-cover"
+                                        />
+                                    </div>
                                 @endif
                                 <span class="w-fit rounded bg-primary-soft px-2 py-0.5 text-[11px] font-semibold text-primary">
                                     {{ \App\Models\Post::categoryLabels()[$news->category] ?? $news->category }}
@@ -192,7 +200,7 @@
                 @endif
             </div>
 
-            <div class="rounded-xl border border-hairline bg-white p-6 lg:col-span-5">
+            <div class="pub-reveal rounded-xl border border-hairline bg-white p-6 shadow-2xs lg:col-span-5" style="--stagger-delay: 85ms">
                 <div class="flex items-center justify-between border-b border-hairline pb-3">
                     <h2 class="font-serif text-xl font-bold text-ink">Pengumuman Resmi</h2>
                     <a href="{{ route('public.posts', ['kategori' => 'pengumuman']) }}" class="text-xs font-semibold text-primary hover:underline">
@@ -221,7 +229,7 @@
 
         <!-- Direktori Transparansi & Layanan Hukum (2 Panel) -->
         <section aria-label="Direktori Transparansi dan Layanan Hukum" class="grid gap-6 md:grid-cols-2">
-            <div class="rounded-xl border border-hairline bg-white p-6">
+            <div class="pub-reveal rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-6 shadow-2xs" style="--stagger-delay: 40ms">
                 <h2 class="border-b border-hairline pb-3 font-serif text-xl font-bold text-ink">
                     Transparansi Kinerja &amp; Anggaran (SAKIP)
                 </h2>
@@ -230,9 +238,10 @@
                         <li>
                             <a
                                 href="{{ route('public.page', ['slug' => $tPage->slug]) }}"
-                                class="flex min-h-11 items-center justify-between rounded-md border border-hairline bg-mist px-3.5 py-2 text-xs font-semibold text-ink hover:border-primary hover:bg-primary-soft hover:text-primary"
+                                class="pub-link-card flex min-h-11 items-center justify-between rounded-md border border-hairline bg-mist px-3.5 py-2 text-xs font-semibold text-ink hover:border-primary hover:bg-primary-soft hover:text-primary"
                             >
                                 <span>{{ $tPage->title }}</span>
+                                <span aria-hidden="true" class="pub-chevron text-primary">&rarr;</span>
                             </a>
                         </li>
                     @empty
@@ -241,7 +250,7 @@
                 </ul>
             </div>
 
-            <div class="rounded-xl border border-hairline bg-white p-6">
+            <div class="pub-reveal rounded-xl border border-hairline border-t-4 border-t-gold bg-white p-6 shadow-2xs" style="--stagger-delay: 85ms">
                 <h2 class="border-b border-hairline pb-3 font-serif text-xl font-bold text-ink">
                     Informasi Layanan Hukum &amp; Kepaniteraan
                 </h2>
@@ -250,9 +259,10 @@
                         <li>
                             <a
                                 href="{{ route('public.page', ['slug' => $sPage->slug]) }}"
-                                class="flex min-h-11 items-center justify-between rounded-md border border-hairline bg-mist px-3.5 py-2 text-xs font-semibold text-ink hover:border-primary hover:bg-primary-soft hover:text-primary"
+                                class="pub-link-card flex min-h-11 items-center justify-between rounded-md border border-hairline bg-mist px-3.5 py-2 text-xs font-semibold text-ink hover:border-primary hover:bg-primary-soft hover:text-primary"
                             >
                                 <span>{{ $sPage->title }}</span>
+                                <span aria-hidden="true" class="pub-chevron text-primary">&rarr;</span>
                             </a>
                         </li>
                     @empty
@@ -275,6 +285,7 @@
                 const prevBtn = container.querySelector('[data-slider-prev]');
                 const nextBtn = container.querySelector('[data-slider-next]');
                 let index = 0;
+                let autoTimer = null;
 
                 const showSlide = (nextIdx) => {
                     index = (nextIdx + slides.length) % slides.length;
@@ -287,13 +298,44 @@
                     });
                 };
 
-                prevBtn?.addEventListener('click', () => showSlide(index - 1));
-                nextBtn?.addEventListener('click', () => showSlide(index + 1));
+                const startAuto = () => {
+                    stopAuto();
+                    const reduced = (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+                        || document.documentElement.classList.contains('a11y-no-motion');
+                    if (!reduced && slides.length > 1) {
+                        autoTimer = window.setInterval(() => showSlide(index + 1), 7000);
+                    }
+                };
+
+                const stopAuto = () => {
+                    if (autoTimer) {
+                        window.clearInterval(autoTimer);
+                        autoTimer = null;
+                    }
+                };
+
+                prevBtn?.addEventListener('click', () => {
+                    showSlide(index - 1);
+                    startAuto();
+                });
+                nextBtn?.addEventListener('click', () => {
+                    showSlide(index + 1);
+                    startAuto();
+                });
                 dots.forEach((dot) => {
-                    dot.addEventListener('click', () => showSlide(Number(dot.getAttribute('data-slider-dot'))));
+                    dot.addEventListener('click', () => {
+                        showSlide(Number(dot.getAttribute('data-slider-dot')));
+                        startAuto();
+                    });
                 });
 
+                container.addEventListener('mouseenter', stopAuto);
+                container.addEventListener('mouseleave', startAuto);
+                container.addEventListener('focusin', stopAuto);
+                container.addEventListener('focusout', startAuto);
+
                 showSlide(0);
+                startAuto();
             })();
         </script>
     @endif

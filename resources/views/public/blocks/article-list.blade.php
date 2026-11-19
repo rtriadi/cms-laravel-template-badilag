@@ -25,15 +25,18 @@
     @else
         <div class="grid gap-4 sm:grid-cols-2">
             @foreach ($posts as $article)
-                <article class="flex flex-col rounded-lg border border-hairline bg-mist p-4">
+                <article class="pub-card flex flex-col rounded-lg border border-hairline bg-mist p-4">
                     @if ($article->featured_image_path)
-                        <img
-                            src="{{ asset('storage/' . $article->featured_image_path) }}"
-                            alt="{{ $article->featured_image_alt ?: $article->title }}"
-                            width="400"
-                            height="210"
-                            class="mb-3 h-40 w-full rounded object-cover"
-                        />
+                        <div class="mb-3 overflow-hidden rounded">
+                            <img
+                                src="{{ asset('storage/' . $article->featured_image_path) }}"
+                                alt="{{ $article->featured_image_alt ?: $article->title }}"
+                                width="400"
+                                height="210"
+                                loading="lazy"
+                                class="pub-img-zoom h-40 w-full object-cover"
+                            />
+                        </div>
                     @endif
                     <div class="flex items-center justify-between gap-2 text-[11px]">
                         <span class="rounded bg-primary-soft px-2 py-0.5 font-semibold text-primary">
@@ -71,3 +74,4 @@
         </div>
     @endif
 </div>
+

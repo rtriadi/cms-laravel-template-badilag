@@ -317,7 +317,7 @@
                             :current="request()->routeIs('admin.pages')"
                             class="min-h-11 data-current:border-s-4 data-current:border-primary data-current:bg-primary-soft data-current:font-semibold data-current:text-primary"
                         >
-                            Halaman &amp; Blok
+                            Halaman Website
                         </flux:sidebar.item>
 
                         <flux:sidebar.item
@@ -337,7 +337,7 @@
                             :current="request()->routeIs('admin.posts')"
                             class="min-h-11 data-current:border-s-4 data-current:border-primary data-current:bg-primary-soft data-current:font-semibold data-current:text-primary"
                         >
-                            Berita &amp; Publikasi
+                            Berita, Artikel &amp; Pengumuman
                         </flux:sidebar.item>
                     @endif
 
@@ -348,7 +348,7 @@
                             :current="request()->routeIs('admin.documents')"
                             class="min-h-11 data-current:border-s-4 data-current:border-primary data-current:bg-primary-soft data-current:font-semibold data-current:text-primary"
                         >
-                            Dokumen &amp; SAKIP
+                            Arsip Dokumen PDF
                         </flux:sidebar.item>
                     @endif
 
@@ -359,7 +359,7 @@
                             :current="request()->routeIs('admin.kepaniteraan')"
                             class="min-h-11 data-current:border-s-4 data-current:border-primary data-current:bg-primary-soft data-current:font-semibold data-current:text-primary"
                         >
-                            Kepaniteraan &amp; Pegawai
+                            Pegawai, Sidang &amp; Statistik
                         </flux:sidebar.item>
                     @endif
                 </flux:sidebar.group>
@@ -479,7 +479,7 @@
                 </div>
             </header>
 
-            <main class="flex-1 p-4 sm:p-6 lg:p-8">
+            <main class="mx-auto w-full max-w-[1600px] flex-1 p-4 sm:p-6 lg:p-8">
                 @if (session('status'))
                     <div class="mb-6 rounded-lg border border-emerald-200 bg-primary-soft px-4 py-3 text-sm font-medium text-primary">
                         {{ session('status') }}

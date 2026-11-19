@@ -29,6 +29,10 @@
     --color-accent: #056e4f;
     --color-accent-content: #056e4f;
     --color-accent-foreground: #ffffff;
+
+    --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 @layer base {
@@ -143,6 +147,126 @@
         font-style: italic;
         margin: 0.75rem 0;
     }
+}
+
+/* Public Portal Subtle Motion & Micro-interactions (Emil Kowalski / Antislop UI) */
+.pub-btn {
+    transition:
+        transform 150ms var(--ease-out-strong),
+        background-color 160ms ease,
+        border-color 160ms ease,
+        color 160ms ease,
+        box-shadow 160ms var(--ease-out-strong);
+}
+
+.pub-btn:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+.pub-card {
+    transition:
+        transform 220ms var(--ease-out-strong),
+        box-shadow 220ms var(--ease-out-strong),
+        border-color 180ms ease;
+}
+
+.pub-link-card {
+    transition:
+        transform 180ms var(--ease-out-strong),
+        background-color 160ms ease,
+        border-color 160ms ease,
+        color 160ms ease,
+        box-shadow 180ms var(--ease-out-strong);
+}
+
+.pub-link-card:active {
+    transform: scale(0.985);
+}
+
+.pub-chevron {
+    transition: transform 180ms var(--ease-out-strong);
+}
+
+.pub-img-zoom {
+    transition: transform 380ms var(--ease-out-strong);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .pub-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 24px -10px rgba(3, 61, 44, 0.14), 0 4px 10px -4px rgba(3, 61, 44, 0.06);
+        border-color: rgba(5, 110, 79, 0.35);
+    }
+
+    .pub-link-card:hover {
+        transform: translateY(-1.5px);
+        box-shadow: 0 6px 14px -6px rgba(5, 110, 79, 0.14);
+    }
+
+    .pub-link-card:hover .pub-chevron {
+        transform: translateX(3px);
+    }
+
+    .pub-card:hover .pub-img-zoom {
+        transform: scale(1.035);
+    }
+}
+
+/* Origin-aware Desktop Nav Dropdown & Hero Slide Transitions via @starting-style */
+[data-nav-submenu]:not([hidden]) {
+    transform-origin: top left;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition:
+        opacity 180ms var(--ease-out-strong),
+        transform 180ms var(--ease-out-strong);
+
+    @starting-style {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.97);
+    }
+}
+
+[data-hero-slide]:not([hidden]) {
+    opacity: 1;
+    transform: scale(1);
+    transition:
+        opacity 320ms var(--ease-out-strong),
+        transform 320ms var(--ease-out-strong);
+
+    @starting-style {
+        opacity: 0;
+        transform: scale(0.985);
+    }
+}
+
+#a11y-panel:not([hidden]) {
+    transform-origin: bottom right;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition:
+        opacity 180ms var(--ease-out-strong),
+        transform 180ms var(--ease-out-strong);
+
+    @starting-style {
+        opacity: 0;
+        transform: translateY(6px) scale(0.96);
+    }
+}
+
+/* Progressive Scroll & Stagger Entrance on Public Pages */
+html.pub-motion-ready:not(.a11y-no-motion) .pub-reveal {
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+        opacity 340ms var(--ease-out-strong),
+        transform 340ms var(--ease-out-strong);
+    transition-delay: var(--stagger-delay, 0ms);
+}
+
+html.pub-motion-ready:not(.a11y-no-motion) .pub-reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 /* Public Accessibility Widget Modes */

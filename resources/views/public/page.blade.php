@@ -6,7 +6,7 @@
             <span class="font-medium text-ink">{{ $resolvedTitle }}</span>
         </nav>
 
-        <article class="rounded-xl border border-hairline bg-white p-6 shadow-xs sm:p-8">
+        <article class="pub-reveal rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-6 shadow-xs sm:p-8">
             <header class="border-b border-hairline pb-5">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <h1 class="font-serif text-2xl font-bold text-ink sm:text-3xl">
@@ -15,7 +15,7 @@
                     @auth
                         <a
                             href="{{ route('admin.pages', ['slug' => $page->slug]) }}"
-                            class="inline-flex min-h-11 shrink-0 items-center rounded-md border border-primary bg-primary-soft px-3.5 text-xs font-semibold text-primary hover:bg-primary hover:text-white"
+                            class="pub-btn inline-flex min-h-11 shrink-0 items-center rounded-md border border-primary bg-primary-soft px-3.5 text-xs font-semibold text-primary hover:bg-primary hover:text-white"
                         >
                             Edit Halaman Ini
                         </a>
@@ -30,7 +30,7 @@
             <div class="mt-6 space-y-8">
                 @forelse ($blocks as $block)
                     @php $type = $block['type'] ?? 'richtext'; @endphp
-                    <section class="space-y-3">
+                    <section class="pub-reveal space-y-3" style="--stagger-delay: {{ min(240, $loop->index * 45) }}ms">
                         @if (! empty($block['heading']))
                             <h2 class="font-serif text-xl font-bold text-primary-deep">
                                 {{ $block['heading'] }}

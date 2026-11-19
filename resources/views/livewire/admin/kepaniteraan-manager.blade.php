@@ -174,8 +174,8 @@
             </div>
         </div>
     @else
-        <div class="grid gap-6 lg:grid-cols-12">
-            <div class="rounded-lg border border-hairline bg-white p-5 lg:col-span-5">
+        <div class="grid gap-6 xl:grid-cols-12">
+            <div class="rounded-lg border border-hairline bg-white p-5 xl:col-span-6">
                 <h2 class="border-b border-hairline pb-3 font-serif text-lg font-bold text-ink">Tambah Aparatur / Struktur Organisasi</h2>
                 <form wire:submit="saveOfficial" class="mt-4 space-y-4">
                     <flux:field>
@@ -247,7 +247,7 @@
                 </form>
             </div>
 
-            <div class="rounded-lg border border-hairline bg-white p-5 lg:col-span-7">
+            <div class="rounded-lg border border-hairline bg-white p-5 xl:col-span-6">
                 <h2 class="border-b border-hairline pb-3 font-serif text-lg font-bold text-ink">Daftar Aparatur Cadangan ({{ $officials->count() }})</h2>
                 @if ($officials->isEmpty())
                     <p class="py-10 text-center text-sm text-ink-muted">Belum ada data aparatur cadangan yang ditambahkan.</p>
