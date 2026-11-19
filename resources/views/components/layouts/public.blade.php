@@ -87,11 +87,17 @@
                         alt="Logo Resmi {{ $satkerName }}"
                         width="52"
                         height="52"
-                        class="h-13 w-13 shrink-0 rounded border border-hairline bg-white object-contain p-1"
+                        class="h-13 w-13 shrink-0 rounded-lg border border-hairline bg-white object-contain p-1 shadow-2xs"
                     />
                 @else
-                    <div aria-hidden="true" class="flex h-13 w-13 shrink-0 items-center justify-center rounded-md border border-primary bg-primary-soft font-serif text-lg font-bold text-primary">
-                        {{ $satker?->jenis_badan ?: 'PA' }}
+                    <div aria-hidden="true" class="relative flex h-13 w-13 shrink-0 items-center justify-center rounded-xl border-2 border-gold bg-primary-deep text-gold shadow-2xs">
+                        <svg class="size-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 3v18" />
+                            <path d="M5 7h14" />
+                            <path d="M8 21h8" />
+                            <path d="M5 7l-3 6h6l-3-6z" />
+                            <path d="M19 7l-3 6h6l-3-6z" />
+                        </svg>
                     </div>
                 @endif
 
@@ -135,81 +141,81 @@
                 </button>
             </div>
         </div>
-
-        <!-- Primary 6-Menu Navigation Bar (Desktop) -->
-        <nav aria-label="Navigasi Utama Website" class="hidden border-t border-primary-hover bg-primary text-white lg:block">
-            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <ul class="flex flex-wrap items-center gap-1">
-                    @foreach ($headerMenus as $topMenu)
-                        @php
-                            $hasChildren = $topMenu->children->isNotEmpty();
-                            $menuHref = $topMenu->resolvedUrl();
-                        @endphp
-                        <li class="relative" data-nav-group>
-                            @if ($hasChildren)
-                                <button
-                                    type="button"
-                                    aria-expanded="false"
-                                    data-nav-trigger
-                                    class="inline-flex min-h-12 cursor-pointer items-center gap-1.5 px-3.5 text-sm font-semibold text-white hover:bg-primary-hover"
-                                >
-                                    <span>{{ $topMenu->title }}</span>
-                                    <svg class="size-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"></path>
-                                    </svg>
-                                </button>
-                                <div
-                                    data-nav-submenu
-                                    hidden
-                                    class="absolute top-full left-0 z-30 max-h-[75vh] w-72 overflow-y-auto rounded-b-lg border border-hairline bg-white py-1.5 text-ink shadow-xl"
-                                >
-                                    @foreach ($topMenu->children as $childMenu)
-                                        @if ($childMenu->type === 'group')
-                                            <p class="px-4 py-2 text-xs font-bold text-primary-deep uppercase">
-                                                {{ $childMenu->title }}
-                                            </p>
-                                        @else
-                                            <a
-                                                href="{{ $childMenu->resolvedUrl() }}"
-                                                @if ($childMenu->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
-                                                class="flex min-h-11 items-center px-4 py-2 text-xs font-medium text-ink hover:bg-primary-soft hover:text-primary"
-                                            >
-                                                {{ $childMenu->title }}
-                                            </a>
-                                        @endif
-
-                                        @if ($childMenu->children->isNotEmpty())
-                                            <ul class="border-s-2 border-hairline ps-3 ml-4 mb-1">
-                                                @foreach ($childMenu->children as $grandChild)
-                                                    <li>
-                                                        <a
-                                                            href="{{ $grandChild->resolvedUrl() }}"
-                                                            @if ($grandChild->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
-                                                            class="flex min-h-11 items-center px-3 py-1.5 text-xs text-ink-body hover:bg-primary-soft hover:text-primary"
-                                                        >
-                                                            {{ $grandChild->title }}
-                                                        </a>
-                                                    </li>
-                                                @endforeach
-                                            </ul>
-                                        @endif
-                                    @endforeach
-                                </div>
-                            @else
-                                <a
-                                    href="{{ $menuHref }}"
-                                    @if ($topMenu->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
-                                    class="inline-flex min-h-12 items-center px-3.5 text-sm font-semibold text-white hover:bg-primary-hover"
-                                >
-                                    {{ $topMenu->title }}
-                                </a>
-                            @endif
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        </nav>
     </header>
+
+    <!-- Primary 6-Menu Sticky Navigation Bar (Desktop) -->
+    <nav aria-label="Navigasi Utama Website" class="sticky top-0 z-40 hidden border-b border-primary-hover bg-primary text-white shadow-xs lg:block">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <ul class="flex flex-wrap items-center gap-1">
+                @foreach ($headerMenus as $topMenu)
+                    @php
+                        $hasChildren = $topMenu->children->isNotEmpty();
+                        $menuHref = $topMenu->resolvedUrl();
+                    @endphp
+                    <li class="relative" data-nav-group>
+                        @if ($hasChildren)
+                            <button
+                                type="button"
+                                aria-expanded="false"
+                                data-nav-trigger
+                                class="inline-flex min-h-12 cursor-pointer items-center gap-1.5 px-3.5 text-sm font-semibold text-white hover:bg-primary-hover"
+                            >
+                                <span>{{ $topMenu->title }}</span>
+                                <svg class="size-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                            <div
+                                data-nav-submenu
+                                hidden
+                                class="absolute top-full left-0 z-30 max-h-[75vh] w-72 overflow-y-auto rounded-b-lg border border-hairline bg-white py-1.5 text-ink shadow-xl"
+                            >
+                                @foreach ($topMenu->children as $childMenu)
+                                    @if ($childMenu->type === 'group')
+                                        <p class="px-4 py-2 text-xs font-bold text-primary-deep uppercase">
+                                            {{ $childMenu->title }}
+                                        </p>
+                                    @else
+                                        <a
+                                            href="{{ $childMenu->resolvedUrl() }}"
+                                            @if ($childMenu->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
+                                            class="flex min-h-11 items-center px-4 py-2 text-xs font-medium text-ink hover:bg-primary-soft hover:text-primary"
+                                        >
+                                            {{ $childMenu->title }}
+                                        </a>
+                                    @endif
+
+                                    @if ($childMenu->children->isNotEmpty())
+                                        <ul class="border-s-2 border-hairline ps-3 ml-4 mb-1">
+                                            @foreach ($childMenu->children as $grandChild)
+                                                <li>
+                                                    <a
+                                                        href="{{ $grandChild->resolvedUrl() }}"
+                                                        @if ($grandChild->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
+                                                        class="flex min-h-11 items-center px-3 py-1.5 text-xs text-ink-body hover:bg-primary-soft hover:text-primary"
+                                                    >
+                                                        {{ $grandChild->title }}
+                                                    </a>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+                                @endforeach
+                            </div>
+                        @else
+                            <a
+                                href="{{ $menuHref }}"
+                                @if ($topMenu->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
+                                class="inline-flex min-h-12 items-center px-3.5 text-sm font-semibold text-white hover:bg-primary-hover"
+                            >
+                                {{ $topMenu->title }}
+                            </a>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    </nav>
 
     <!-- Mobile Navigation Drawer -->
     <div

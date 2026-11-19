@@ -53,28 +53,46 @@
                                         <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/15" aria-hidden="true"></div>
                                     @else
                                         <div class="sr-only">{{ $slide->image_alt }}</div>
+                                        <!-- Architectural Judicial Pattern & Scales Crest Backdrop -->
+                                        <div aria-hidden="true" class="pointer-events-none absolute inset-0 overflow-hidden bg-gradient-to-br from-primary-deep via-primary-deep to-primary">
+                                            <svg class="absolute -top-10 -right-10 size-72 text-white/6 sm:size-96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                                <path d="M12 3v18M5 7h14M8 21h8M5 7l-3 6h6l-3-6zM19 7l-3 6h6l-3-6z" />
+                                            </svg>
+                                            <div class="absolute inset-x-0 bottom-0 h-1 bg-gold/60"></div>
+                                        </div>
                                     @endif
 
-                                    <div class="relative z-10 max-w-2xl space-y-3">
-                                        <span class="inline-block rounded bg-gold px-2.5 py-0.5 font-mono text-[11px] font-bold text-ink uppercase">
-                                            Sorotan #{{ $loop->iteration }}
-                                        </span>
-                                        <h1 class="font-serif text-2xl leading-tight font-bold text-white sm:text-3xl">
+                                    <div class="relative z-10 max-w-2xl space-y-3.5">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <span class="inline-block rounded bg-gold px-2.5 py-0.5 font-mono text-[11px] font-bold text-ink uppercase">
+                                                Sorotan #{{ $loop->iteration }}
+                                            </span>
+                                            <span class="rounded border border-white/25 bg-white/10 px-2.5 py-0.5 font-mono text-[11px] font-medium text-emerald-100">
+                                                {{ $satker?->nama_satker ?? 'Portal Resmi Peradilan Agama' }}
+                                            </span>
+                                        </div>
+                                        <h1 class="font-serif text-2xl leading-tight font-bold text-white sm:text-3xl lg:text-4xl">
                                             {{ $slide->title }}
                                         </h1>
                                         @if ($slide->subtitle)
-                                            <p class="text-sm leading-relaxed text-emerald-50">
+                                            <p class="text-sm leading-relaxed text-emerald-50 sm:text-base">
                                                 {{ $slide->subtitle }}
                                             </p>
                                         @endif
                                         @if ($slide->cta_label && $slide->cta_url)
-                                            <div class="pt-1">
+                                            <div class="flex flex-wrap items-center gap-3 pt-1">
                                                 <a
                                                     href="{{ str_starts_with($slide->cta_url, 'http') ? $slide->cta_url : url($slide->cta_url) }}"
-                                                    class="pub-btn inline-flex min-h-11 items-center gap-2 rounded-md bg-gold px-4 py-2 text-xs font-bold text-ink hover:opacity-95"
+                                                    class="pub-btn inline-flex min-h-11 items-center gap-2 rounded-md bg-gold px-4 py-2 text-xs font-bold text-ink shadow-2xs hover:opacity-95"
                                                 >
                                                     <span>{{ $slide->cta_label }}</span>
                                                     <span aria-hidden="true">&rarr;</span>
+                                                </a>
+                                                <a
+                                                    href="{{ route('public.page', ['slug' => 'layanan-hukum/jadwal-sidang']) }}"
+                                                    class="pub-btn inline-flex min-h-11 items-center gap-2 rounded-md border border-white/35 bg-white/10 px-4 py-2 text-xs font-semibold text-white hover:bg-white/20"
+                                                >
+                                                    <span>Jadwal Sidang Hari Ini</span>
                                                 </a>
                                             </div>
                                         @endif
@@ -158,6 +176,99 @@
             </aside>
         </section>
 
+        <!-- 6 Pilar Layanan Utama Pencari Keadilan -->
+        @php
+            $pilarLayanan = [
+                [
+                    'title' => 'Penelusuran Perkara (SIPP)',
+                    'desc' => 'Cek tahapan perkara, riwayat sidang, dan status putusan secara transparan melalui SIPP.',
+                    'badge' => 'SIPP',
+                    'url' => route('public.page', ['slug' => 'layanan-hukum/penelusuran-perkara-sipp']),
+                    'icon' => 'M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z',
+                ],
+                [
+                    'title' => 'Jadwal Persidangan Harian',
+                    'desc' => 'Lihat agenda ruang sidang, perkara yang disidangkan hari ini, serta jadwal pemanggilan.',
+                    'badge' => 'Sidang',
+                    'url' => route('public.page', ['slug' => 'layanan-hukum/jadwal-sidang']),
+                    'icon' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+                ],
+                [
+                    'title' => 'Pendaftaran Online (e-Court)',
+                    'desc' => 'Layanan e-Filing, e-Payment, e-Summons, dan e-Litigation Mahkamah Agung RI.',
+                    'badge' => 'e-Court',
+                    'url' => route('public.page', ['slug' => 'layanan-hukum/ecourt']),
+                    'icon' => 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
+                ],
+                [
+                    'title' => 'Hak Pencari Keadilan (Prodeo & Posbakum)',
+                    'desc' => 'Panduan pembebasan biaya perkara (Prodeo), konsultasi hukum gratis Posbakum, dan sidang keliling.',
+                    'badge' => 'Bantuan Hukum',
+                    'url' => route('public.page', ['slug' => 'layanan-hukum/hak-pencari-keadilan']),
+                    'icon' => 'M12 3v18M5 7h14M8 21h8M5 7l-3 6h6l-3-6zM19 7l-3 6h6l-3-6z',
+                ],
+                [
+                    'title' => 'Prosedur & Biaya Berperkara',
+                    'desc' => 'Standar pelayanan peradilan, radius biaya panjar perkara resmi, dan mekanisme pengembalian sisa panjar.',
+                    'badge' => 'Panjar & SOP',
+                    'url' => route('public.page', ['slug' => 'layanan-hukum/biaya-perkara']),
+                    'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+                ],
+                [
+                    'title' => 'Pengaduan SIWAS & Layanan PPID',
+                    'desc' => 'Saluran resmi pengaduan masyarakat (SIWAS MARI), permohonan informasi publik (e-PPID), dan survei layanan.',
+                    'badge' => 'PPID & SIWAS',
+                    'url' => route('public.page', ['slug' => 'layanan-publik/pengaduan']),
+                    'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+                ],
+            ];
+        @endphp
+        <section aria-label="Pilar Layanan Utama Pencari Keadilan" class="space-y-4">
+            <div class="flex flex-wrap items-end justify-between gap-2">
+                <div>
+                    <span class="font-mono text-xs font-bold text-primary uppercase">Pelayanan Terpadu Satu Pintu</span>
+                    <h2 class="font-serif text-xl font-bold text-ink sm:text-2xl">Pilar Layanan Utama Pencari Keadilan</h2>
+                </div>
+                <a href="{{ route('public.page', ['slug' => 'layanan-publik/standar-pelayanan']) }}" class="text-xs font-semibold text-primary hover:underline">
+                    Lihat Standar Pelayanan Pengadilan &rarr;
+                </a>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach ($pilarLayanan as $pilar)
+                    <a
+                        href="{{ $pilar['url'] }}"
+                        class="pub-card pub-reveal group flex flex-col justify-between rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-5 shadow-2xs hover:border-primary"
+                        style="--stagger-delay: {{ $loop->index * 40 }}ms"
+                    >
+                        <div>
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="flex size-11 items-center justify-center rounded-lg border border-emerald-200 bg-primary-soft text-primary group-hover:bg-primary group-hover:text-white">
+                                    <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="{{ $pilar['icon'] }}" />
+                                    </svg>
+                                </span>
+                                <span class="rounded border border-hairline bg-mist px-2.5 py-0.5 font-mono text-[11px] font-semibold text-primary-deep">
+                                    {{ $pilar['badge'] }}
+                                </span>
+                            </div>
+                            <h3 class="mt-3.5 font-serif text-base font-bold text-ink group-hover:text-primary">
+                                {{ $pilar['title'] }}
+                            </h3>
+                            <p class="mt-1.5 text-xs leading-relaxed text-ink-body">
+                                {{ $pilar['desc'] }}
+                            </p>
+                        </div>
+
+                        <div class="mt-4 flex items-center justify-between border-t border-hairline pt-3 text-xs font-semibold text-primary">
+                            <span>Buka Layanan</span>
+                            <span aria-hidden="true" class="pub-chevron">&rarr;</span>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+        </section>
+
         <!-- Berita & Pengumuman Resmi (7/5 Grid) -->
         <section aria-label="Berita dan Pengumuman" class="grid gap-6 lg:grid-cols-12">
             <div class="pub-reveal rounded-xl border border-hairline bg-white p-6 shadow-2xs lg:col-span-7" style="--stagger-delay: 40ms">
@@ -175,7 +286,7 @@
                         @foreach ($latestNews as $news)
                             <article class="pub-card flex flex-col rounded-lg border border-hairline bg-mist p-4">
                                 @if ($news->featured_image_path)
-                                    <div class="mb-3 overflow-hidden rounded">
+                                    <div class="mb-3 overflow-hidden rounded-md">
                                         <img
                                             src="{{ asset('storage/' . $news->featured_image_path) }}"
                                             alt="{{ $news->featured_image_alt ?: $news->title }}"
@@ -184,6 +295,16 @@
                                             loading="lazy"
                                             class="pub-img-zoom h-36 w-full object-cover"
                                         />
+                                    </div>
+                                @else
+                                    <div aria-hidden="true" class="mb-3 flex h-24 items-center justify-between overflow-hidden rounded-md border border-emerald-900/15 bg-gradient-to-r from-primary-deep to-primary px-4 text-white">
+                                        <div>
+                                            <span class="block font-mono text-[10px] font-bold text-gold uppercase">Publikasi Resmi</span>
+                                            <span class="font-serif text-xs font-semibold text-emerald-50">{{ $satker?->nama_satker ?? 'Peradilan Agama' }}</span>
+                                        </div>
+                                        <svg class="size-10 text-white/20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                            <path d="M12 3v18M5 7h14M8 21h8M5 7l-3 6h6l-3-6zM19 7l-3 6h6l-3-6z" />
+                                        </svg>
                                     </div>
                                 @endif
                                 <span class="w-fit rounded bg-primary-soft px-2 py-0.5 text-[11px] font-semibold text-primary">
@@ -219,13 +340,20 @@
                 @else
                     <ul class="mt-4 divide-y divide-hairline">
                         @foreach ($announcements as $ann)
-                            <li class="py-3">
-                                <p class="font-mono text-[11px] text-ink-muted">
-                                    {{ $ann->published_at?->format('d M Y') ?? $ann->created_at?->format('d M Y') }}
-                                </p>
-                                <a href="{{ route('public.posts.show', ['slug' => $ann->slug]) }}" class="mt-0.5 block text-sm font-semibold text-ink hover:text-primary hover:underline">
-                                    {{ $ann->title }}
-                                </a>
+                            @php $annDate = $ann->published_at ?? $ann->created_at; @endphp
+                            <li class="flex items-start gap-3 py-3">
+                                <div class="flex w-13 shrink-0 flex-col items-center rounded-md border border-emerald-200 bg-primary-soft px-1.5 py-1 text-center">
+                                    <span class="font-mono text-sm leading-none font-bold text-primary-deep">{{ $annDate?->format('d') ?? '--' }}</span>
+                                    <span class="mt-0.5 font-mono text-[10px] font-semibold text-primary uppercase">{{ $annDate?->format('M Y') ?? '' }}</span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <a href="{{ route('public.posts.show', ['slug' => $ann->slug]) }}" class="block text-sm font-semibold text-ink hover:text-primary hover:underline">
+                                        {{ $ann->title }}
+                                    </a>
+                                    <p class="mt-0.5 font-mono text-[11px] text-ink-muted">
+                                        Diunggah: {{ $annDate?->format('d M Y') }}
+                                    </p>
+                                </div>
                             </li>
                         @endforeach
                     </ul>

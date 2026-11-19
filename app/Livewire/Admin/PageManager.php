@@ -21,6 +21,8 @@ class PageManager extends Component
 
     public string $sectionFilter = '';
 
+    public bool $editorOpen = false;
+
     public ?int $editingId = null;
 
     public string $title = '';
@@ -73,6 +75,12 @@ class PageManager extends Component
     {
         $this->authorizeAccess();
         $this->resetForm();
+        $this->editorOpen = true;
+    }
+
+    public function closeEditor(): void
+    {
+        $this->editorOpen = false;
     }
 
     public function edit(int $id): void
@@ -91,6 +99,7 @@ class PageManager extends Component
         $this->blocks = is_array($page->blocks) && $page->blocks !== []
             ? $page->blocks
             : [['type' => 'richtext', 'heading' => $page->title, 'content' => '']];
+        $this->editorOpen = true;
     }
 
     public function addBlock(string $type): void
@@ -179,6 +188,7 @@ class PageManager extends Component
         }
 
         $this->resetForm();
+        $this->editorOpen = false;
     }
 
     public function delete(int $id): void

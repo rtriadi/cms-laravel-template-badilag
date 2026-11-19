@@ -164,9 +164,38 @@ class PublicPageController extends Controller
             ? CaseStatistic::query()->orderByDesc('year')->orderByDesc('month')->get()
             : collect();
 
+        $sectionPrefix = str_contains($cleanSlug, '/') ? explode('/', $cleanSlug)[0] : '';
+        $sectionLabels = [
+            'profil' => 'Profil Pengadilan',
+            'layanan-hukum' => 'Layanan Hukum & Kepaniteraan',
+            'transparansi' => 'Transparansi Kinerja & Anggaran (SAKIP)',
+            'layanan-publik' => 'Layanan Publik & PPID',
+        ];
+        $sectionLabel = $sectionLabels[$sectionPrefix] ?? 'Informasi & Layanan';
+        $activeTingkat = $satker?->tingkat ?? 'pertama';
+
+        $relatedSectionPages = $sectionPrefix !== ''
+            ? Page::query()
+                ->select(['id', 'title', 'slug', 'criteria_code'])
+                ->where('is_published', true)
+                ->where('slug', 'like', $sectionPrefix.'/%')
+                ->whereIn('tingkat_scope', ['all', $activeTingkat])
+                ->orderBy('id')
+                ->get()
+                ->map(function (Page $relPage) use ($satker): Page {
+                    if ($satker !== null) {
+                        $relPage->title = $satker->replacePlaceholders($relPage->title);
+                    }
+
+                    return $relPage;
+                })
+            : collect();
+
         return view('public.page', [
             'page' => $page,
             'resolvedTitle' => $resolvedTitle,
+            'sectionLabel' => $sectionLabel,
+            'relatedSectionPages' => $relatedSectionPages,
             'satker' => $satker,
             'blocks' => $blocks,
             'documentsByCollection' => $documentsByCollection,

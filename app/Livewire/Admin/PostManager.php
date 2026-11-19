@@ -17,6 +17,8 @@ class PostManager extends Component
 
     public string $categoryFilter = '';
 
+    public bool $editorOpen = false;
+
     public ?int $editingId = null;
 
     public string $title = '';
@@ -46,6 +48,7 @@ class PostManager extends Component
         $reqCategory = (string) request()->query('kategori', '');
         if ($reqCategory !== '' && array_key_exists($reqCategory, Post::categoryLabels())) {
             $this->category = $reqCategory;
+            $this->editorOpen = true;
         }
 
         $editId = request()->integer('edit');
@@ -65,6 +68,12 @@ class PostManager extends Component
     {
         $this->authorizeAccess();
         $this->resetForm();
+        $this->editorOpen = true;
+    }
+
+    public function closeEditor(): void
+    {
+        $this->editorOpen = false;
     }
 
     public function edit(int $id): void
@@ -82,6 +91,7 @@ class PostManager extends Component
         $this->is_pinned = (bool) $post->is_pinned;
         $this->is_published = (bool) $post->is_published;
         $this->featured_image = null;
+        $this->editorOpen = true;
     }
 
     public function save(): void
@@ -133,6 +143,7 @@ class PostManager extends Component
         }
 
         $this->resetForm();
+        $this->editorOpen = false;
     }
 
     public function delete(int $id): void
