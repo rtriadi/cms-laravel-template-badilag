@@ -52,13 +52,26 @@
 
                 <flux:field>
                     <flux:label for="post_excerpt">Ringkasan Singkat (Opsional)</flux:label>
-                    <flux:textarea id="post_excerpt" wire:model="excerpt" rows="2" placeholder="Ringkasan untuk kartu berita..." />
+                    <x-rich-editor
+                        id="post_excerpt"
+                        model="excerpt"
+                        label="Ringkasan singkat publikasi"
+                        placeholder="Ringkasan untuk kartu berita..."
+                        :min-height="150"
+                        :compact="true"
+                    />
                     <flux:error name="excerpt" />
                 </flux:field>
 
                 <flux:field>
                     <flux:label for="post_body">Isi Konten</flux:label>
-                    <flux:textarea id="post_body" wire:model="body" rows="6" required placeholder="Tulis isi berita, pengumuman, atau rilis resmi..." />
+                    <x-rich-editor
+                        id="post_body"
+                        model="body"
+                        label="Isi konten publikasi"
+                        placeholder="Tulis isi berita, pengumuman, atau artikel lengkap, serta sisipkan gambar atau dokumen PDF..."
+                        :min-height="320"
+                    />
                     <flux:error name="body" />
                 </flux:field>
 

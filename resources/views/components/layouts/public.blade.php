@@ -323,7 +323,7 @@
             </div>
 
             <div>
-                <h2 class="font-serif text-base font-bold text-white">Transparansi &amp; Kepatuhan</h2>
+                <h2 class="font-serif text-base font-bold text-white">Informasi &amp; Layanan Portal</h2>
                 <ul class="mt-3 space-y-2 text-xs text-emerald-100">
                     <li><a href="{{ route('public.accessibility') }}" class="hover:underline">Pernyataan &amp; Panduan Aksesibilitas</a></li>
                     <li><a href="{{ route('public.sitemap') }}" class="hover:underline">Peta Situs Portal</a></li>
@@ -373,7 +373,7 @@
 
         <div class="border-t border-emerald-900 bg-black/20">
             <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-3 text-[11px] text-emerald-100 sm:px-6 lg:px-8">
-                <p>Hak Cipta &copy; {{ date('Y') }} {{ $satkerName }}. Disusun sesuai standar keterbukaan informasi peradilan Badilag.</p>
+                <p>Hak Cipta &copy; {{ date('Y') }} {{ $satkerName }}.</p>
                 <p class="font-mono">SatkerCMS v{{ config('satker.cms_version', '1.0.0-dev') }}</p>
             </div>
         </div>

@@ -166,9 +166,9 @@
                                     <td class="px-3 py-2.5 uppercase text-primary">{{ $person->kategori }}</td>
                                     <td class="px-3 py-2.5 text-ink-muted">{{ $person->pangkat_golongan ?: '-' }}</td>
                                     <td class="px-3 py-2.5 text-ink-muted">
-                                        {{ $person->riwayat_pendidikan ?: '-' }}
+                                        <div class="prose max-w-none text-xs text-ink-muted">{!! $person->riwayat_pendidikan ? \App\Support\SafeHtml::cleanBody($person->riwayat_pendidikan) : '-' !!}</div>
                                         @if ($person->riwayat_jabatan)
-                                            <div class="mt-0.5 text-[11px]">Riwayat: {{ $person->riwayat_jabatan }}</div>
+                                            <div class="prose mt-0.5 max-w-none text-[11px] text-ink-muted">Riwayat: {!! \App\Support\SafeHtml::cleanBody($person->riwayat_jabatan) !!}</div>
                                         @endif
                                     </td>
                                 </tr>

@@ -55,8 +55,8 @@
                                 {{ $post->title }}
                             </a>
                         </h2>
-                        @if ($post->excerpt)
-                            <p class="mt-2 text-xs leading-relaxed text-ink-body">{{ \Illuminate\Support\Str::limit($post->excerpt, 140) }}</p>
+                        @if ($post->excerpt && trim(strip_tags($post->excerpt)) !== '')
+                            <p class="mt-2 text-xs leading-relaxed text-ink-body">{{ \Illuminate\Support\Str::limit(trim(strip_tags($post->excerpt)), 140) }}</p>
                         @endif
                         <p class="mt-auto pt-4 font-mono text-[11px] text-ink-muted">
                             {{ $post->published_at?->format('d M Y') ?? $post->created_at?->format('d M Y') }}

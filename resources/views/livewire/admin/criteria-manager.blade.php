@@ -71,7 +71,14 @@
 
                     <flux:field>
                         <flux:label for="ci_desc">Keterangan Juknis</flux:label>
-                        <flux:textarea id="ci_desc" wire:model="item_description" rows="2" placeholder="Penjelasan singkat bukti dukung..." />
+                        <x-rich-editor
+                            id="ci_desc"
+                            model="item_description"
+                            label="Keterangan juknis"
+                            placeholder="Penjelasan singkat bukti dukung..."
+                            :min-height="150"
+                            :compact="true"
+                        />
                     </flux:field>
 
                     <div class="grid gap-3 sm:grid-cols-2">

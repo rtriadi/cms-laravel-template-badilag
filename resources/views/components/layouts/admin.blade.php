@@ -28,6 +28,211 @@
     <title>{{ $title ?? 'Panel Admin' }} - {{ $satker?->nama_satker ?? 'SatkerCMS' }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>try{localStorage.setItem('flux.appearance','light')}catch(e){}document.documentElement.classList.remove('dark');</script>
+    <script src="{{ asset('vendor/tinymce/tinymce.min.js') }}"></script>
+    <script>
+        window.satkerRichEditor = function (config) {
+            return {
+                model: config.model,
+                uploadUrl: config.uploadUrl,
+                csrfToken: config.csrfToken,
+                placeholder: config.placeholder || '',
+                minHeight: config.minHeight || 280,
+                compact: Boolean(config.compact),
+                uploading: false,
+                uploadMessage: '',
+                uploadError: '',
+                editorInstance: null,
+
+                init() {
+                    const initialValue = this.$wire.get(this.model) || '';
+                    if (this.$refs.textarea) {
+                        this.$refs.textarea.value = initialValue;
+                    }
+
+                    this.$watch(() => this.$wire.get(this.model), (newVal) => {
+                        const normalized = newVal ?? '';
+                        if (this.editorInstance) {
+                            if (this.editorInstance.getContent() !== normalized) {
+                                this.editorInstance.setContent(normalized);
+                            }
+                        } else if (this.$refs.textarea && this.$refs.textarea.value !== normalized) {
+                            this.$refs.textarea.value = normalized;
+                        }
+                    });
+
+                    if (typeof window.tinymce === 'undefined' || !this.$refs.textarea) {
+                        return;
+                    }
+
+                    window.tinymce.init({
+                        target: this.$refs.textarea,
+                        license_key: 'gpl',
+                        base_url: '/vendor/tinymce',
+                        suffix: '.min',
+                        menubar: !this.compact,
+                        branding: false,
+                        promotion: false,
+                        statusbar: true,
+                        min_height: this.minHeight,
+                        placeholder: this.placeholder,
+                        relative_urls: false,
+                        remove_script_host: true,
+                        convert_urls: true,
+                        plugins: this.compact
+                            ? 'lists link image table code autoresize'
+                            : 'lists link image table code fullscreen searchreplace wordcount preview autoresize',
+                        toolbar: this.compact
+                            ? 'undo redo | bold italic underline | bullist numlist | link image table | code'
+                            : 'undo redo | blocks | bold italic underline strikethrough | bullist numlist | link image table blockquote | code fullscreen',
+                        content_style: "body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; font-size: 14px; color: #111827; line-height: 1.65; margin: 12px; } table { border-collapse: collapse; width: 100%; margin: 8px 0; } th, td { border: 1px solid #d8e2dd; padding: 6px 10px; } th { background: #f0f7f4; font-weight: 700; } img { max-width: 100%; height: auto; border-radius: 6px; } a { color: #056e4f; font-weight: 600; text-decoration: underline; } blockquote { border-left: 4px solid #056e4f; padding-left: 12px; color: #374151; margin-left: 0; }",
+                        images_upload_handler: (blobInfo) => this.uploadBlob(blobInfo.blob(), blobInfo.filename()),
+                        file_picker_types: 'file image',
+                        file_picker_callback: (cb, value, meta) => {
+                            const input = document.createElement('input');
+                            input.type = 'file';
+                            input.accept = meta.filetype === 'image'
+                                ? 'image/jpeg,image/png,image/webp,image/gif'
+                                : 'image/jpeg,image/png,image/webp,image/gif,application/pdf,.pdf';
+                            input.onchange = async () => {
+                                const file = input.files && input.files[0];
+                                if (!file) {
+                                    return;
+                                }
+                                try {
+                                    const res = await this.uploadFileToServer(file);
+                                    if (res && res.location) {
+                                        cb(res.location, {
+                                            title: res.name || file.name,
+                                            text: res.name || file.name,
+                                            alt: res.name || file.name,
+                                        });
+                                    }
+                                } catch (e) {}
+                            };
+                            input.click();
+                        },
+                        setup: (editor) => {
+                            this.editorInstance = editor;
+                            editor.on('init', () => {
+                                editor.setContent(this.$wire.get(this.model) || '');
+                            });
+                            const syncToWire = () => {
+                                const content = editor.getContent();
+                                if (this.$refs.textarea) {
+                                    this.$refs.textarea.value = content;
+                                }
+                                this.$wire.set(this.model, content, false);
+                            };
+                            editor.on('change input Undo Redo SetContent blur', syncToWire);
+                        },
+                    });
+                },
+
+                syncFromTextarea() {
+                    if (this.$refs.textarea) {
+                        this.$wire.set(this.model, this.$refs.textarea.value, false);
+                    }
+                },
+
+                escapeHtml(str) {
+                    return String(str || '')
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;');
+                },
+
+                async uploadFileToServer(file) {
+                    this.uploading = true;
+                    this.uploadMessage = '';
+                    this.uploadError = '';
+
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    try {
+                        const response = await fetch(this.uploadUrl, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': this.csrfToken,
+                                'Accept': 'application/json',
+                            },
+                            body: formData,
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            const msg = (data && data.errors && data.errors.file && data.errors.file[0])
+                                || (data && data.message)
+                                || 'Gagal mengunggah berkas.';
+                            this.uploadError = msg;
+                            throw new Error(msg);
+                        }
+
+                        this.uploadMessage = 'Berkas berhasil disisipkan: ' + (data.name || file.name);
+                        return data;
+                    } catch (err) {
+                        if (!this.uploadError) {
+                            this.uploadError = err.message || 'Gagal mengunggah berkas.';
+                        }
+                        throw err;
+                    } finally {
+                        this.uploading = false;
+                    }
+                },
+
+                async uploadBlob(blob, filename) {
+                    const file = new File([blob], filename || 'image.png', { type: blob.type || 'image/png' });
+                    const data = await this.uploadFileToServer(file);
+                    return data.location;
+                },
+
+                async handleQuickUpload(event, type) {
+                    const input = event.target;
+                    const file = input.files && input.files[0];
+                    if (!file) {
+                        return;
+                    }
+
+                    try {
+                        const data = await this.uploadFileToServer(file);
+                        const safeName = this.escapeHtml(data.name || file.name);
+                        const safeUrl = this.escapeHtml(data.location);
+
+                        const html = (type === 'pdf' || data.is_pdf)
+                            ? `<p><a href="${safeUrl}" target="_blank" rel="noopener noreferrer"><strong>Unduh Dokumen PDF:</strong> ${safeName}</a></p>`
+                            : `<p><img src="${safeUrl}" alt="${safeName}" /></p>`;
+
+                        if (this.editorInstance) {
+                            this.editorInstance.insertContent(html);
+                            const updated = this.editorInstance.getContent();
+                            if (this.$refs.textarea) {
+                                this.$refs.textarea.value = updated;
+                            }
+                            this.$wire.set(this.model, updated, false);
+                        } else if (this.$refs.textarea) {
+                            this.$refs.textarea.value = (this.$refs.textarea.value || '') + '\n' + html;
+                            this.$wire.set(this.model, this.$refs.textarea.value, false);
+                        }
+                    } catch (e) {
+                    } finally {
+                        input.value = '';
+                    }
+                },
+
+                destroy() {
+                    if (this.editorInstance) {
+                        try {
+                            this.editorInstance.remove();
+                        } catch (e) {}
+                        this.editorInstance = null;
+                    }
+                },
+            };
+        };
+    </script>
 </head>
 <body
     class="min-h-screen bg-mist font-sans text-ink antialiased"

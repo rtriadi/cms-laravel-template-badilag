@@ -28,7 +28,7 @@
 
 @if ($documents->isEmpty())
     <div class="rounded-lg border border-hairline bg-mist p-6 text-center text-sm text-ink-muted">
-        Belum ada dokumen yang dipublikasikan untuk kriteria ini.
+        Belum ada dokumen yang dipublikasikan pada bagian ini.
     </div>
 @else
     <ul class="divide-y divide-hairline rounded-lg border border-hairline bg-white">

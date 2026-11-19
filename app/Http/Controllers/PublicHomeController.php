@@ -111,7 +111,7 @@ class PublicHomeController extends Controller
             ? $customShortcuts->map(fn (MenuItem $item): array => [
                 'label' => $item->title,
                 'url' => $item->resolvedUrl(),
-                'tag' => $item->criteria_code ?: 'Akses Cepat',
+                'tag' => 'Layanan',
             ])->all()
             : [
                 [

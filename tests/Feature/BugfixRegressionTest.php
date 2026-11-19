@@ -25,7 +25,9 @@ use App\Support\SafeHtml;
 use Database\Seeders\RoleAndPermissionSeeder;
 use Database\Seeders\SatkerDefaultContentSeeder;
 use Database\Seeders\SinovaCriteriaSeeder;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 function makeSuperAdminForRegression(): User
@@ -283,4 +285,33 @@ it('caches SatkerSetting safely using database cache driver with serializable_cl
         ->and($second)->toBeInstanceOf(SatkerSetting::class)
         ->and($second?->nama_satker)->toBe('Pengadilan Agama Uji Cache Database')
         ->and($second?->is_setup_completed)->toBeTrue();
+});
+
+it('uploads images and PDFs for the rich text editor and sanitizes img tags safely', function (): void {
+    Storage::fake('public');
+    SatkerSetting::factory()->setupCompleted()->create();
+    $admin = makeSuperAdminForRegression();
+    $this->actingAs($admin);
+
+    $imgFile = UploadedFile::fake()->image('foto-berita.jpg', 600, 400);
+    $imgResp = $this->postJson(route('admin.media.upload'), ['file' => $imgFile]);
+    $imgResp->assertOk()
+        ->assertJsonPath('is_pdf', false)
+        ->assertJsonPath('name', 'foto-berita.jpg');
+    expect((string) $imgResp->json('location'))->toStartWith('/storage/editor-media/');
+
+    $pdfFile = UploadedFile::fake()->create('lampiran-sk.pdf', 120, 'application/pdf');
+    $pdfResp = $this->postJson(route('admin.media.upload'), ['file' => $pdfFile]);
+    $pdfResp->assertOk()
+        ->assertJsonPath('is_pdf', true)
+        ->assertJsonPath('name', 'lampiran-sk.pdf');
+
+    $badFile = UploadedFile::fake()->create('exploit.html', 10, 'text/html');
+    $this->postJson(route('admin.media.upload'), ['file' => $badFile])
+        ->assertStatus(422);
+
+    $cleaned = SafeHtml::cleanBody('<p><img src="/storage/editor-media/test.jpg" alt="Foto" onerror="alert(1)"><img src="javascript:alert(1)"></p>');
+    expect($cleaned)->toContain('<img src="/storage/editor-media/test.jpg" alt="Foto">')
+        ->and($cleaned)->not->toContain('onerror')
+        ->and($cleaned)->not->toContain('javascript:');
 });

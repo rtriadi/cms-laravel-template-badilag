@@ -27,17 +27,18 @@ class SafeHtml
             $sanitized
         );
 
-        // Keep only safe structural and typographic tags
+        // Keep only safe structural, typographic, table, and media tags from the rich text editor
         $sanitized = strip_tags(
             $sanitized,
-            '<p><br><ul><ol><li><strong><em><b><i><h3><h4><a><table><thead><tbody><tr><th><td><blockquote>'
+            '<p><br><ul><ol><li><strong><em><b><i><u><s><sub><sup><h1><h2><h3><h4><h5><h6><a><img><figure><figcaption><table><thead><tbody><tfoot><tr><th><td><blockquote><hr><pre><code><span><div>'
         );
 
         // Strip inline event handlers like onclick= or onerror=
         $sanitized = (string) preg_replace('/\s+on[a-z]+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/iu', '', $sanitized);
 
-        // Neutralize javascript: and data: URIs inside href attributes
-        $sanitized = (string) preg_replace('/href\s*=\s*("|\')\s*(javascript|data|vbscript):[^"\']*\1/iu', 'href="#"', $sanitized);
+        // Neutralize javascript:, data:, and vbscript: URIs inside href and src attributes
+        $sanitized = (string) preg_replace('/(href|src)\s*=\s*("|\')\s*(javascript|data|vbscript):[^"\']*\2/iu', '$1="#"', $sanitized);
+        $sanitized = (string) preg_replace('/(href|src)\s*=\s*(javascript|data|vbscript):[^\s>]+/iu', '$1="#"', $sanitized);
 
         return $sanitized;
     }
@@ -51,7 +52,7 @@ class SafeHtml
             return '';
         }
 
-        if (preg_match('/<(p|div|ul|ol|h[1-6]|table|blockquote)\b/i', $body) === 1) {
+        if (preg_match('/<(p|div|ul|ol|h[1-6]|table|blockquote|img|a|figure|strong|em|u|s|span|br|hr|pre)\b/i', $body) === 1) {
             return self::clean($body);
         }
 

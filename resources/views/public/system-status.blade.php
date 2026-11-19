@@ -1,10 +1,7 @@
 <x-layouts.public title="Status Keamanan & Versi Sistem">
     <div class="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <article class="rounded-xl border border-hairline bg-white p-6 sm:p-8">
-            <span class="rounded bg-primary-soft px-2.5 py-0.5 font-mono text-xs font-semibold text-primary">
-                Kriteria SINOVA 3.a | Keamanan &amp; Versi Sistem
-            </span>
-            <h1 class="mt-3 font-serif text-2xl font-bold text-ink sm:text-3xl">
+            <h1 class="font-serif text-2xl font-bold text-ink sm:text-3xl">
                 Dokumentasi Versi Perangkat Lunak &amp; Keamanan Portal
             </h1>
             <p class="mt-2 text-sm text-ink-body">
@@ -15,7 +12,7 @@
                 <div class="rounded-lg border border-hairline bg-mist p-4">
                     <dt class="text-xs font-semibold text-ink-muted uppercase">Perangkat Lunak CMS</dt>
                     <dd class="mt-1 font-mono text-base font-bold text-primary-deep">SatkerCMS v{{ $cmsVersion }}</dd>
-                    <p class="mt-1 text-xs text-ink-muted">Template Resmi Peradilan Agama Badilag</p>
+                    <p class="mt-1 text-xs text-ink-muted">Sistem Manajemen Konten Website</p>
                 </div>
 
                 <div class="rounded-lg border border-hairline bg-mist p-4">
@@ -32,11 +29,6 @@
                     <p class="mt-1 text-xs text-ink-muted">Seluruh akun admin wajib mengonfirmasi TOTP 2FA serta verifikasi captcha lokal saat masuk.</p>
                 </div>
 
-                <div class="rounded-lg border border-hairline bg-mist p-4">
-                    <dt class="text-xs font-semibold text-ink-muted uppercase">Kesiapan Tautan Kepatuhan</dt>
-                    <dd class="mt-1 font-mono text-base font-bold text-primary">{{ $scoreSummary['filled'] }} / {{ $scoreSummary['total'] }} Terisi</dd>
-                    <p class="mt-1 text-xs text-ink-muted">Estimasi skor SINOVA internal: {{ $scoreSummary['weighted_score'] }} / 100</p>
-                </div>
             </dl>
         </article>
     </div>

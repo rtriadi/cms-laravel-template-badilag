@@ -221,11 +221,25 @@
                     </div>
                     <flux:field>
                         <flux:label for="off_edu">Riwayat Pendidikan</flux:label>
-                        <flux:textarea id="off_edu" wire:model="riwayat_pendidikan" rows="2" placeholder="S1 Hukum Islam, S2 Ilmu Hukum" />
+                        <x-rich-editor
+                            id="off_edu"
+                            model="riwayat_pendidikan"
+                            label="Riwayat pendidikan aparatur"
+                            placeholder="S1 Hukum Islam, S2 Ilmu Hukum"
+                            :min-height="150"
+                            :compact="true"
+                        />
                     </flux:field>
                     <flux:field>
                         <flux:label for="off_hist">Riwayat Jabatan</flux:label>
-                        <flux:textarea id="off_hist" wire:model="riwayat_jabatan" rows="2" placeholder="Ringkasan riwayat penempatan jabatan" />
+                        <x-rich-editor
+                            id="off_hist"
+                            model="riwayat_jabatan"
+                            label="Riwayat jabatan aparatur"
+                            placeholder="Ringkasan riwayat penempatan jabatan"
+                            :min-height="150"
+                            :compact="true"
+                        />
                     </flux:field>
                     <flux:button type="submit" variant="primary" class="min-h-11 w-full cursor-pointer bg-primary font-semibold text-white hover:bg-primary-hover">
                         Simpan Data Aparatur

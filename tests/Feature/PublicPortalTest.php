@@ -213,7 +213,20 @@ it('renders publications, search results, compliance routes, xml sitemap, and co
         ->assertSee('Pengumuman Sidang Keliling Kecamatan Ciwidey')
         ->assertSee('DIPA Tahun Anggaran 2026 Ciwidey');
 
-    $this->get(route('public.accessibility'))->assertOk()->assertSee('WCAG 2.2 AA');
+    $this->get(route('public.accessibility'))
+        ->assertOk()
+        ->assertSee('Fitur Bantuan pada Widget Aksesibilitas')
+        ->assertDontSee('Kriteria SINOVA');
+
+    $this->get('/halaman/layanan-hukum/sipp')
+        ->assertOk()
+        ->assertDontSee('Kriteria SINOVA')
+        ->assertDontSee('1.a.2.1');
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertDontSee('1.a.2.1')
+        ->assertDontSee('1.a.2.2');
 
     $statusResp = $this->get(route('public.system-status'));
     $statusResp->assertOk()

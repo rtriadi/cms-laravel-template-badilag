@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\EditorMediaUploadController;
 use App\Http\Controllers\PublicComplianceController;
 use App\Http\Controllers\PublicHomeController;
 use App\Http\Controllers\PublicPageController;
@@ -70,4 +71,5 @@ Route::prefix($adminPath)
         Route::get('/kriteria', CriteriaManager::class)->name('criteria');
         Route::get('/pengguna', UserRoleManager::class)->name('users');
         Route::get('/audit', AuditAndBackupManager::class)->name('audit');
+        Route::post('/media/upload', EditorMediaUploadController::class)->name('media.upload');
     });

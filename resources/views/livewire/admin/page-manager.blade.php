@@ -75,7 +75,7 @@
                     </div>
 
                     @foreach ($blocks as $index => $block)
-                        <div wire:key="blk-{{ $index }}" class="space-y-2 rounded-md border border-hairline bg-white p-3">
+                        <div wire:key="blk-{{ $editingId ?? 'new' }}-{{ $index }}-{{ $block['type'] ?? 'richtext' }}" class="space-y-2 rounded-md border border-hairline bg-white p-3">
                             <div class="flex items-center justify-between">
                                 <span class="font-mono text-xs font-bold text-primary">Blok #{{ $index + 1 }}: {{ $block['type'] }}</span>
                                 <button type="button" wire:click="removeBlock({{ $index }})" class="text-xs font-semibold text-red-700">Hapus</button>
@@ -84,7 +84,12 @@
                             <flux:input wire:model="blocks.{{ $index }}.heading" aria-label="Judul subbagian blok #{{ $index + 1 }}" placeholder="Judul subbagian blok" />
 
                             @if (($block['type'] ?? '') === 'richtext')
-                                <flux:textarea wire:model="blocks.{{ $index }}.content" aria-label="Konten blok teks #{{ $index + 1 }}" rows="4" placeholder="Konten HTML atau teks..." />
+                                <x-rich-editor
+                                    model="blocks.{{ $index }}.content"
+                                    label="Konten blok teks #{{ $index + 1 }}"
+                                    placeholder="Tulis isi konten halaman, sisipkan tabel, gambar, atau lampiran PDF..."
+                                    :min-height="260"
+                                />
                             @elseif (($block['type'] ?? '') === 'document_list')
                                 <flux:select wire:model="blocks.{{ $index }}.collection_type" aria-label="Koleksi dokumen blok #{{ $index + 1 }}">
                                     @foreach ($collectionTypes as $cKey => $cLabel)
@@ -109,7 +114,13 @@
                                 <flux:input wire:model="blocks.{{ $index }}.note" aria-label="Catatan mode cadangan blok #{{ $index + 1 }}" placeholder="Catatan penjelas (opsional)" />
                             @elseif (($block['type'] ?? '') === 'external_portal')
                                 <flux:input wire:model="blocks.{{ $index }}.default_url" aria-label="URL bawaan portal blok #{{ $index + 1 }}" placeholder="https://..." />
-                                <flux:textarea wire:model="blocks.{{ $index }}.description" aria-label="Penjelasan portal blok #{{ $index + 1 }}" rows="2" placeholder="Penjelasan singkat portal..." />
+                                <x-rich-editor
+                                    model="blocks.{{ $index }}.description"
+                                    label="Penjelasan portal blok #{{ $index + 1 }}"
+                                    placeholder="Penjelasan portal, panduan layanan, gambar, atau dokumen PDF..."
+                                    :min-height="170"
+                                    :compact="true"
+                                />
                             @elseif (($block['type'] ?? '') === 'map_yurisdiksi')
                                 <div class="grid gap-2 sm:grid-cols-3">
                                     <flux:input wire:model="blocks.{{ $index }}.latitude" aria-label="Latitude peta blok #{{ $index + 1 }}" placeholder="-6.9175" />

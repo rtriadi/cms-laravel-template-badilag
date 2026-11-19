@@ -1,6 +1,8 @@
 <div class="rounded-lg border border-hairline bg-mist p-5">
     @if (! empty($block['description']))
-        <p class="text-sm leading-relaxed text-ink-body">{{ $block['description'] }}</p>
+        <div class="prose max-w-none text-sm leading-relaxed text-ink-body">
+            {!! \App\Support\SafeHtml::cleanBody($block['description']) !!}
+        </div>
     @endif
 
     @if (! empty($block['resolved_portal_url']))

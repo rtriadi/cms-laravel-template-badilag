@@ -1,5 +1,5 @@
 <x-layouts.public title="Beranda">
-    <!-- Banner Informasi Serta Merta (KMA 2-144 / SINOVA) -->
+    {{-- Banner Informasi Serta Merta --}}
     @if ($sertaMerta->isNotEmpty())
         <section aria-label="Informasi Serta Merta" class="border-b border-amber-400 bg-gold text-ink">
             <div class="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-3 sm:px-6 lg:px-8">
@@ -180,8 +180,8 @@
                                         {{ $news->title }}
                                     </a>
                                 </h3>
-                                @if ($news->excerpt)
-                                    <p class="mt-1.5 text-xs leading-relaxed text-ink-body">{{ \Illuminate\Support\Str::limit($news->excerpt, 110) }}</p>
+                                @if ($news->excerpt && trim(strip_tags($news->excerpt)) !== '')
+                                    <p class="mt-1.5 text-xs leading-relaxed text-ink-body">{{ \Illuminate\Support\Str::limit(trim(strip_tags($news->excerpt)), 110) }}</p>
                                 @endif
                                 <p class="mt-auto pt-3 font-mono text-[11px] text-ink-muted">
                                     {{ $news->published_at?->format('d M Y') ?? $news->created_at?->format('d M Y') }}
@@ -233,7 +233,6 @@
                                 class="flex min-h-11 items-center justify-between rounded-md border border-hairline bg-mist px-3.5 py-2 text-xs font-semibold text-ink hover:border-primary hover:bg-primary-soft hover:text-primary"
                             >
                                 <span>{{ $tPage->title }}</span>
-                                <span class="font-mono text-[11px] text-ink-muted">{{ $tPage->criteria_code }}</span>
                             </a>
                         </li>
                     @empty
@@ -254,7 +253,6 @@
                                 class="flex min-h-11 items-center justify-between rounded-md border border-hairline bg-mist px-3.5 py-2 text-xs font-semibold text-ink hover:border-primary hover:bg-primary-soft hover:text-primary"
                             >
                                 <span>{{ $sPage->title }}</span>
-                                <span class="font-mono text-[11px] text-ink-muted">{{ $sPage->criteria_code }}</span>
                             </a>
                         </li>
                     @empty
