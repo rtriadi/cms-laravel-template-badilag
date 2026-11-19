@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureSetupCompletedMiddleware;
 use App\Http\Middleware\EnsureTwoFactorConfirmedMiddleware;
 use App\Http\Middleware\HandleRedirectsMiddleware;
 use App\Http\Middleware\SecurityHeadersMiddleware;
+use App\Http\Middleware\TrackPageVisitMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             HandleRedirectsMiddleware::class,
             EnsureSetupCompletedMiddleware::class,
+            TrackPageVisitMiddleware::class,
         ]);
         $middleware->alias([
             'two-factor.required' => EnsureTwoFactorConfirmedMiddleware::class,

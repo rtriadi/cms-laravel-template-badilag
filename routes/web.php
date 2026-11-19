@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Controllers\PublicComplianceController;
+use App\Http\Controllers\PublicHomeController;
+use App\Http\Controllers\PublicPageController;
+use App\Http\Controllers\PublicPostController;
+use App\Http\Controllers\PublicSearchController;
 use App\Livewire\Admin\AuditAndBackupManager;
 use App\Livewire\Admin\CriteriaManager;
 use App\Livewire\Admin\Dashboard;
@@ -18,13 +23,21 @@ use App\Services\LocalCaptchaService;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => view('welcome'))->name('home');
+Route::get('/', PublicHomeController::class)->name('home');
 
-Route::get('/halaman/{slug}', fn (string $slug) => view('welcome'))
+Route::get('/halaman/{slug}', [PublicPageController::class, 'show'])
     ->where('slug', '.*')
     ->name('public.page');
 
-Route::get('/publikasi', fn () => view('welcome'))->name('public.posts');
+Route::get('/publikasi', [PublicPostController::class, 'index'])->name('public.posts');
+Route::get('/publikasi/{slug}', [PublicPostController::class, 'show'])->name('public.posts.show');
+Route::get('/cari', PublicSearchController::class)->name('public.search');
+
+Route::get('/aksesibilitas', [PublicComplianceController::class, 'accessibility'])->name('public.accessibility');
+Route::get('/status-sistem', [PublicComplianceController::class, 'systemStatus'])->name('public.system-status');
+Route::get('/statistik-pengunjung', [PublicComplianceController::class, 'visitorStats'])->name('public.visitor-stats');
+Route::get('/peta-situs', [PublicComplianceController::class, 'sitemapHtml'])->name('public.sitemap');
+Route::get('/sitemap.xml', [PublicComplianceController::class, 'sitemapXml'])->name('public.sitemap.xml');
 
 Route::get('/setup', SetupWizard::class)->name('setup');
 

@@ -151,7 +151,7 @@
                             </p>
                         </div>
                         @if ($isSuperAdmin)
-                            <button type="button" wire:click="openTingkatModal" class="min-h-11 cursor-pointer rounded-md border border-amber-500 bg-secondary px-3.5 py-2 text-xs font-bold text-ink hover:opacity-90">
+                            <button type="button" wire:click="openTingkatModal" class="min-h-11 cursor-pointer rounded-md border border-amber-500 bg-gold px-3.5 py-2 text-xs font-bold text-ink hover:opacity-90">
                                 Ubah Tingkat Peradilan
                             </button>
                         @endif
