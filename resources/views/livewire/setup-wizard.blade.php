@@ -62,7 +62,7 @@
                         'border-hairline bg-white' => $tingkat !== 'pertama',
                     ])>
                         <span class="flex items-center gap-2 text-sm font-bold text-ink">
-                            <input type="radio" wire:model="tingkat" value="pertama" class="size-4 text-primary">
+                            <input type="radio" wire:model.live="tingkat" value="pertama" class="size-4 text-primary">
                             Tingkat Pertama (PA / MS)
                         </span>
                         <span class="text-xs text-ink-body">
@@ -76,7 +76,7 @@
                         'border-hairline bg-white' => $tingkat !== 'banding',
                     ])>
                         <span class="flex items-center gap-2 text-sm font-bold text-ink">
-                            <input type="radio" wire:model="tingkat" value="banding" class="size-4 text-primary">
+                            <input type="radio" wire:model.live="tingkat" value="banding" class="size-4 text-primary">
                             Tingkat Banding (PTA / MS Aceh)
                         </span>
                         <span class="text-xs text-ink-body">

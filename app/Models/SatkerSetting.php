@@ -96,10 +96,23 @@ class SatkerSetting extends Model
 
     public static function current(): ?self
     {
-        return Cache::rememberForever(
-            self::CACHE_KEY,
-            fn (): ?self => static::query()->first(),
-        );
+        $cached = Cache::get(self::CACHE_KEY);
+
+        if (is_array($cached)) {
+            return (new static)->newFromBuilder($cached);
+        }
+
+        if ($cached !== null) {
+            Cache::forget(self::CACHE_KEY);
+        }
+
+        $setting = static::query()->first();
+
+        if ($setting !== null) {
+            Cache::forever(self::CACHE_KEY, $setting->getAttributes());
+        }
+
+        return $setting;
     }
 
     public function completeSetup(): void

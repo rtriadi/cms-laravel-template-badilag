@@ -246,7 +246,7 @@ class SinovaHealthCheckService
                     $warningReasons[] = 'Jadwal sidang cadangan dan URL SIPP masih kosong';
                 } elseif ($fallbackMode === 'officials_table' && ! Official::query()->where('is_active', true)->exists() && blank($satker?->simtepa_pegawai_url)) {
                     $warningReasons[] = 'Data pejabat cadangan dan embed SIMTEPA pegawai masih kosong';
-                } elseif ($fallbackMode === 'org_chart' && ! Official::query()->where('is_active', true)->exists() && blank($satker?->simtepa_struktur_url)) {
+                } elseif ($fallbackMode === 'org_chart' && ! Official::query()->where('is_active', true)->whereIn('kategori', ['pimpinan', 'pejabat', 'hakim'])->exists() && blank($satker?->simtepa_struktur_url)) {
                     $warningReasons[] = 'Struktur organisasi cadangan dan embed SIMTEPA masih kosong';
                 }
             }
@@ -320,6 +320,14 @@ class SinovaHealthCheckService
      */
     private function probeExternalUrl(string $url, string $sourceType, string $label): array
     {
+        if (! $this->isSafeExternalUrl($url)) {
+            return [
+                'ok' => false,
+                'status' => null,
+                'message' => 'URL alamat privat atau lokal tidak diizinkan untuk pemeriksaan eksternal.',
+            ];
+        }
+
         try {
             $response = Http::timeout(4)->withUserAgent('SatkerCMS-LinkChecker/1.0')->get($url);
             $status = $response->status();
@@ -357,6 +365,33 @@ class SinovaHealthCheckService
                 'message' => 'Gagal menjangkau URL: '.mb_strimwidth($e->getMessage(), 0, 120, '...'),
             ];
         }
+    }
+
+    private function isSafeExternalUrl(string $url): bool
+    {
+        $parts = parse_url($url);
+        if (! is_array($parts)) {
+            return false;
+        }
+
+        $scheme = strtolower((string) ($parts['scheme'] ?? ''));
+        $host = strtolower(trim((string) ($parts['host'] ?? ''), '[]'));
+
+        if (! in_array($scheme, ['http', 'https'], true) || $host === '') {
+            return false;
+        }
+
+        if ($host === 'localhost' || str_ends_with($host, '.local') || str_ends_with($host, '.internal') || $host === '::1') {
+            return false;
+        }
+
+        $ip = filter_var($host, FILTER_VALIDATE_IP) !== false ? $host : gethostbyname($host);
+
+        if (filter_var($ip, FILTER_VALIDATE_IP) !== false) {
+            return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
+        }
+
+        return true;
     }
 
     private function auditMenuLinks(string $activeTingkat, bool $probeExternal): void

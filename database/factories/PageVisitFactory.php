@@ -18,7 +18,9 @@ class PageVisitFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'visit_date' => fake()->dateTimeBetween('-30 days', 'now')->format('Y-m-d'),
+            'path' => '/halaman/'.fake()->unique()->slug(2),
+            'visits_count' => fake()->numberBetween(1, 250),
         ];
     }
 }

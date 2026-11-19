@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\CriteriaItem;
 use App\Models\Document;
 use App\Models\Page;
+use App\Support\SafeHtml;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -118,6 +119,16 @@ class PageManager extends Component
             'slug.unique' => 'Slug URL sudah dipakai oleh halaman lain.',
         ]);
 
+        $existing = $this->editingId !== null ? Page::query()->findOrFail($this->editingId) : null;
+
+        $sanitizedBlocks = array_map(function (array $block): array {
+            if (($block['type'] ?? '') === 'external_portal' && isset($block['default_url'])) {
+                $block['default_url'] = SafeHtml::cleanUrl((string) $block['default_url']) ?? '';
+            }
+
+            return $block;
+        }, array_values($this->blocks));
+
         $payload = [
             'title' => trim($this->title),
             'slug' => $this->slug,
@@ -126,13 +137,13 @@ class PageManager extends Component
             'criteria_code' => trim($this->criteria_code) ?: null,
             'tingkat_scope' => $this->tingkat_scope,
             'is_published' => $this->is_published,
-            'published_at' => $this->is_published ? now() : null,
-            'blocks' => array_values($this->blocks),
+            'published_at' => $this->is_published ? ($existing?->published_at ?? now()) : null,
+            'blocks' => $sanitizedBlocks,
             'author_id' => auth()->id(),
         ];
 
-        if ($this->editingId !== null) {
-            $page = Page::query()->findOrFail($this->editingId);
+        if ($existing !== null) {
+            $page = $existing;
             $page->update($payload);
             $this->statusNotice = 'Halaman berhasil diperbarui. Jika slug berubah, redirect 301 dibuat otomatis.';
         } else {

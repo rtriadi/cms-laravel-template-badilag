@@ -32,6 +32,10 @@
 }
 
 @layer base {
+    [x-cloak] {
+        display: none !important;
+    }
+
     a[href],
     button:not(:disabled),
     summary,

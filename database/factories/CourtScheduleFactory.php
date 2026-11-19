@@ -18,7 +18,11 @@ class CourtScheduleFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'tanggal_sidang' => fake()->dateTimeBetween('now', '+14 days')->format('Y-m-d'),
+            'nomor_perkara' => fake()->numerify('###/Pdt.G/2026/PA.Bdg'),
+            'para_pihak' => 'Pemohon vs Termohon',
+            'ruang_sidang' => 'Ruang Sidang '.fake()->numberBetween(1, 3),
+            'agenda' => 'Sidang Pertama',
         ];
     }
 }

@@ -92,7 +92,7 @@ class CriteriaManager extends Component
         $this->validate([
             'group_code' => ['required', 'string', 'max:32'],
             'group_name' => ['required', 'string', 'max:255'],
-            'group_aspect' => ['required', 'in:konten,ui_ux,performa'],
+            'group_aspect' => ['required', 'in:konten,uiux,performa'],
             'group_weight' => ['required', 'numeric', 'min:0', 'max:100'],
             'group_sort_order' => ['required', 'integer', 'min:1'],
         ], [

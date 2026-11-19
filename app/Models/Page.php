@@ -48,6 +48,8 @@ class Page extends Model
                 $newSlug = (string) $page->slug;
 
                 if ($oldSlug !== '' && $newSlug !== '' && $oldSlug !== $newSlug) {
+                    Redirect::query()->where('from_path', '/halaman/'.$newSlug)->delete();
+
                     Redirect::query()->updateOrCreate(
                         ['from_path' => '/halaman/'.$oldSlug],
                         [

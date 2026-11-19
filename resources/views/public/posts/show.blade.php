@@ -31,7 +31,7 @@
             @endif
 
             <div class="prose mt-6 max-w-none space-y-4 text-sm leading-relaxed text-ink-body">
-                {!! \App\Support\SafeHtml::clean(nl2br($post->body)) !!}
+                {!! \App\Support\SafeHtml::cleanBody($post->body) !!}
             </div>
         </article>
 

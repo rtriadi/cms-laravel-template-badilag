@@ -18,7 +18,10 @@ class RedirectFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'from_path' => '/halaman/lama-'.fake()->unique()->slug(1),
+            'to_path' => '/halaman/baru-'.fake()->slug(1),
+            'status_code' => 301,
+            'hits' => 0,
         ];
     }
 }

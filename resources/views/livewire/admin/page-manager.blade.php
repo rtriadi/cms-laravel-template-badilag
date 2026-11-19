@@ -66,8 +66,8 @@
                     <div class="flex flex-wrap items-center justify-between gap-2">
                         <span class="text-xs font-bold text-ink">Blok Konten Halaman</span>
                         <div class="flex flex-wrap gap-1.5">
-                            @foreach (['richtext' => '+ Teks', 'document_list' => '+ Dokumen', 'embed_fallback' => '+ Embed/Cadangan', 'external_portal' => '+ Portal', 'map_yurisdiksi' => '+ Peta'] as $bType => $bLabel)
-                                <button type="button" wire:click="addBlock('{{ $bType }}')" class="rounded border border-hairline bg-white px-2 py-1 text-[11px] font-semibold text-primary hover:bg-primary-soft">
+                            @foreach (['richtext' => '+ Teks', 'document_list' => '+ Dokumen', 'embed_fallback' => '+ Embed/Cadangan', 'external_portal' => '+ Portal', 'map_yurisdiksi' => '+ Peta', 'satker_contact' => '+ Kontak'] as $bType => $bLabel)
+                                <button type="button" wire:click="addBlock('{{ $bType }}')" class="cursor-pointer rounded border border-hairline bg-white px-2 py-1 text-[11px] font-semibold text-primary hover:bg-primary-soft">
                                     {{ $bLabel }}
                                 </button>
                             @endforeach
@@ -106,9 +106,18 @@
                                         <option value="case_statistics">Cadangan Statistik Perkara</option>
                                     </flux:select>
                                 </div>
+                                <flux:input wire:model="blocks.{{ $index }}.note" aria-label="Catatan mode cadangan blok #{{ $index + 1 }}" placeholder="Catatan penjelas (opsional)" />
                             @elseif (($block['type'] ?? '') === 'external_portal')
                                 <flux:input wire:model="blocks.{{ $index }}.default_url" aria-label="URL bawaan portal blok #{{ $index + 1 }}" placeholder="https://..." />
                                 <flux:textarea wire:model="blocks.{{ $index }}.description" aria-label="Penjelasan portal blok #{{ $index + 1 }}" rows="2" placeholder="Penjelasan singkat portal..." />
+                            @elseif (($block['type'] ?? '') === 'map_yurisdiksi')
+                                <div class="grid gap-2 sm:grid-cols-3">
+                                    <flux:input wire:model="blocks.{{ $index }}.latitude" aria-label="Latitude peta blok #{{ $index + 1 }}" placeholder="-6.9175" />
+                                    <flux:input wire:model="blocks.{{ $index }}.longitude" aria-label="Longitude peta blok #{{ $index + 1 }}" placeholder="107.6191" />
+                                    <flux:input type="number" wire:model="blocks.{{ $index }}.zoom" aria-label="Level zoom peta blok #{{ $index + 1 }}" min="1" max="18" placeholder="11" />
+                                </div>
+                            @elseif (($block['type'] ?? '') === 'satker_contact')
+                                <p class="text-xs text-ink-muted">Menampilkan identitas alamat, kontak resmi, dan foto gedung dari Pengaturan Satker secara otomatis.</p>
                             @endif
                         </div>
                     @endforeach

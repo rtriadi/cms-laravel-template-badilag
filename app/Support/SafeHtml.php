@@ -41,4 +41,52 @@ class SafeHtml
 
         return $sanitized;
     }
+
+    /**
+     * Format post/article body cleanly whether written as HTML or plain text.
+     */
+    public static function cleanBody(?string $body): string
+    {
+        if ($body === null || trim($body) === '') {
+            return '';
+        }
+
+        if (preg_match('/<(p|div|ul|ol|h[1-6]|table|blockquote)\b/i', $body) === 1) {
+            return self::clean($body);
+        }
+
+        return nl2br(e($body));
+    }
+
+    /**
+     * Allow only safe internal relative paths (/...) or valid http(s) URLs.
+     */
+    public static function cleanUrl(?string $url): ?string
+    {
+        $trimmed = trim((string) $url);
+
+        if ($trimmed === '') {
+            return null;
+        }
+
+        // Reject protocol-relative //evil.example URLs and control characters
+        if (preg_match('/[\x00-\x1F\x7F]/', $trimmed) === 1 || str_starts_with($trimmed, '//')) {
+            return null;
+        }
+
+        if (str_starts_with($trimmed, '/')) {
+            return $trimmed;
+        }
+
+        $scheme = strtolower((string) parse_url($trimmed, PHP_URL_SCHEME));
+        if (! in_array($scheme, ['http', 'https'], true)) {
+            return null;
+        }
+
+        if (filter_var($trimmed, FILTER_VALIDATE_URL) === false) {
+            return null;
+        }
+
+        return $trimmed;
+    }
 }

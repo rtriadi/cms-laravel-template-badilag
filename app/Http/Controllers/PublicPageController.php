@@ -8,6 +8,7 @@ use App\Models\Document;
 use App\Models\Official;
 use App\Models\Page;
 use App\Models\SatkerSetting;
+use App\Support\SafeHtml;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -84,12 +85,12 @@ class PublicPageController extends Controller
                 $fallbackMode = (string) ($block['fallback_mode'] ?? 'officials_table');
                 $sourceKey = (string) ($block['source_key'] ?? '');
 
-                $block['resolved_embed_url'] = match ($sourceKey) {
+                $block['resolved_embed_url'] = SafeHtml::cleanUrl(match ($sourceKey) {
                     'simtepa_pegawai' => $satker?->simtepa_pegawai_url,
                     'simtepa_struktur' => $satker?->simtepa_struktur_url,
                     'sipp_jadwal', 'sipp_statistik' => $satker?->sipp_url,
                     default => null,
-                };
+                });
 
                 match ($fallbackMode) {
                     'org_chart' => $needsOrgChart = true,
@@ -104,7 +105,7 @@ class PublicPageController extends Controller
                 $resolved = ($satker !== null && $urlSource !== '' && isset($satker->{$urlSource}) && filled($satker->{$urlSource}))
                     ? (string) $satker->{$urlSource}
                     : (string) ($block['default_url'] ?? '');
-                $block['resolved_portal_url'] = $resolved;
+                $block['resolved_portal_url'] = SafeHtml::cleanUrl($resolved) ?? '';
             }
 
             return $block;

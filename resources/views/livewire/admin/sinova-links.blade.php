@@ -2,7 +2,30 @@
     class="space-y-5"
     x-data="{
         copiedNotice: '',
-        copyUrl(url, status) {
+        async writeClipboard(text) {
+            if (window.isSecureContext && navigator.clipboard && navigator.clipboard.writeText) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                } catch (e) {}
+            }
+            const area = document.createElement('textarea');
+            area.value = text;
+            area.setAttribute('readonly', '');
+            area.style.position = 'fixed';
+            area.style.opacity = '0';
+            document.body.appendChild(area);
+            area.select();
+            let copied = false;
+            try {
+                copied = document.execCommand('copy');
+            } catch (e) {
+                copied = false;
+            }
+            document.body.removeChild(area);
+            return copied;
+        },
+        async copyUrl(url, status) {
             if (! url) {
                 this.copiedNotice = 'Tautan masih kosong. Isi halaman atau URL manual terlebih dahulu.';
                 return;
@@ -12,20 +35,16 @@
                     return;
                 }
             }
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(url);
-            }
-            this.copiedNotice = 'URL disalin: ' + url;
+            const ok = await this.writeClipboard(url);
+            this.copiedNotice = ok ? 'URL disalin: ' + url : 'Gagal menyalin otomatis. Salin manual: ' + url;
         },
-        copyGroupUrls(text, title) {
+        async copyGroupUrls(text, title) {
             if (! text) {
                 this.copiedNotice = 'Belum ada URL terisi pada grup ' + title;
                 return;
             }
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(text);
-            }
-            this.copiedNotice = 'Semua URL pada grup ' + title + ' disalin.';
+            const ok = await this.writeClipboard(text);
+            this.copiedNotice = ok ? 'Semua URL pada grup ' + title + ' disalin.' : 'Gagal menyalin URL grup ' + title + ' secara otomatis.';
         }
     }"
 >

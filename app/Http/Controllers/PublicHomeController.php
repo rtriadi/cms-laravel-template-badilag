@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\HomeSlider;
+use App\Models\MenuItem;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\SatkerSetting;
+use App\Support\SafeHtml;
 use Illuminate\Contracts\View\View;
 
 class PublicHomeController extends Controller
@@ -31,6 +33,7 @@ class PublicHomeController extends Controller
                         $slide->cta_label = $satker->replacePlaceholders($slide->cta_label);
                     }
                 }
+                $slide->cta_url = SafeHtml::cleanUrl($slide->cta_url);
 
                 return $slide;
             });
@@ -67,9 +70,7 @@ class PublicHomeController extends Controller
         $transparencyPages = Page::query()
             ->where('is_published', true)
             ->where('slug', 'like', 'transparansi/%')
-            ->where(function ($q) use ($activeTingkat): void {
-                $q->where('tingkat_scope', 'all')->orWhere('tingkat_scope', $activeTingkat);
-            })
+            ->whereIn('tingkat_scope', ['all', $activeTingkat])
             ->orderBy('criteria_code')
             ->limit(6)
             ->get()
@@ -84,9 +85,7 @@ class PublicHomeController extends Controller
         $servicePages = Page::query()
             ->where('is_published', true)
             ->where('slug', 'like', 'layanan-hukum/%')
-            ->where(function ($q) use ($activeTingkat): void {
-                $q->where('tingkat_scope', 'all')->orWhere('tingkat_scope', $activeTingkat);
-            })
+            ->whereIn('tingkat_scope', ['all', $activeTingkat])
             ->orderBy('criteria_code')
             ->limit(6)
             ->get()
@@ -98,38 +97,54 @@ class PublicHomeController extends Controller
                 return $page;
             });
 
-        $shortcuts = [
-            [
-                'label' => 'Penelusuran Perkara (SIPP)',
-                'url' => route('public.page', ['slug' => 'layanan-hukum/sipp']),
-                'tag' => 'Layanan',
-            ],
-            [
-                'label' => 'Jadwal Persidangan',
-                'url' => route('public.page', ['slug' => 'layanan-hukum/jadwal-sidang']),
-                'tag' => 'Kepaniteraan',
-            ],
-            [
-                'label' => 'Statistik Perkara Bulanan',
-                'url' => route('public.page', ['slug' => 'layanan-hukum/statistik-perkara']),
-                'tag' => 'Kepaniteraan',
-            ],
-            [
-                'label' => 'Pendaftaran Online (e-Court)',
-                'url' => route('public.page', ['slug' => 'layanan-hukum/ecourt']),
-                'tag' => 'Elektronik',
-            ],
-            [
-                'label' => 'Laporan Kinerja (LKjIP)',
-                'url' => route('public.page', ['slug' => 'transparansi/lkjip']),
-                'tag' => 'SAKIP',
-            ],
-            [
-                'label' => 'Pengaduan SIWAS MARI',
-                'url' => route('public.page', ['slug' => 'layanan-publik/pengaduan-siwas']),
-                'tag' => 'Pengawasan',
-            ],
-        ];
+        $customShortcuts = MenuItem::query()
+            ->with('page')
+            ->where('location', 'shortcut')
+            ->whereNull('parent_id')
+            ->where('is_visible', true)
+            ->whereIn('tingkat_scope', ['all', $activeTingkat])
+            ->orderBy('sort_order')
+            ->limit(8)
+            ->get();
+
+        $shortcuts = $customShortcuts->isNotEmpty()
+            ? $customShortcuts->map(fn (MenuItem $item): array => [
+                'label' => $item->title,
+                'url' => $item->resolvedUrl(),
+                'tag' => $item->criteria_code ?: 'Akses Cepat',
+            ])->all()
+            : [
+                [
+                    'label' => 'Penelusuran Perkara (SIPP)',
+                    'url' => route('public.page', ['slug' => 'layanan-hukum/sipp']),
+                    'tag' => 'Layanan',
+                ],
+                [
+                    'label' => 'Jadwal Persidangan',
+                    'url' => route('public.page', ['slug' => 'layanan-hukum/jadwal-sidang']),
+                    'tag' => 'Kepaniteraan',
+                ],
+                [
+                    'label' => 'Statistik Perkara Bulanan',
+                    'url' => route('public.page', ['slug' => 'layanan-hukum/statistik-perkara']),
+                    'tag' => 'Kepaniteraan',
+                ],
+                [
+                    'label' => 'Pendaftaran Online (e-Court)',
+                    'url' => route('public.page', ['slug' => 'layanan-hukum/ecourt']),
+                    'tag' => 'Elektronik',
+                ],
+                [
+                    'label' => 'Laporan Kinerja (LKjIP)',
+                    'url' => route('public.page', ['slug' => 'transparansi/lkjip']),
+                    'tag' => 'SAKIP',
+                ],
+                [
+                    'label' => 'Pengaduan SIWAS MARI',
+                    'url' => route('public.page', ['slug' => 'layanan-publik/pengaduan-siwas']),
+                    'tag' => 'Pengawasan',
+                ],
+            ];
 
         return view('public.home', [
             'satker' => $satker,

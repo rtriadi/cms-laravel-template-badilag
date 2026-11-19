@@ -173,7 +173,7 @@
                             <flux:label for="cg_aspect">Aspek Penilaian</flux:label>
                             <flux:select id="cg_aspect" wire:model="group_aspect">
                                 <option value="konten">Konten & Keterbukaan (60%)</option>
-                                <option value="ui_ux">Tampilan & Aksesibilitas (20%)</option>
+                                <option value="uiux">Tampilan & Aksesibilitas (20%)</option>
                                 <option value="performa">Teknis, Keamanan & Kecepatan (20%)</option>
                             </flux:select>
                         </flux:field>

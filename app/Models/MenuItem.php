@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\SafeHtml;
 use Database\Factories\MenuItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -80,12 +81,18 @@ class MenuItem extends Model
 
     public function resolvedUrl(): string
     {
-        return match ($this->type) {
+        $raw = match ($this->type) {
             'page' => $this->page ? route('public.page', ['slug' => $this->page->slug], false) : ($this->url ?: '#'),
             'collection' => $this->collection_slug ? '/'.ltrim($this->collection_slug, '/') : ($this->url ?: '#'),
             'category' => $this->collection_slug ? route('public.posts', ['kategori' => $this->collection_slug], false) : '/publikasi',
             'group' => '#',
             default => $this->url ?: '#',
         };
+
+        if ($raw === '#') {
+            return '#';
+        }
+
+        return SafeHtml::cleanUrl($raw) ?? '#';
     }
 }

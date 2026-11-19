@@ -73,6 +73,12 @@ class UserRoleManager extends Component
 
         if ($this->editingId !== null) {
             $user = User::query()->findOrFail($this->editingId);
+            if ($user->hasRole('super_admin') && $this->role !== 'super_admin' && User::role('super_admin')->count() <= 1) {
+                $this->addError('role', 'Tidak dapat menurunkan peran Super Admin terakhir di sistem.');
+
+                return;
+            }
+
             $user->name = trim($this->name);
             $user->email = trim($this->email);
             if ($this->password !== '') {
@@ -104,7 +110,14 @@ class UserRoleManager extends Component
             return;
         }
 
-        User::query()->findOrFail($id)->delete();
+        $target = User::query()->findOrFail($id);
+        if ($target->hasRole('super_admin') && User::role('super_admin')->count() <= 1) {
+            $this->addError('delete_self', 'Tidak dapat menghapus Super Admin terakhir di sistem.');
+
+            return;
+        }
+
+        $target->delete();
         $this->statusNotice = 'Akun pengguna berhasil dihapus.';
     }
 

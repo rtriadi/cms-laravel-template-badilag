@@ -76,6 +76,6 @@ class TwoFactorSetup extends Component
             'recoveryCodes' => ! empty($user->two_factor_recovery_codes)
                 ? $user->recoveryCodes()
                 : [],
-        ]);
+        ])->title('Aktivasi 2FA');
     }
 }

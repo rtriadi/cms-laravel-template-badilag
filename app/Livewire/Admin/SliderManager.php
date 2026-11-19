@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Models\HomeSlider;
+use App\Support\SafeHtml;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -73,7 +74,14 @@ class SliderManager extends Component
         ]);
 
         // Guardrail Bab III.A.5: dilarang video / live streaming di beranda
-        $lowerUrl = strtolower($this->cta_url);
+        $trimmedUrl = trim($this->cta_url);
+        if ($trimmedUrl !== '' && SafeHtml::cleanUrl($trimmedUrl) === null) {
+            $this->addError('cta_url', 'URL tombol CTA harus diawali http(s):// atau jalur relatif /.');
+
+            return;
+        }
+
+        $lowerUrl = strtolower($trimmedUrl);
         foreach (['youtube.com', 'youtu.be', 'vimeo.com', 'twitch.tv', '.mp4', '.m3u8'] as $forbidden) {
             if (str_contains($lowerUrl, $forbidden)) {
                 $this->addError('cta_url', 'Tautan video atau live streaming tidak diizinkan pada slider beranda sesuai pedoman kecepatan SK Dirjen Badilag.');

@@ -212,6 +212,6 @@ class SetupWizard extends Component
 
     public function render(): View
     {
-        return view('livewire.setup-wizard');
+        return view('livewire.setup-wizard')->title('Instalasi Awal');
     }
 }

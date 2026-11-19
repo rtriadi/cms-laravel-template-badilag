@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\LinkCheckLog;
 use App\Models\Redirect;
 use App\Services\SinovaHealthCheckService;
+use App\Support\SafeHtml;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -53,9 +54,28 @@ class AuditAndBackupManager extends Component
             'to_path.required' => 'Tujuan pengalihan wajib diisi.',
         ]);
 
+        $cleanTo = SafeHtml::cleanUrl($this->to_path);
+        if ($cleanTo === null) {
+            $this->addError('to_path', 'Tujuan pengalihan harus berupa path internal (/...) atau URL http(s) yang valid.');
+
+            return;
+        }
+
+        if ($cleanTo === $normalizedFrom) {
+            $this->addError('to_path', 'Path asal dan tujuan pengalihan tidak boleh sama.');
+
+            return;
+        }
+
+        if (Redirect::query()->where('from_path', $cleanTo)->where('to_path', $normalizedFrom)->exists()) {
+            $this->addError('to_path', 'Aturan ini akan menciptakan loop pengalihan berbalik dengan aturan yang sudah ada.');
+
+            return;
+        }
+
         Redirect::query()->create([
             'from_path' => $normalizedFrom,
-            'to_path' => trim($this->to_path),
+            'to_path' => $cleanTo,
             'status_code' => $this->status_code,
         ]);
 

@@ -13,25 +13,33 @@
             'page',
             'children' => fn ($q) => $q
                 ->where('is_visible', true)
-                ->with('page')
+                ->whereIn('tingkat_scope', ['all', $activeTingkat])
+                ->with([
+                    'page',
+                    'children' => fn ($gq) => $gq
+                        ->where('is_visible', true)
+                        ->whereIn('tingkat_scope', ['all', $activeTingkat])
+                        ->with('page')
+                        ->orderBy('sort_order'),
+                ])
                 ->orderBy('sort_order'),
         ])
         ->where('location', 'header')
         ->whereNull('parent_id')
         ->where('is_visible', true)
+        ->whereIn('tingkat_scope', ['all', $activeTingkat])
         ->orderBy('sort_order')
         ->limit(6)
-        ->get()
-        ->filter(fn ($m): bool => $m->tingkat_scope === 'all' || $m->tingkat_scope === $activeTingkat)
-        ->map(function ($menu) use ($activeTingkat) {
-            $visibleChildren = $menu->children->filter(
-                fn ($child): bool => $child->tingkat_scope === 'all' || $child->tingkat_scope === $activeTingkat
-            )->values();
-            $menu->setRelation('children', $visibleChildren);
+        ->get();
 
-            return $menu;
-        })
-        ->values();
+    $footerMenus = \App\Models\MenuItem::query()
+        ->with('page')
+        ->where('location', 'footer')
+        ->whereNull('parent_id')
+        ->where('is_visible', true)
+        ->whereIn('tingkat_scope', ['all', $activeTingkat])
+        ->orderBy('sort_order')
+        ->get();
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -168,16 +176,38 @@
                                 <div
                                     data-nav-submenu
                                     hidden
-                                    class="absolute top-full left-0 z-30 w-72 rounded-b-lg border border-hairline bg-white py-1.5 text-ink shadow-xl"
+                                    class="absolute top-full left-0 z-30 max-h-[75vh] w-72 overflow-y-auto rounded-b-lg border border-hairline bg-white py-1.5 text-ink shadow-xl"
                                 >
                                     @foreach ($topMenu->children as $childMenu)
-                                        <a
-                                            href="{{ $childMenu->resolvedUrl() }}"
-                                            @if ($childMenu->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
-                                            class="flex min-h-11 items-center px-4 py-2 text-xs font-medium text-ink hover:bg-primary-soft hover:text-primary"
-                                        >
-                                            {{ $childMenu->title }}
-                                        </a>
+                                        @if ($childMenu->type === 'group')
+                                            <p class="px-4 py-2 text-xs font-bold text-primary-deep uppercase">
+                                                {{ $childMenu->title }}
+                                            </p>
+                                        @else
+                                            <a
+                                                href="{{ $childMenu->resolvedUrl() }}"
+                                                @if ($childMenu->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
+                                                class="flex min-h-11 items-center px-4 py-2 text-xs font-medium text-ink hover:bg-primary-soft hover:text-primary"
+                                            >
+                                                {{ $childMenu->title }}
+                                            </a>
+                                        @endif
+
+                                        @if ($childMenu->children->isNotEmpty())
+                                            <ul class="border-s-2 border-hairline ps-3 ml-4 mb-1">
+                                                @foreach ($childMenu->children as $grandChild)
+                                                    <li>
+                                                        <a
+                                                            href="{{ $grandChild->resolvedUrl() }}"
+                                                            @if ($grandChild->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
+                                                            class="flex min-h-11 items-center px-3 py-1.5 text-xs text-ink-body hover:bg-primary-soft hover:text-primary"
+                                                        >
+                                                            {{ $grandChild->title }}
+                                                        </a>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        @endif
                                     @endforeach
                                 </div>
                             @else
@@ -225,13 +255,33 @@
                             <ul class="mt-2 space-y-1">
                                 @foreach ($topMenu->children as $childMenu)
                                     <li>
-                                        <a
-                                            href="{{ $childMenu->resolvedUrl() }}"
-                                            @if ($childMenu->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
-                                            class="flex min-h-11 items-center rounded px-2 text-xs font-medium text-ink hover:bg-primary-soft hover:text-primary"
-                                        >
-                                            {{ $childMenu->title }}
-                                        </a>
+                                        @if ($childMenu->type === 'group')
+                                            <span class="block px-2 py-2 text-xs font-bold text-ink-muted uppercase">{{ $childMenu->title }}</span>
+                                        @else
+                                            <a
+                                                href="{{ $childMenu->resolvedUrl() }}"
+                                                @if ($childMenu->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
+                                                class="flex min-h-11 items-center rounded px-2 text-xs font-medium text-ink hover:bg-primary-soft hover:text-primary"
+                                            >
+                                                {{ $childMenu->title }}
+                                            </a>
+                                        @endif
+
+                                        @if ($childMenu->children->isNotEmpty())
+                                            <ul class="border-s-2 border-hairline ps-3 ml-2 space-y-1">
+                                                @foreach ($childMenu->children as $grandChild)
+                                                    <li>
+                                                        <a
+                                                            href="{{ $grandChild->resolvedUrl() }}"
+                                                            @if ($grandChild->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
+                                                            class="flex min-h-11 items-center rounded px-2 text-xs text-ink-body hover:bg-primary-soft hover:text-primary"
+                                                        >
+                                                            {{ $grandChild->title }}
+                                                        </a>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        @endif
                                     </li>
                                 @endforeach
                             </ul>
@@ -280,6 +330,17 @@
                     <li><a href="{{ route('public.visitor-stats') }}" class="hover:underline">Statistik Pengunjung</a></li>
                     <li><a href="{{ route('public.system-status') }}" class="hover:underline">Status Keamanan &amp; Versi Sistem</a></li>
                     <li><a href="{{ route('public.search') }}" class="hover:underline">Pencarian Informasi Publik</a></li>
+                    @foreach ($footerMenus as $fMenu)
+                        <li>
+                            <a
+                                href="{{ $fMenu->resolvedUrl() }}"
+                                @if ($fMenu->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
+                                class="hover:underline"
+                            >
+                                {{ $fMenu->title }}
+                            </a>
+                        </li>
+                    @endforeach
                 </ul>
             </div>
 
@@ -322,7 +383,6 @@
 
     <script>
         (() => {
-            // Desktop dropdown keyboard + click handling
             const navGroups = document.querySelectorAll('[data-nav-group]');
             const closeAllSubmenus = () => {
                 navGroups.forEach((group) => {
@@ -359,7 +419,6 @@
                 }
             });
 
-            // Mobile drawer handling with Escape and focus return
             const mobileOpen = document.getElementById('mobile-menu-open');
             const mobileClose = document.getElementById('mobile-menu-close');
             const mobileDrawer = document.getElementById('mobile-nav-drawer');

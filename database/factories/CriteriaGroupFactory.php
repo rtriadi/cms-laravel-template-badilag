@@ -18,7 +18,12 @@ class CriteriaGroupFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'juknis_version' => '2026',
+            'aspect' => 'konten',
+            'code' => fake()->unique()->numerify('9.#.#'),
+            'name' => fake()->words(3, true),
+            'weight' => 10.0,
+            'sort_order' => fake()->numberBetween(1, 50),
         ];
     }
 }
