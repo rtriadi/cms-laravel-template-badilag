@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'Masuk Pengelola' }} - SatkerCMS</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @fluxAppearance
+    <script>try{localStorage.setItem('flux.appearance','light')}catch(e){}document.documentElement.classList.remove('dark');</script>
 </head>
 <body class="min-h-screen bg-mist font-sans text-ink antialiased">
     <div class="h-1 w-full bg-gold" aria-hidden="true"></div>

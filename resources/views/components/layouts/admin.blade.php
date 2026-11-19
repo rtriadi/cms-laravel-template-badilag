@@ -27,7 +27,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'Panel Admin' }} - {{ $satker?->nama_satker ?? 'SatkerCMS' }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @fluxAppearance
+    <script>try{localStorage.setItem('flux.appearance','light')}catch(e){}document.documentElement.classList.remove('dark');</script>
 </head>
 <body
     class="min-h-screen bg-mist font-sans text-ink antialiased"
