@@ -1,13 +1,18 @@
-# Graph Report - .  (2026-11-19)
+# Graph Report - cms-laravel-template-badilag  (2026-11-19)
 
 ## Corpus Check
-- 171 files · ~57,490 words
+- 172 files · ~59,619 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 767 nodes · 1336 edges · 102 communities (91 shown, 11 thin omitted)
-- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 112 edges (avg confidence: 0.82)
+- 779 nodes · 1399 edges · 102 communities (93 shown, 9 thin omitted)
+- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 113 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
+
+## Graph Freshness
+- Built from commit: `89049b86`
+- Run `git rev-parse HEAD` and compare to check if the graph is stale.
+- Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - Public Controllers & Kepaniteraan
@@ -56,15 +61,15 @@
 
 ## God Nodes (most connected - your core abstractions)
 1. `SatkerSetting` - 44 edges
-2. `CriteriaItem` - 35 edges
-3. `Page` - 35 edges
-4. `User` - 27 edges
-5. `SinovaHealthCheckService` - 21 edges
-6. `CriteriaGroup` - 18 edges
-7. `Post` - 18 edges
-8. `CriteriaManager` - 17 edges
-9. `MenuItem` - 17 edges
-10. `Document` - 16 edges
+2. `CriteriaItem` - 36 edges
+3. `Page` - 36 edges
+4. `User` - 29 edges
+5. `MenuItem` - 28 edges
+6. `SinovaHealthCheckService` - 22 edges
+7. `CriteriaGroup` - 19 edges
+8. `Post` - 18 edges
+9. `CriteriaManager` - 17 edges
+10. `MenuManager` - 16 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Visual Dials (Energy 1 / Rhythm 2 / Motion 1)` --semantically_similar_to--> `Homepage Performance Guardrails (< 5s)`  [INFERRED] [semantically similar]
@@ -86,35 +91,31 @@
 - **Badilag Brand & WCAG AA Accessibility Lock** — design_primaryemerald, design_secondarygold, design_highcontrasttokens, docs_prd_cms_pengadilan_agama_accessibilitywidget, _ai_guidelines_satker_cms_satkercmsguidelines [INFERRED 0.95]
 - **Fase 0 Security & Setup Foundation** — docs_plan_fase_0_fase0plan, docs_plan_fase_0_fortifymfa, docs_plan_fase_0_setupwizard, docs_prd_cms_pengadilan_agama_rbac6roles, _ai_guidelines_satker_cms_securityheadersmiddleware [INFERRED 0.95]
 
-## Communities (102 total, 11 thin omitted)
+## Communities (102 total, 9 thin omitted)
 
 ### Community 0 - "Public Controllers & Kepaniteraan"
-Cohesion: 0.08
-Nodes (15): PublicPageController, KepaniteraanManager, CaseStatistic, CourtSchedule, Official, LogOptions, Page, LogOptions (+7 more)
+Cohesion: 0.07
+Nodes (26): TwoFactorSetup, LinkCheckLog, Official, LogOptions, Page, LogOptions, PageVisit, LogOptions (+18 more)
 
 ### Community 1 - "Criteria Importer & Compliance Checks"
-Cohesion: 0.07
-Nodes (10): CmsUpdateCommand, CriteriaManager, Dashboard, SinovaLinks, CriteriaGroup, CriteriaItem, LinkCheckLog, SinovaCriteriaImporter (+2 more)
+Cohesion: 0.08
+Nodes (7): CriteriaManager, SinovaLinks, CriteriaGroup, CriteriaItem, SinovaCriteriaImporter, CriteriaItemFactory, Illuminate\Database\Eloquent\Relations\BelongsTo
 
 ### Community 2 - "Database Model Factories"
-Cohesion: 0.05
-Nodes (18): CaseStatisticFactory, CourtScheduleFactory, CriteriaGroupFactory, CriteriaItemFactory, DocumentFactory, HomeSliderFactory, LinkCheckLogFactory, MenuItemFactory (+10 more)
+Cohesion: 0.06
+Nodes (16): CaseStatisticFactory, CourtScheduleFactory, CriteriaGroupFactory, DocumentFactory, HomeSliderFactory, LinkCheckLogFactory, OfficialFactory, PageFactory (+8 more)
 
 ### Community 3 - "Fortify Actions & Local Captcha"
-Cohesion: 0.07
-Nodes (20): CreateNewUser, ResetUserPassword, UpdateUserPassword, UpdateUserProfileInformation, UserRoleManager, LogOptions, User, AppServiceProvider (+12 more)
+Cohesion: 0.09
+Nodes (12): CreateNewUser, ResetUserPassword, UpdateUserPassword, UpdateUserProfileInformation, AppServiceProvider, FortifyServiceProvider, Illuminate\Support\ServiceProvider, Laravel\Fortify\Contracts\CreatesNewUsers (+4 more)
 
 ### Community 4 - "PRD, Design & Architecture Docs"
 Cohesion: 0.05
 Nodes (45): App Actions & Validation Pattern, Figma Checkpoint Rule, Flux UI Free Tier Constraint, SatkerCMS Project Guidelines, SecurityHeadersMiddleware, Asymmetric Homepage Grid (8/4 Hero, 7/5 News), Embed Eksternal + Cadangan Manual UI Pattern, Figma Screen Architecture (Pages 01-03) (+37 more)
 
-### Community 5 - "Admin Livewire Modules & Posts"
-Cohesion: 0.09
-Nodes (11): PublicPostController, TwoFactorSetup, SetupWizard, LocalCaptchaService, Illuminate\Contracts\View\View, Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication, Laravel\Fortify\Actions\EnableTwoFactorAuthentication, Laravel\Fortify\Actions\GenerateNewRecoveryCodes (+3 more)
-
 ### Community 6 - "Public Portal Route Handlers"
-Cohesion: 0.07
-Nodes (11): Controller, PublicComplianceController, PublicHomeController, PublicSearchController, SatkerSettingsManager, LogOptions, SatkerSetting, SatkerDefaultContentSeeder (+3 more)
+Cohesion: 0.05
+Nodes (12): CmsUpdateCommand, PublicComplianceController, Dashboard, SatkerSettingsManager, SetupWizard, LogOptions, SatkerSetting, SinovaHealthCheckService (+4 more)
 
 ### Community 7 - "Security & Redirect Middlewares"
 Cohesion: 0.14
@@ -129,20 +130,32 @@ Cohesion: 0.10
 Nodes (20): concurrently, @laravel/multiplex, laravel-vite-plugin, devDependencies, concurrently, laravel-vite-plugin, tailwindcss, @tailwindcss/vite (+12 more)
 
 ### Community 10 - "PostManager Livewire Actions"
-Cohesion: 0.18
-Nodes (4): PostManager, LogOptions, Post, Illuminate\Http\Response
+Cohesion: 0.15
+Nodes (5): PublicPostController, PostManager, LogOptions, Post, Illuminate\Http\Response
+
+### Community 11 - "MenuManager Livewire Actions"
+Cohesion: 0.15
+Nodes (4): MenuManager, MenuItem, MenuItemFactory, Illuminate\Database\Eloquent\Relations\HasMany
 
 ### Community 12 - "DocumentManager Livewire Actions"
-Cohesion: 0.19
-Nodes (3): DocumentManager, Document, LogOptions
+Cohesion: 0.16
+Nodes (4): PublicSearchController, DocumentManager, Document, LogOptions
+
+### Community 13 - "SliderManager Livewire Actions"
+Cohesion: 0.10
+Nodes (6): PublicHomeController, PageManager, SliderManager, HomeSlider, SafeHtml, self
 
 ### Community 14 - "Database Seeders & Config"
-Cohesion: 0.19
+Cohesion: 0.28
 Nodes (5): DatabaseSeeder, RoleAndPermissionSeeder, SinovaCriteriaSeeder, Illuminate\Database\Console\Seeds\WithoutModelEvents, Illuminate\Database\Seeder
 
 ### Community 15 - "MenuManager Blade UI"
-Cohesion: 0.15
-Nodes (12): delete({{ $child->id }}), delete({{ $menu->id }}), edit({{ $child->id }}), edit({{ $menu->id }}), moveDown({{ $child->id }}), moveDown({{ $menu->id }}), moveUp({{ $child->id }}), moveUp({{ $menu->id }}) (+4 more)
+Cohesion: 0.11
+Nodes (17): delete({{ $child->id }}), delete({{ $grandchild->id }}), delete({{ $menu->id }}), edit({{ $child->id }}), edit({{ $grandchild->id }}), edit({{ $menu->id }}), moveDown({{ $child->id }}), moveDown({{ $grandchild->id }}) (+9 more)
+
+### Community 16 - "PageManager Livewire Actions"
+Cohesion: 0.18
+Nodes (5): Controller, PublicPageController, KepaniteraanManager, CaseStatistic, CourtSchedule
 
 ### Community 17 - "Composer Dev Dependencies"
 Cohesion: 0.18
@@ -217,24 +230,24 @@ Cohesion: 0.67
 Nodes (3): keywords, framework, laravel
 
 ## Knowledge Gaps
-- **140 isolated node(s):** `php`, `$schema`, `name`, `type`, `description` (+135 more)
+- **145 isolated node(s):** `php`, `$schema`, `name`, `type`, `description` (+140 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **9 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `User` connect `Fortify Actions & Local Captcha` to `Public Controllers & Kepaniteraan`, `Admin Livewire Modules & Posts`?**
-  _High betweenness centrality (0.038) - this node is a cross-community bridge._
-- **Why does `SatkerSetting` connect `Public Portal Route Handlers` to `Public Controllers & Kepaniteraan`, `Criteria Importer & Compliance Checks`, `Fortify Actions & Local Captcha`, `Admin Livewire Modules & Posts`, `Security & Redirect Middlewares`?**
-  _High betweenness centrality (0.037) - this node is a cross-community bridge._
-- **Why does `CriteriaItem` connect `Criteria Importer & Compliance Checks` to `Public Controllers & Kepaniteraan`, `Database Model Factories`, `Admin Livewire Modules & Posts`, `Public Portal Route Handlers`, `DocumentManager Livewire Actions`, `PageManager Livewire Actions`?**
-  _High betweenness centrality (0.027) - this node is a cross-community bridge._
+- **Why does `User` connect `Public Controllers & Kepaniteraan` to `SafeHtml XSS Sanitizer`, `Fortify Actions & Local Captcha`, `Public Portal Route Handlers`?**
+  _High betweenness centrality (0.039) - this node is a cross-community bridge._
+- **Why does `SatkerSetting` connect `Public Portal Route Handlers` to `Public Controllers & Kepaniteraan`, `Criteria Importer & Compliance Checks`, `Security & Redirect Middlewares`, `PostManager Livewire Actions`, `DocumentManager Livewire Actions`, `SliderManager Livewire Actions`, `PageManager Livewire Actions`?**
+  _High betweenness centrality (0.036) - this node is a cross-community bridge._
+- **Why does `CriteriaItem` connect `Criteria Importer & Compliance Checks` to `Public Controllers & Kepaniteraan`, `DocumentManager Livewire Actions`, `SliderManager Livewire Actions`, `Public Portal Route Handlers`?**
+  _High betweenness centrality (0.026) - this node is a cross-community bridge._
 - **Are the 16 inferred relationships involving `SatkerSetting` (e.g. with `.accessibility()` and `.sitemapHtml()`) actually correct?**
   _`SatkerSetting` has 16 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `php`, `$schema`, `name` to the rest of the system?**
-  _140 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _145 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Public Controllers & Kepaniteraan` be split into smaller, more focused modules?**
-  _Cohesion score 0.07577639751552795 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07290886392009988 - nodes in this community are weakly interconnected._
 - **Should `Criteria Importer & Compliance Checks` be split into smaller, more focused modules?**
-  _Cohesion score 0.07080200501253132 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07510204081632653 - nodes in this community are weakly interconnected._
