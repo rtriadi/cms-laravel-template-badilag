@@ -1,6 +1,18 @@
 <?php
 
+use App\Livewire\Admin\AuditAndBackupManager;
+use App\Livewire\Admin\CriteriaManager;
+use App\Livewire\Admin\Dashboard;
+use App\Livewire\Admin\DocumentManager;
+use App\Livewire\Admin\KepaniteraanManager;
+use App\Livewire\Admin\MenuManager;
+use App\Livewire\Admin\PageManager;
+use App\Livewire\Admin\PostManager;
+use App\Livewire\Admin\SatkerSettingsManager;
+use App\Livewire\Admin\SinovaLinks;
+use App\Livewire\Admin\SliderManager;
 use App\Livewire\Admin\TwoFactorSetup;
+use App\Livewire\Admin\UserRoleManager;
 use App\Livewire\SetupWizard;
 use App\Services\LocalCaptchaService;
 use Illuminate\Http\Response;
@@ -33,5 +45,16 @@ Route::prefix($adminPath)
             ->withoutMiddleware('two-factor.required')
             ->name('two-factor.setup');
 
-        Route::get('/', fn () => view('welcome'))->name('dashboard');
+        Route::get('/', Dashboard::class)->name('dashboard');
+        Route::get('/link-sinova', SinovaLinks::class)->name('sinova-links');
+        Route::get('/menu', MenuManager::class)->name('menus');
+        Route::get('/halaman', PageManager::class)->name('pages');
+        Route::get('/publikasi', PostManager::class)->name('posts');
+        Route::get('/dokumen', DocumentManager::class)->name('documents');
+        Route::get('/kepaniteraan', KepaniteraanManager::class)->name('kepaniteraan');
+        Route::get('/slider', SliderManager::class)->name('sliders');
+        Route::get('/pengaturan', SatkerSettingsManager::class)->name('settings');
+        Route::get('/kriteria', CriteriaManager::class)->name('criteria');
+        Route::get('/pengguna', UserRoleManager::class)->name('users');
+        Route::get('/audit', AuditAndBackupManager::class)->name('audit');
     });
