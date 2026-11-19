@@ -6,6 +6,7 @@ use App\Models\CriteriaItem;
 use App\Models\Document;
 use App\Models\Page;
 use App\Models\Post;
+use App\Models\SatkerSetting;
 use App\Support\SafeHtml;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
@@ -141,6 +142,9 @@ class PageManager extends Component
             if (($block['type'] ?? '') === 'external_portal' && isset($block['default_url'])) {
                 $block['default_url'] = SafeHtml::cleanUrl((string) $block['default_url']) ?? '';
             }
+            if (($block['type'] ?? '') === 'embed_fallback' && isset($block['custom_embed_url'])) {
+                $block['custom_embed_url'] = SafeHtml::cleanUrl((string) $block['custom_embed_url']) ?? '';
+            }
 
             return $block;
         }, array_values($this->blocks));
@@ -224,6 +228,7 @@ class PageManager extends Component
 
         return view('livewire.admin.page-manager', [
             'pages' => $pages,
+            'satker' => SatkerSetting::current(),
             'criteriaOptions' => CriteriaItem::query()->orderBy('code')->get(['code', 'name']),
             'collectionTypes' => Document::collectionTypes(),
             'postCategories' => Post::categoryLabels(),

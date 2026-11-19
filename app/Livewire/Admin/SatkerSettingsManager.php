@@ -86,6 +86,13 @@ class SatkerSettingsManager extends Component
     {
         $this->authorizeAccess();
 
+        foreach (['simtepa_pegawai_url', 'simtepa_struktur_url'] as $simField) {
+            $trimmedSim = trim($this->{$simField});
+            if (preg_match('/^[a-f0-9]{32}$/i', $trimmedSim) === 1) {
+                $this->{$simField} = 'https://simtepa.mahkamahagung.go.id/share/profil_ketua/html/'.strtolower($trimmedSim);
+            }
+        }
+
         $this->validate([
             'nama_satker' => ['required', 'string', 'max:255'],
             'jenis_badan' => ['required', 'in:PA,PTA,MS,MS_ACEH'],
@@ -259,6 +266,7 @@ class SatkerSettingsManager extends Component
     public function render(): View
     {
         return view('livewire.admin.satker-settings-manager', [
+            'satker' => SatkerSetting::current(),
             'isSuperAdmin' => auth()->user()?->hasRole('super_admin') ?? false,
             'jenisBadanOptions' => config('satker.jenis_badan', []),
             'tingkatOptions' => config('satker.tingkat', []),

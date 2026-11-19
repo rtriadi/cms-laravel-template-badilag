@@ -1,7 +1,16 @@
 @php
     $embedUrl = $block['resolved_embed_url'] ?? null;
+    $embedTabs = is_array($block['resolved_embed_tabs'] ?? null) ? $block['resolved_embed_tabs'] : [];
+    $activeTabKey = (string) ($block['active_simtepa_tab'] ?? ($embedTabs[0]['key'] ?? ''));
     $fallbackMode = $block['fallback_mode'] ?? 'officials_table';
     $showFallback = $forceFallback || empty($embedUrl);
+    $activeJsonUrl = null;
+    foreach ($embedTabs as $t) {
+        if ($t['key'] === $activeTabKey) {
+            $activeJsonUrl = $t['json_url'] ?? null;
+            break;
+        }
+    }
 @endphp
 
 @if (! empty($block['note']))
@@ -9,35 +18,114 @@
 @endif
 
 @if (! $showFallback)
-    <div class="space-y-3 rounded-lg border border-hairline bg-mist p-4">
+    <div
+        data-simtepa-embed-block
+        class="space-y-3 rounded-lg border border-hairline bg-mist p-4"
+    >
+        @if ($embedTabs !== [])
+            <div class="border-b border-hairline pb-3">
+                <p class="mb-2 text-xs font-bold text-ink">Pilih Kategori Data Pegawai SIMTEPA:</p>
+                <div role="tablist" aria-label="Kategori Profil Pegawai SIMTEPA" class="flex flex-wrap gap-1.5">
+                    @foreach ($embedTabs as $tabIndex => $tab)
+                        @php $isActiveTab = $tab['key'] === $activeTabKey || ($activeTabKey === '' && $tabIndex === 0); @endphp
+                        <a
+                            href="{{ request()->fullUrlWithQuery(['simtepa_tab' => $tab['key'], 'fallback' => null]) }}"
+                            role="tab"
+                            aria-selected="{{ $isActiveTab ? 'true' : 'false' }}"
+                            data-simtepa-tab-btn
+                            data-html-url="{{ $tab['html_url'] }}"
+                            data-json-url="{{ $tab['json_url'] }}"
+                            @class([
+                                'pub-btn inline-flex min-h-10 items-center rounded-md px-3 py-1.5 text-xs font-semibold',
+                                'bg-primary text-white' => $isActiveTab,
+                                'border border-hairline bg-white text-ink hover:border-primary hover:bg-primary-soft hover:text-primary' => ! $isActiveTab,
+                            ])
+                        >
+                            {{ $loop->iteration }}. {{ $tab['label'] }}
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
             <span class="font-semibold text-primary">Tampilan Langsung Aplikasi Eksternal Aktif</span>
             <div class="flex flex-wrap items-center gap-2">
                 <a
                     href="{{ request()->fullUrlWithQuery(['fallback' => 1]) }}"
-                    class="inline-flex min-h-11 items-center rounded border border-primary bg-white px-3 font-semibold text-primary hover:bg-primary-soft"
+                    class="pub-btn inline-flex min-h-10 items-center rounded border border-primary bg-white px-3 font-semibold text-primary hover:bg-primary-soft"
                 >
                     Tampilkan Data Cadangan Lokal
                 </a>
+                @if ($activeJsonUrl)
+                    <a
+                        href="{{ $activeJsonUrl }}"
+                        data-simtepa-json-link
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="pub-btn inline-flex min-h-10 items-center rounded border border-hairline bg-white px-3 font-mono font-semibold text-ink hover:bg-gray-50"
+                    >
+                        Endpoint JSON &nearr;
+                    </a>
+                @endif
                 <a
                     href="{{ $embedUrl }}"
+                    data-simtepa-html-link
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="inline-flex min-h-11 items-center rounded bg-primary px-3 font-semibold text-white hover:bg-primary-hover"
+                    class="pub-btn inline-flex min-h-10 items-center rounded bg-primary px-3 font-semibold text-white hover:bg-primary-hover"
                 >
-                    Buka Halaman Sumber
+                    Buka Halaman Sumber &nearr;
                 </a>
             </div>
         </div>
 
         <iframe
             src="{{ $embedUrl }}"
+            data-simtepa-iframe
             title="{{ $block['heading'] ?? 'Integrasi Data Eksternal' }}"
             loading="lazy"
             width="100%"
-            height="540"
-            class="h-[540px] w-full rounded border border-hairline bg-white"
+            height="580"
+            class="h-[580px] w-full rounded border border-hairline bg-white"
         ></iframe>
+
+        @if ($embedTabs !== [])
+            <script>
+                (() => {
+                    document.querySelectorAll('[data-simtepa-embed-block]').forEach((container) => {
+                        if (container.dataset.simtepaBound) return;
+                        container.dataset.simtepaBound = '1';
+                        const iframe = container.querySelector('[data-simtepa-iframe]');
+                        const htmlLink = container.querySelector('[data-simtepa-html-link]');
+                        const jsonLink = container.querySelector('[data-simtepa-json-link]');
+                        const buttons = Array.from(container.querySelectorAll('[data-simtepa-tab-btn]'));
+
+                        buttons.forEach((btn) => {
+                            btn.addEventListener('click', (e) => {
+                                const htmlUrl = btn.getAttribute('data-html-url');
+                                const jsonUrl = btn.getAttribute('data-json-url');
+                                if (!iframe || !htmlUrl) return;
+                                e.preventDefault();
+                                iframe.src = htmlUrl;
+                                if (htmlLink) htmlLink.href = htmlUrl;
+                                if (jsonLink && jsonUrl) jsonLink.href = jsonUrl;
+                                buttons.forEach((b) => {
+                                    const active = b === btn;
+                                    b.setAttribute('aria-selected', active ? 'true' : 'false');
+                                    b.classList.toggle('bg-primary', active);
+                                    b.classList.toggle('text-white', active);
+                                    b.classList.toggle('border', !active);
+                                    b.classList.toggle('border-hairline', !active);
+                                    b.classList.toggle('bg-white', !active);
+                                    b.classList.toggle('text-ink', !active);
+                                });
+                            });
+                        });
+                    });
+                })();
+            </script>
+        @endif
     </div>
 @else
     <div class="space-y-4">

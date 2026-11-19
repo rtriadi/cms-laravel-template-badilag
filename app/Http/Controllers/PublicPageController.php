@@ -31,6 +31,7 @@ class PublicPageController extends Controller
 
         $selectedYear = $request->integer('tahun');
         $forceFallback = $request->boolean('fallback');
+        $requestedSimtepaTab = (string) $request->query('simtepa_tab', '');
         $rawBlocks = is_array($page->blocks) ? $page->blocks : [];
 
         $documentsByCollection = [];
@@ -44,6 +45,7 @@ class PublicPageController extends Controller
         $blocks = array_map(function (array $block) use (
             $satker,
             $selectedYear,
+            $requestedSimtepaTab,
             &$documentsByCollection,
             &$yearsByCollection,
             &$postsByCategory,
@@ -101,13 +103,25 @@ class PublicPageController extends Controller
             if ($type === 'embed_fallback') {
                 $fallbackMode = (string) ($block['fallback_mode'] ?? 'officials_table');
                 $sourceKey = (string) ($block['source_key'] ?? '');
+                $customOverride = isset($block['custom_embed_url']) ? (string) $block['custom_embed_url'] : null;
 
-                $block['resolved_embed_url'] = SafeHtml::cleanUrl(match ($sourceKey) {
-                    'simtepa_pegawai' => $satker?->simtepa_pegawai_url,
-                    'simtepa_struktur' => $satker?->simtepa_struktur_url,
-                    'sipp_jadwal', 'sipp_statistik' => $satker?->sipp_url,
-                    default => null,
-                });
+                $resolvedSource = $satker !== null
+                    ? $satker->resolveEmbedSource($sourceKey, $customOverride)
+                    : ['embed_url' => SafeHtml::cleanUrl($customOverride), 'tabs' => []];
+
+                $activeTabKey = $requestedSimtepaTab;
+                $activeEmbedUrl = $resolvedSource['embed_url'];
+
+                foreach ($resolvedSource['tabs'] as $tabItem) {
+                    if ($tabItem['key'] === $activeTabKey) {
+                        $activeEmbedUrl = $tabItem['html_url'];
+                        break;
+                    }
+                }
+
+                $block['resolved_embed_url'] = $activeEmbedUrl;
+                $block['resolved_embed_tabs'] = $resolvedSource['tabs'];
+                $block['active_simtepa_tab'] = $activeTabKey !== '' ? $activeTabKey : ($resolvedSource['tabs'][0]['key'] ?? '');
 
                 match ($fallbackMode) {
                     'org_chart' => $needsOrgChart = true,

@@ -349,3 +349,35 @@ it('renders enriched prodeo posbakum page with article_list block and deduplicat
         ->assertSee('Sidang di Luar Gedung Pengadilan (Sidang Keliling)')
         ->assertSee('Artikel Panduan Prodeo &amp; Posbakum', false);
 });
+
+it('resolves SIPP list_jadwal_sidang and 7 SIMTEPA share categories automatically from satker settings', function (): void {
+    $satker = SatkerSetting::factory()->setupCompleted()->create([
+        'nama_satker' => 'Pengadilan Agama Gorontalo',
+        'sipp_url' => 'https://sipp.pa-gorontalo.go.id/',
+        'simtepa_pegawai_url' => 'https://simtepa.mahkamahagung.go.id/share/profil_ketua/html/a87bd82962cda7f528247a68ee4ac2a5',
+        'simtepa_struktur_url' => 'https://simtepa.mahkamahagung.go.id/share/profil_ketua/html/a87bd82962cda7f528247a68ee4ac2a5',
+    ]);
+
+    expect($satker->resolvedSippEmbedUrl('sipp_jadwal'))->toBe('https://sipp.pa-gorontalo.go.id/list_jadwal_sidang')
+        ->and($satker->resolvedSippEmbedUrl('sipp_perkara'))->toBe('https://sipp.pa-gorontalo.go.id/')
+        ->and($satker->resolvedSippEmbedUrl('sipp_statistik'))->toBe('https://sipp.pa-gorontalo.go.id/statistik_perkara')
+        ->and($satker->extractSimtepaToken())->toBe('a87bd82962cda7f528247a68ee4ac2a5')
+        ->and(count($satker->simtepaCategoryTabs(false)))->toBe(7)
+        ->and(count($satker->simtepaCategoryTabs(true)))->toBe(6);
+
+    app(SatkerDefaultContentSeeder::class)->run('pertama');
+
+    $this->get('/halaman/layanan-hukum/jadwal-sidang')
+        ->assertOk()
+        ->assertSee('https://sipp.pa-gorontalo.go.id/list_jadwal_sidang');
+
+    $this->get('/halaman/profil/pejabat-pegawai')
+        ->assertOk()
+        ->assertSee('https://simtepa.mahkamahagung.go.id/share/profil_ketua/html/a87bd82962cda7f528247a68ee4ac2a5')
+        ->assertSee('https://simtepa.mahkamahagung.go.id/share/profil_wakil/html/a87bd82962cda7f528247a68ee4ac2a5')
+        ->assertSee('https://simtepa.mahkamahagung.go.id/share/profil_hakim/html/a87bd82962cda7f528247a68ee4ac2a5')
+        ->assertSee('https://simtepa.mahkamahagung.go.id/share/profil_kepaniteraan/html/a87bd82962cda7f528247a68ee4ac2a5')
+        ->assertSee('https://simtepa.mahkamahagung.go.id/share/profil_kesekretariatan/html/a87bd82962cda7f528247a68ee4ac2a5')
+        ->assertSee('https://simtepa.mahkamahagung.go.id/share/profil_fungsional/html/a87bd82962cda7f528247a68ee4ac2a5')
+        ->assertSee('https://simtepa.mahkamahagung.go.id/share/profil_pelaksana/html/a87bd82962cda7f528247a68ee4ac2a5');
+});

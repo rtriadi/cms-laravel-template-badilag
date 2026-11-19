@@ -126,14 +126,33 @@
                                     <p class="mt-1 text-[11px] text-ink-muted">Otomatis menampilkan daftar artikel dari menu Berita, Artikel &amp; Pengumuman sesuai kategori ini.</p>
                                 </flux:field>
                             @elseif (($block['type'] ?? '') === 'embed_fallback')
+                                @php
+                                    $srcKey = (string) ($block['source_key'] ?? 'simtepa_pegawai');
+                                    $customEmbed = (string) ($block['custom_embed_url'] ?? '');
+                                    $previewResolved = $satker?->resolveEmbedSource($srcKey, $customEmbed) ?? ['embed_url' => null, 'tabs' => []];
+                                @endphp
                                 <div class="grid gap-3 sm:grid-cols-2">
                                     <flux:field>
-                                        <flux:label>Sumber Embed Eksternal</flux:label>
-                                        <flux:select wire:model="blocks.{{ $index }}.source_key" aria-label="Sumber embed blok #{{ $index + 1 }}">
-                                            <option value="simtepa_pegawai">SIMTEPA Pegawai</option>
-                                            <option value="simtepa_struktur">SIMTEPA Struktur</option>
-                                            <option value="sipp_jadwal">SIPP Jadwal Sidang</option>
-                                            <option value="sipp_statistik">SIPP Statistik Perkara</option>
+                                        <flux:label>Sumber Embed Eksternal (Otomatis dari Pengaturan Satker)</flux:label>
+                                        <flux:select wire:model.live="blocks.{{ $index }}.source_key" aria-label="Sumber embed blok #{{ $index + 1 }}">
+                                            <optgroup label="SIPP (Otomatis dari URL SIPP Pengaturan Satker)">
+                                                <option value="sipp_jadwal">SIPP Jadwal Sidang (/list_jadwal_sidang)</option>
+                                                <option value="sipp_perkara">SIPP Daftar / Penelusuran Perkara (/)</option>
+                                                <option value="sipp_statistik">SIPP Statistik Perkara (/statistik_perkara)</option>
+                                            </optgroup>
+                                            <optgroup label="SIMTEPA Gabungan (7 Tab Otomatis dari Token SIMTEPA)">
+                                                <option value="simtepa_pegawai">SIMTEPA Semua Profil Pegawai (7 Tab: Ketua s.d. Pelaksana)</option>
+                                                <option value="simtepa_struktur">SIMTEPA Struktur Pejabat (6 Tab: Tanpa Pelaksana)</option>
+                                            </optgroup>
+                                            <optgroup label="SIMTEPA Per Kategori Khusus">
+                                                <option value="simtepa_ketua">SIMTEPA 1. Profil Ketua</option>
+                                                <option value="simtepa_wakil">SIMTEPA 2. Profil Wakil Ketua</option>
+                                                <option value="simtepa_hakim">SIMTEPA 3. Profil Hakim</option>
+                                                <option value="simtepa_kepaniteraan">SIMTEPA 4. Profil Kepaniteraan</option>
+                                                <option value="simtepa_kesekretariatan">SIMTEPA 5. Profil Kesekretariatan</option>
+                                                <option value="simtepa_fungsional">SIMTEPA 6. Profil Fungsional</option>
+                                                <option value="simtepa_pelaksana">SIMTEPA 7. Profil Pelaksana</option>
+                                            </optgroup>
                                         </flux:select>
                                     </flux:field>
                                     <flux:field>
@@ -146,7 +165,30 @@
                                         </flux:select>
                                     </flux:field>
                                 </div>
-                                <flux:input wire:model="blocks.{{ $index }}.note" aria-label="Catatan mode cadangan blok #{{ $index + 1 }}" placeholder="Catatan penjelas di atas tabel/embed (opsional)" />
+
+                                <div class="rounded-md border border-emerald-200 bg-primary-soft/60 px-3 py-2 text-xs text-ink">
+                                    <p class="font-semibold text-primary-deep">Sumber URL Embed Aktif:</p>
+                                    @if (! empty($previewResolved['tabs']))
+                                        <p class="mt-0.5 text-[11px] text-ink-body">
+                                            Otomatis menampilkan <strong>{{ count($previewResolved['tabs']) }} Tab Kategori SIMTEPA</strong> dari token <code>{{ $satker?->extractSimtepaToken() }}</code> (Ketua, Wakil, Hakim, Kepaniteraan, Kesekretariatan, Fungsional{{ count($previewResolved['tabs']) === 7 ? ', Pelaksana' : '' }}).
+                                        </p>
+                                    @elseif (! empty($previewResolved['embed_url']))
+                                        <p class="mt-0.5 break-all font-mono text-[11px] text-primary">{{ $previewResolved['embed_url'] }}</p>
+                                    @else
+                                        <p class="mt-0.5 text-[11px] text-amber-800">URL belum diatur di menu Pengaturan Satker (akan otomatis menampilkan Data Cadangan Lokal).</p>
+                                    @endif
+                                </div>
+
+                                <div class="grid gap-3 sm:grid-cols-2">
+                                    <flux:field>
+                                        <flux:label>Override URL Embed Khusus Blok Ini (Opsional)</flux:label>
+                                        <flux:input wire:model.live="blocks.{{ $index }}.custom_embed_url" aria-label="Override URL embed blok #{{ $index + 1 }}" placeholder="Kosongkan jika menggunakan URL otomatis di atas..." />
+                                    </flux:field>
+                                    <flux:field>
+                                        <flux:label>Catatan Penjelas di Atas Tabel/Embed (Opsional)</flux:label>
+                                        <flux:input wire:model="blocks.{{ $index }}.note" aria-label="Catatan mode cadangan blok #{{ $index + 1 }}" placeholder="Catatan penjelas (opsional)" />
+                                    </flux:field>
+                                </div>
                             @elseif (($block['type'] ?? '') === 'external_portal')
                                 <flux:field>
                                     <flux:label>URL Tujuan Portal</flux:label>

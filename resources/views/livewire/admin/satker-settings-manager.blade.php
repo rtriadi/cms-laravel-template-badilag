@@ -125,12 +125,14 @@
                         <flux:input id="ext_siwas" type="url" wire:model="siwas_url" placeholder="https://siwas.mahkamahagung.go.id" />
                     </flux:field>
                     <flux:field>
-                        <flux:label for="ext_sim_peg">URL Embed SIMTEPA Pegawai</flux:label>
-                        <flux:input id="ext_sim_peg" type="url" wire:model="simtepa_pegawai_url" placeholder="https://simtepa.badilag.net/..." />
+                        <flux:label for="ext_sim_peg">URL / Token Share SIMTEPA Pegawai</flux:label>
+                        <flux:input id="ext_sim_peg" wire:model="simtepa_pegawai_url" placeholder="https://simtepa.mahkamahagung.go.id/share/profil_ketua/html/..." />
+                        <p class="mt-1 text-[11px] text-ink-muted">Cukup tempelkan salah satu link Share SIMTEPA atau kode hash 32 karakternya; sistem otomatis membentuk 7 kategori (Ketua s.d. Pelaksana).</p>
                     </flux:field>
                     <flux:field>
-                        <flux:label for="ext_sim_str">URL Embed SIMTEPA Struktur</flux:label>
-                        <flux:input id="ext_sim_str" type="url" wire:model="simtepa_struktur_url" placeholder="https://simtepa.badilag.net/..." />
+                        <flux:label for="ext_sim_str">URL / Token Share SIMTEPA Struktur</flux:label>
+                        <flux:input id="ext_sim_str" wire:model="simtepa_struktur_url" placeholder="https://simtepa.mahkamahagung.go.id/share/profil_ketua/html/..." />
+                        <p class="mt-1 text-[11px] text-ink-muted">Otomatis menampilkan 6 kategori pejabat struktural/fungsional (tanpa Pelaksana sesuai SK Badilag).</p>
                     </flux:field>
                     <flux:field>
                         <flux:label for="ext_skm">URL Survei SKM / IKPM</flux:label>
@@ -141,6 +143,49 @@
                         <flux:input id="ext_spak" type="url" wire:model="spak_url" placeholder="https://..." />
                     </flux:field>
                 </div>
+
+                @if ($satker)
+                    <div class="space-y-3 rounded-lg border border-emerald-200 bg-primary-soft/60 p-4 text-xs">
+                        <div>
+                            <p class="font-bold text-primary-deep">Pemetaan Otomatis Endpoint SIPP Aktif:</p>
+                            @if ($satker->sipp_url)
+                                <ul class="mt-1 space-y-1 font-mono text-[11px] text-ink-body">
+                                    <li><strong>Daftar Perkara:</strong> {{ $satker->resolvedSippEmbedUrl('sipp_perkara') }}</li>
+                                    <li><strong>Jadwal Sidang:</strong> {{ $satker->resolvedSippEmbedUrl('sipp_jadwal') }}</li>
+                                    <li><strong>Statistik Perkara:</strong> {{ $satker->resolvedSippEmbedUrl('sipp_statistik') }}</li>
+                                </ul>
+                            @else
+                                <p class="mt-1 text-[11px] text-ink-muted">URL SIPP belum diisi.</p>
+                            @endif
+                        </div>
+
+                        @php $simtepaTabs = $satker->simtepaCategoryTabs(false); @endphp
+                        <div class="border-t border-emerald-200 pt-2.5">
+                            <p class="font-bold text-primary-deep">
+                                Pemetaan Otomatis 7 Kategori Share Data SIMTEPA
+                                @if ($satker->extractSimtepaToken())
+                                    (Token: <code class="font-mono">{{ $satker->extractSimtepaToken() }}</code>)
+                                @endif
+                            </p>
+                            @if ($simtepaTabs !== [])
+                                <ul class="mt-1.5 space-y-1 text-[11px]">
+                                    @foreach ($simtepaTabs as $sTab)
+                                        <li class="flex flex-wrap items-center justify-between gap-2 rounded border border-hairline bg-white px-2.5 py-1">
+                                            <span class="font-semibold text-ink">{{ $loop->iteration }}. {{ $sTab['label'] }}</span>
+                                            <span class="flex items-center gap-2 font-mono">
+                                                <a href="{{ $sTab['html_url'] }}" target="_blank" rel="noopener" class="font-semibold text-primary hover:underline">HTML &nearr;</a>
+                                                <span class="text-ink-muted">|</span>
+                                                <a href="{{ $sTab['json_url'] }}" target="_blank" rel="noopener" class="font-semibold text-ink-body hover:underline">JSON &nearr;</a>
+                                            </span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p class="mt-1 text-[11px] text-ink-muted">Tempelkan salah satu URL Share SIMTEPA di atas lalu klik Simpan untuk menghasilkan 7 kategori otomatis.</p>
+                            @endif
+                        </div>
+                    </div>
+                @endif
 
                 <div class="rounded-lg border border-hairline bg-mist p-4">
                     <div class="flex flex-wrap items-center justify-between gap-3">
