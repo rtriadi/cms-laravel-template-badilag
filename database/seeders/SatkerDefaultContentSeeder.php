@@ -289,7 +289,12 @@ class SatkerDefaultContentSeeder extends Seeder
                     [
                         'type' => 'richtext',
                         'heading' => 'Alur Layanan Berperkara di {{satker.nama}}',
-                        'content' => '<h3>1. Tingkat Pertama</h3><p>Pendaftaran gugatan atau permohonan melalui meja PTSP atau e-Court.</p><h3>2. Tingkat Banding</h3><p>Permohonan banding diajukan paling lambat 14 hari kalender sejak putusan diucapkan atau diberitahukan.</p><h3>3. Kasasi</h3><p>Permohonan kasasi dan memori kasasi diajukan melalui kepaniteraan pengadilan tingkat pertama.</p><h3>4. Peninjauan Kembali (PK)</h3><p>Diajukan sesuai syarat dan tenggang waktu undang-undang melalui kepaniteraan pengadilan asal.</p><h3>5. Pengambilan Produk Pengadilan</h3><p>Akta cerai dan salinan putusan diambil di loket produk atau melalui layanan elektronik.</p><h3>6. Gugatan Sederhana</h3><p>Penyelesaian perkara wanprestasi atau perbuatan melawan hukum dengan nilai gugatan sesuai peraturan Mahkamah Agung.</p>',
+                        'content' => '<h3>1. Tingkat Pertama</h3><p>Pendaftaran gugatan atau permohonan melalui meja Pelayanan Terpadu Satu Pintu (PTSP) atau secara elektronik melalui aplikasi e-Court Mahkamah Agung RI dengan melengkapi surat gugatan/permohonan, identitas para pihak, serta bukti pembayaran panjar biaya perkara (atau permohonan Prodeo).</p><h3>2. Tingkat Banding</h3><p>Permohonan banding diajukan paling lambat 14 hari kalender sejak putusan diucapkan atau diberitahukan secara sah kepada pihak yang tidak hadir melalui kepaniteraan pengadilan tingkat pertama atau melalui e-Court.</p><h3>3. Kasasi</h3><p>Permohonan kasasi diajukan dalam tenggang waktu 14 hari kalender setelah putusan banding diberitahukan, diikuti penyerahan memori kasasi paling lambat 14 hari kalender sejak pernyataan kasasi diterima.</p><h3>4. Peninjauan Kembali (PK)</h3><p>Diajukan terhadap putusan yang telah berkekuatan hukum tetap sesuai alasan dan tenggang waktu undang-undang melalui kepaniteraan pengadilan tingkat pertama yang memeriksa perkara asal.</p><h3>5. Pengambilan Produk Pengadilan</h3><p>Salinan putusan/penetapan dan Akta Cerai dapat diambil langsung oleh pihak berperkara atau kuasanya yang sah di loket Produk Pengadilan PTSP atau diunduh secara elektronik bagi perkara e-Court.</p><h3>6. Gugatan Sederhana (Small Claim Court)</h3><p>Penyelesaian perkara ekonomi syariah dengan nilai gugatan materiil maksimal sesuai Peraturan Mahkamah Agung, diperiksa oleh hakim tunggal dan diselesaikan paling lama 25 hari kerja sejak hari sidang pertama.</p>',
+                    ],
+                    [
+                        'type' => 'document_list',
+                        'collection_type' => 'prosedur_sop',
+                        'heading' => 'Dokumen SOP & Panduan Prosedur Berperkara',
                     ],
                 ],
             ],
@@ -300,7 +305,16 @@ class SatkerDefaultContentSeeder extends Seeder
                 'category_tag' => 'berkala',
                 'tingkat_scope' => 'all',
                 'blocks' => [
-                    ['type' => 'richtext', 'heading' => 'Rincian Panjar Biaya Perkara dan Radius Panggilan', 'content' => '<p>Silakan perbarui rincian SK panjar biaya perkara serta radius panggilan resmi {{satker.nama}} di sini.</p>'],
+                    [
+                        'type' => 'richtext',
+                        'heading' => 'Komponen Panjar Biaya Perkara & Radius Panggilan',
+                        'content' => '<p>Panjar biaya perkara pada {{satker.nama}} ditetapkan berdasarkan Surat Keputusan Ketua {{satker.nama}} tentang Panjar Biaya Perkara dan Radius Panggilan. Komponen biaya perkara meliputi:</p><ul><li><strong>Biaya Pendaftaran (PNBP):</strong> Biaya pendaftaran gugatan/permohonan, pencatatan, serta hak-hak kepaniteraan sesuai Peraturan Pemerintah tentang Jenis dan Tarif PNBP yang berlaku pada Mahkamah Agung.</li><li><strong>Biaya Proses (ATK):</strong> Biaya administrasi pemberkasan dan pengiriman dokumen persidangan.</li><li><strong>Biaya Panggilan / Pemberitahuan:</strong> Dihitung berdasarkan zona radius wilayah kelurahan/desa tempat tinggal para pihak, atau Rp0 untuk panggilan elektronik (e-Summons) melalui e-Court.</li><li><strong>Meterai &amp; Redaksi:</strong> Biaya meterai dan redaksi putusan/penetapan sesuai ketentuan perundang-undangan.</li></ul><p>Apabila terdapat kelebihan panjar biaya perkara setelah perkara putus, sisa panjar wajib dikembalikan kepada pihak berperkara melalui kasir PTSP atau transfer rekening.</p>',
+                    ],
+                    [
+                        'type' => 'document_list',
+                        'collection_type' => 'biaya_radius',
+                        'heading' => 'SK Panjar Biaya Perkara dan Tabel Radius Panggilan Resmi',
+                    ],
                 ],
             ],
             // Kesekretariatan & Informasi Umum
@@ -339,12 +353,47 @@ class SatkerDefaultContentSeeder extends Seeder
                 'category_tag' => 'berkala',
                 'tingkat_scope' => 'all',
                 'blocks' => [
-                    ['type' => 'richtext', 'heading' => 'Maklumat Pelayanan {{satker.nama}}', 'content' => '<p>Dengan ini, kami pimpinan dan seluruh aparatur {{satker.nama}} menyatakan sanggup menyelenggarakan pelayanan sesuai standar pelayanan yang telah ditetapkan dan apabila tidak menepati janji, kami siap menerima sanksi sesuai peraturan perundang-undangan.</p>'],
-                    ['type' => 'richtext', 'heading' => 'Layanan Kelompok Rentan & Disabilitas', 'content' => '<p>{{satker.nama}} menyediakan fasilitas kursi roda, jalur pemandu, toilet khusus disabilitas, layanan prioritas, serta dukungan pendampingan bagi pencari keadilan berkebutuhan khusus.</p>'],
+                    ['type' => 'richtext', 'heading' => 'Maklumat Pelayanan {{satker.nama}}', 'content' => '<blockquote>Dengan ini, kami pimpinan dan seluruh aparatur {{satker.nama}} menyatakan sanggup menyelenggarakan pelayanan sesuai standar pelayanan yang telah ditetapkan dan apabila tidak menepati janji, kami siap menerima sanksi sesuai peraturan perundang-undangan yang berlaku.</blockquote>'],
+                    ['type' => 'richtext', 'heading' => 'Standar Pelayanan Terpadu Satu Pintu (PTSP)', 'content' => '<p>{{satker.nama}} menyelenggarakan pelayanan administrasi peradilan secara terintegrasi melalui meja PTSP dengan kepastian persyaratan, prosedur, jangka waktu penyelesaian, dan biaya yang transparan.</p>'],
+                    ['type' => 'richtext', 'heading' => 'Layanan Kelompok Rentan & Disabilitas', 'content' => '<p>{{satker.nama}} menyediakan fasilitas kursi roda, jalur pemandu (guiding block), ruang tunggu ramah anak dan ibu menyusui, toilet khusus disabilitas, antrean prioritas, serta pendampingan petugas bagi pencari keadilan berkebutuhan khusus.</p>'],
+                    ['type' => 'document_list', 'collection_type' => 'standar_pelayanan', 'heading' => 'Dokumen SK Standar Pelayanan, Maklumat & Layanan Disabilitas'],
                 ],
             ],
             // Pendukung
-            ['slug' => 'layanan-hukum/hak-pencari-keadilan', 'title' => 'Hak Pencari Keadilan (Prodeo & Posbakum)', 'criteria_code' => null, 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'richtext', 'heading' => 'Layanan Pembebasan Biaya Perkara (Prodeo) dan Posbakum', 'content' => '<p>Masyarakat tidak mampu berhak memperoleh layanan pembebasan biaya perkara (Prodeo) dan konsultasi hukum gratis di Pos Bantuan Hukum (Posbakum) {{satker.nama}}.</p>']]],
+            [
+                'slug' => 'layanan-hukum/hak-pencari-keadilan',
+                'title' => 'Hak Pencari Keadilan (Prodeo & Posbakum)',
+                'criteria_code' => null,
+                'category_tag' => 'berkala',
+                'tingkat_scope' => 'all',
+                'blocks' => [
+                    [
+                        'type' => 'richtext',
+                        'heading' => '1. Layanan Pembebasan Biaya Perkara (Prodeo)',
+                        'content' => '<p>Sesuai Peraturan Mahkamah Agung RI Nomor 1 Tahun 2014 tentang Pedoman Pemberian Layanan Hukum bagi Masyarakat Tidak Mampu di Pengadilan, setiap orang atau sekelompok orang yang tidak mampu secara ekonomi berhak mengajukan gugatan/permohonan secara cuma-cuma (Prodeo) pada {{satker.nama}} dengan biaya perkara Rp0 (dibebankan pada anggaran DIPA satuan kerja selama kuota tersedia atau Prodeo Murni).</p><h3>Persyaratan Pengajuan Prodeo</h3><ul><li>Surat Keterangan Tidak Mampu (SKTM) yang dikeluarkan oleh Kepala Desa/Lurah/Kepala Wilayah setempat yang menyatakan bahwa benar yang bersangkutan tidak mampu membayar biaya perkara; <strong>atau</strong></li><li>Surat Keterangan Tunjangan Sosial lainnya seperti Kartu Keluarga Sejahtera (KKS), Kartu Program Keluarga Harapan (PKH), Kartu Indonesia Sehat (KIS/BPJS PBI), atau dokumen bantuan sosial pemerintah yang masih berlaku.</li><li>Surat permohonan berperkara secara cuma-cuma (Prodeo) yang diajukan bersamaan dengan surat gugatan atau permohonan.</li></ul>',
+                    ],
+                    [
+                        'type' => 'richtext',
+                        'heading' => '2. Layanan Pos Bantuan Hukum (Posbakum)',
+                        'content' => '<p>Pos Bantuan Hukum (Posbakum) {{satker.nama}} menyediakan layanan bantuan hukum gratis di gedung pengadilan bagi masyarakat pencari keadilan yang tidak mampu membayar jasa advokat.</p><h3>Jenis Layanan Gratis di Posbakum</h3><ul><li>Pemberian informasi, konsultasi, dan advis hukum terkait perkara yang akan atau sedang diajukan.</li><li>Bantuan pembuatan dokumen hukum yang dibutuhkan, seperti surat gugatan, surat permohonan, jawaban, replik, duplik, maupun permohonan pembebasan biaya perkara (Prodeo).</li><li>Penyediaan informasi mengenai daftar Organisasi Bantuan Hukum (OBH) terakreditasi yang dapat memberikan pendampingan secara cuma-cuma.</li></ul>',
+                    ],
+                    [
+                        'type' => 'richtext',
+                        'heading' => '3. Sidang di Luar Gedung Pengadilan (Sidang Keliling)',
+                        'content' => '<p>{{satker.nama}} menyelenggarakan persidangan di luar gedung pengadilan (Sidang Keliling) pada kecamatan atau lokasi yang telah dijadwalkan untuk membantu masyarakat pencari keadilan yang mengalami hambatan biaya, jarak tempuh, atau kondisi fisik menuju kantor pengadilan.</p>',
+                    ],
+                    [
+                        'type' => 'document_list',
+                        'collection_type' => 'prodeo_posbakum',
+                        'heading' => 'Dokumen, SK, Brosur, dan Formulir Layanan Prodeo & Posbakum',
+                    ],
+                    [
+                        'type' => 'article_list',
+                        'post_category' => 'layanan_hukum',
+                        'heading' => 'Artikel & Informasi Terkait Hak Pencari Keadilan',
+                    ],
+                ],
+            ],
             ['slug' => 'layanan-publik/pengaduan-siwas', 'title' => 'Prosedur Pengaduan & SIWAS MARI', 'criteria_code' => null, 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'external_portal', 'heading' => 'Sistem Informasi Pengawasan Mahkamah Agung (SIWAS)', 'url_source' => 'siwas_url', 'default_url' => 'https://siwas.mahkamahagung.go.id', 'description' => 'Sampaikan pengaduan dugaan pelanggaran perilaku aparatur pengadilan secara rahasia melalui SIWAS MARI.']]],
         ];
 
@@ -480,6 +529,7 @@ class SatkerDefaultContentSeeder extends Seeder
                     ['title' => 'Semua Berita & Artikel', 'type' => 'external', 'url' => '/publikasi'],
                     ['title' => 'Berita Pelayanan', 'type' => 'category', 'collection_slug' => 'berita'],
                     ['title' => 'Pengumuman Resmi', 'type' => 'category', 'collection_slug' => 'pengumuman'],
+                    ['title' => 'Artikel Layanan & Bantuan Hukum', 'type' => 'category', 'collection_slug' => 'layanan_hukum'],
                     ['title' => 'Inovasi Layanan', 'type' => 'category', 'collection_slug' => 'inovasi'],
                     ['title' => 'Opini & Gagasan Aparatur', 'type' => 'category', 'collection_slug' => 'opini'],
                 ],

@@ -42,6 +42,12 @@ class DocumentManager extends Component
     {
         $this->authorizeAccess();
         $this->year = (int) now()->year;
+
+        $reqCol = (string) request()->query('koleksi', '');
+        if ($reqCol !== '' && array_key_exists($reqCol, Document::collectionTypes())) {
+            $this->collection_type = $reqCol;
+            $this->collectionFilter = $reqCol;
+        }
     }
 
     public function updatedCollectionFilter(string $value): void

@@ -9,13 +9,23 @@
         </nav>
 
         <article class="rounded-xl border border-hairline bg-white p-6 sm:p-8">
-            <div class="flex flex-wrap items-center gap-2 text-xs">
-                <span class="rounded bg-primary-soft px-2.5 py-0.5 font-semibold text-primary">
-                    {{ $categories[$post->category] ?? $post->category }}
-                </span>
-                <span class="font-mono text-ink-muted">
-                    {{ $post->published_at?->format('d M Y') ?? $post->created_at?->format('d M Y') }}
-                </span>
+            <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="rounded bg-primary-soft px-2.5 py-0.5 font-semibold text-primary">
+                        {{ $categories[$post->category] ?? $post->category }}
+                    </span>
+                    <span class="font-mono text-ink-muted">
+                        {{ $post->published_at?->format('d M Y') ?? $post->created_at?->format('d M Y') }}
+                    </span>
+                </div>
+                @auth
+                    <a
+                        href="{{ route('admin.posts', ['edit' => $post->id]) }}"
+                        class="inline-flex min-h-11 items-center rounded-md border border-primary bg-primary-soft px-3.5 text-xs font-semibold text-primary hover:bg-primary hover:text-white"
+                    >
+                        Edit Artikel Ini
+                    </a>
+                @endauth
             </div>
 
             <h1 class="mt-3 font-serif text-2xl font-bold text-ink sm:text-3xl">{{ $post->title }}</h1>

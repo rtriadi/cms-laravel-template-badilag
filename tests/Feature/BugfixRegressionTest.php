@@ -315,3 +315,37 @@ it('uploads images and PDFs for the rich text editor and sanitizes img tags safe
         ->and($cleaned)->not->toContain('onerror')
         ->and($cleaned)->not->toContain('javascript:');
 });
+
+it('renders enriched prodeo posbakum page with article_list block and deduplicates Kel/Kec in formattedAddress', function (): void {
+    $satker = SatkerSetting::factory()->setupCompleted()->create([
+        'nama_satker' => 'Pengadilan Agama Gorontalo',
+        'alamat_jalan' => 'Jl. Achmad Nadjamuddin No. 22, Kel. Dulalowo Timur, Kec. Kota Tengah',
+        'desa_kelurahan' => 'Kel. Dulalowo Timur',
+        'kecamatan' => 'Kec. Kota Tengah',
+        'kabupaten_kota' => 'Kota Gorontalo',
+        'provinsi' => 'Gorontalo',
+        'kode_pos' => '96128',
+    ]);
+
+    expect($satker->formattedAddress())
+        ->not->toContain('Kel. Kel.')
+        ->and($satker->formattedAddress())
+        ->not->toContain('Kec. Kec.');
+
+    app(SatkerDefaultContentSeeder::class)->run('pertama');
+
+    Post::factory()->create([
+        'title' => 'Artikel Panduan Prodeo & Posbakum',
+        'slug' => 'artikel-panduan-prodeo-posbakum',
+        'category' => 'layanan_hukum',
+        'is_published' => true,
+        'published_at' => now(),
+    ]);
+
+    $this->get('/halaman/layanan-hukum/hak-pencari-keadilan')
+        ->assertOk()
+        ->assertSee('Layanan Pembebasan Biaya Perkara (Prodeo)')
+        ->assertSee('Layanan Pos Bantuan Hukum (Posbakum)')
+        ->assertSee('Sidang di Luar Gedung Pengadilan (Sidang Keliling)')
+        ->assertSee('Artikel Panduan Prodeo &amp; Posbakum', false);
+});

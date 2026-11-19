@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\CriteriaItem;
 use App\Models\Document;
 use App\Models\Page;
+use App\Models\Post;
 use App\Support\SafeHtml;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
@@ -16,6 +17,8 @@ use Livewire\Component;
 class PageManager extends Component
 {
     public string $search = '';
+
+    public string $sectionFilter = '';
 
     public ?int $editingId = null;
 
@@ -44,6 +47,18 @@ class PageManager extends Component
         $this->blocks = [
             ['type' => 'richtext', 'heading' => 'Informasi Utama', 'content' => '<p>Isi konten halaman di sini.</p>'],
         ];
+
+        $editId = request()->integer('edit');
+        $slugParam = trim((string) request()->query('slug', ''), '/');
+
+        if ($editId > 0 && Page::query()->whereKey($editId)->exists()) {
+            $this->edit($editId);
+        } elseif ($slugParam !== '') {
+            $target = Page::query()->where('slug', $slugParam)->first();
+            if ($target !== null) {
+                $this->edit($target->id);
+            }
+        }
     }
 
     public function updatedTitle(string $value): void
@@ -83,6 +98,7 @@ class PageManager extends Component
 
         $this->blocks[] = match ($type) {
             'document_list' => ['type' => 'document_list', 'heading' => 'Daftar Dokumen', 'collection_type' => 'lkjip'],
+            'article_list' => ['type' => 'article_list', 'heading' => 'Artikel & Informasi Terkait', 'post_category' => 'layanan_hukum'],
             'embed_fallback' => ['type' => 'embed_fallback', 'heading' => 'Data Terintegrasi', 'source_key' => 'simtepa_pegawai', 'fallback_mode' => 'officials_table', 'note' => 'Menampilkan data cadangan lokal apabila tautan embed eksternal tidak merespons.'],
             'external_portal' => ['type' => 'external_portal', 'heading' => 'Portal Eksternal', 'url_source' => 'sipp_url', 'default_url' => '', 'description' => ''],
             'map_yurisdiksi' => ['type' => 'map_yurisdiksi', 'heading' => 'Peta Wilayah Yurisdiksi', 'latitude' => '-6.9175', 'longitude' => '107.6191', 'zoom' => 11],
@@ -196,17 +212,21 @@ class PageManager extends Component
     public function render(): View
     {
         $pages = Page::query()
+            ->when($this->sectionFilter !== '', function ($query): void {
+                $query->where('slug', 'like', $this->sectionFilter.'/%');
+            })
             ->when(trim($this->search) !== '', function ($query): void {
                 $term = '%'.trim($this->search).'%';
                 $query->where(fn ($q) => $q->where('title', 'like', $term)->orWhere('slug', 'like', $term)->orWhere('criteria_code', 'like', $term));
             })
-            ->orderBy('title')
+            ->orderBy('slug')
             ->get();
 
         return view('livewire.admin.page-manager', [
             'pages' => $pages,
             'criteriaOptions' => CriteriaItem::query()->orderBy('code')->get(['code', 'name']),
             'collectionTypes' => Document::collectionTypes(),
+            'postCategories' => Post::categoryLabels(),
         ])->title('Halaman & Page Builder');
     }
 }

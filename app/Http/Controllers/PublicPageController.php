@@ -7,6 +7,7 @@ use App\Models\CourtSchedule;
 use App\Models\Document;
 use App\Models\Official;
 use App\Models\Page;
+use App\Models\Post;
 use App\Models\SatkerSetting;
 use App\Support\SafeHtml;
 use Illuminate\Contracts\View\View;
@@ -34,6 +35,7 @@ class PublicPageController extends Controller
 
         $documentsByCollection = [];
         $yearsByCollection = [];
+        $postsByCategory = [];
         $needsOfficials = false;
         $needsOrgChart = false;
         $needsSchedules = false;
@@ -44,6 +46,7 @@ class PublicPageController extends Controller
             $selectedYear,
             &$documentsByCollection,
             &$yearsByCollection,
+            &$postsByCategory,
             &$needsOfficials,
             &$needsOrgChart,
             &$needsSchedules,
@@ -58,6 +61,20 @@ class PublicPageController extends Controller
             }
 
             $type = $block['type'] ?? 'richtext';
+
+            if ($type === 'article_list') {
+                $cat = (string) ($block['post_category'] ?? 'layanan_hukum');
+                if (! array_key_exists($cat, $postsByCategory)) {
+                    $postsByCategory[$cat] = Post::query()
+                        ->where('is_published', true)
+                        ->when($cat !== 'semua', fn ($q) => $q->where('category', $cat))
+                        ->orderByDesc('is_pinned')
+                        ->orderByDesc('published_at')
+                        ->orderByDesc('id')
+                        ->limit(12)
+                        ->get();
+                }
+            }
 
             if ($type === 'document_list') {
                 $col = (string) ($block['collection_type'] ?? 'lkjip');
@@ -140,6 +157,7 @@ class PublicPageController extends Controller
             'blocks' => $blocks,
             'documentsByCollection' => $documentsByCollection,
             'yearsByCollection' => $yearsByCollection,
+            'postsByCategory' => $postsByCategory,
             'selectedYear' => $selectedYear,
             'forceFallback' => $forceFallback,
             'officials' => $officials,

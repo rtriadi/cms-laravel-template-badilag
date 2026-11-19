@@ -162,10 +162,22 @@ class SatkerSetting extends Model
 
     public function formattedAddress(): string
     {
+        $jalan = trim((string) $this->alamat_jalan);
+        $kel = trim((string) $this->desa_kelurahan);
+        $kec = trim((string) $this->kecamatan);
+
+        if ($kel !== '' && ! preg_match('/^(kel\.?|kelurahan|desa)\b/iu', $kel)) {
+            $kel = 'Kel. '.$kel;
+        }
+
+        if ($kec !== '' && ! preg_match('/^(kec\.?|kecamatan)\b/iu', $kec)) {
+            $kec = 'Kec. '.$kec;
+        }
+
         $parts = array_filter([
-            $this->alamat_jalan,
-            $this->desa_kelurahan ? 'Kel. '.$this->desa_kelurahan : null,
-            $this->kecamatan ? 'Kec. '.$this->kecamatan : null,
+            $jalan !== '' ? $jalan : null,
+            ($kel !== '' && ($jalan === '' || stripos($jalan, (string) $this->desa_kelurahan) === false)) ? $kel : null,
+            ($kec !== '' && ($jalan === '' || stripos($jalan, (string) $this->kecamatan) === false)) ? $kec : null,
             $this->kabupaten_kota,
             $this->provinsi,
             $this->kode_pos,

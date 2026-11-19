@@ -64,6 +64,7 @@ class Post extends Model
         return [
             'berita' => 'Berita Pelayanan',
             'pengumuman' => 'Pengumuman Resmi',
+            'layanan_hukum' => 'Artikel Layanan & Bantuan Hukum (Prodeo/Posbakum)',
             'inovasi' => 'Inovasi Satker',
             'opini' => 'Opini & Gagasan',
             'infografis' => 'Galeri Infografis',

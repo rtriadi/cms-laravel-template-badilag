@@ -42,6 +42,16 @@ class PostManager extends Component
     public function mount(): void
     {
         $this->authorizeAccess();
+
+        $reqCategory = (string) request()->query('kategori', '');
+        if ($reqCategory !== '' && array_key_exists($reqCategory, Post::categoryLabels())) {
+            $this->category = $reqCategory;
+        }
+
+        $editId = request()->integer('edit');
+        if ($editId > 0 && Post::query()->whereKey($editId)->exists()) {
+            $this->edit($editId);
+        }
     }
 
     public function updatedTitle(string $value): void
@@ -83,7 +93,7 @@ class PostManager extends Component
         $this->validate([
             'title' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', Rule::unique('posts', 'slug')->ignore($this->editingId)],
-            'category' => ['required', 'in:berita,pengumuman,inovasi,opini,infografis,serta_merta'],
+            'category' => ['required', Rule::in(array_keys(Post::categoryLabels()))],
             'body' => ['required', 'string'],
             'featured_image' => ['nullable', 'image', 'max:4096'],
             'featured_image_alt' => ['required_with:featured_image', 'nullable', 'string', 'max:255'],

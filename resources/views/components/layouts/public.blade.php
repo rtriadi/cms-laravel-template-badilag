@@ -69,6 +69,20 @@
         Lewati ke konten utama
     </a>
 
+    @auth
+        <div class="border-b border-emerald-800 bg-ink text-xs text-white">
+            <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-1.5 sm:px-6 lg:px-8">
+                <span class="font-semibold text-amber-300">Mode Pengelola Aktif ({{ auth()->user()?->name }})</span>
+                <div class="flex flex-wrap items-center gap-3">
+                    <a href="{{ route('admin.dashboard') }}" class="font-semibold hover:underline">Dashboard Admin</a>
+                    <a href="{{ route('admin.pages') }}" class="font-semibold hover:underline">Kelola Halaman</a>
+                    <a href="{{ route('admin.posts') }}" class="font-semibold hover:underline">Tulis Berita / Artikel</a>
+                    <a href="{{ route('admin.documents') }}" class="font-semibold hover:underline">Unggah Dokumen PDF</a>
+                </div>
+            </div>
+        </div>
+    @endauth
+
     <!-- Utility Top Bar -->
     <div class="bg-primary-deep text-xs text-white">
         <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2 sm:px-6 lg:px-8">

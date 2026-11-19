@@ -51,7 +51,7 @@ class PublicHomeController extends Controller
 
         $latestNews = Post::query()
             ->where('is_published', true)
-            ->whereIn('category', ['berita', 'inovasi', 'opini', 'infografis'])
+            ->whereIn('category', ['berita', 'layanan_hukum', 'inovasi', 'opini', 'infografis'])
             ->orderByDesc('is_pinned')
             ->orderByDesc('published_at')
             ->orderByDesc('id')

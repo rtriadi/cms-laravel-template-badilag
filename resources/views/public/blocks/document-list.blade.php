@@ -1,3 +1,22 @@
+@php
+    $colKey = (string) ($block['collection_type'] ?? 'lkjip');
+    $colLabel = \App\Models\Document::collectionTypes()[$colKey] ?? $colKey;
+@endphp
+
+@auth
+    <div class="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-primary-soft px-4 py-2.5 text-xs">
+        <span class="font-medium text-ink">
+            Koleksi Dokumen: <strong>{{ $colLabel }}</strong>
+        </span>
+        <a
+            href="{{ route('admin.documents', ['koleksi' => $colKey]) }}"
+            class="inline-flex min-h-11 items-center rounded-md bg-primary px-3.5 font-semibold text-white hover:bg-primary-hover"
+        >
+            + Unggah Dokumen PDF ke Bagian Ini
+        </a>
+    </div>
+@endauth
+
 @if (! empty($years))
     <div class="flex flex-wrap items-center gap-2 rounded-lg border border-hairline bg-mist p-3 text-xs">
         <span class="font-semibold text-ink">Filter Tahun:</span>
