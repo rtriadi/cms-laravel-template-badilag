@@ -227,7 +227,7 @@
                     </p>
                     <form method="POST" action="{{ route('logout') }}" class="mt-2">
                         @csrf
-                        <button type="submit" class="inline-flex min-h-9 w-full cursor-pointer items-center justify-center rounded border border-hairline bg-white px-2 text-xs font-semibold text-ink hover:bg-gray-50">
+                        <button type="submit" class="inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded border border-hairline bg-white px-2 text-xs font-semibold text-ink hover:bg-gray-50">
                             Keluar
                         </button>
                     </form>

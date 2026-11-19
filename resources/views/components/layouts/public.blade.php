@@ -40,6 +40,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="{{ $description ?: 'Portal Informasi Resmi ' . $satkerName }}">
     <title>{{ $title ? $title . ' - ' . $satkerName : $satkerName }}</title>
+    <script>
+        try {
+            const rawA11y = localStorage.getItem('satkercms_a11y_v1');
+            if (rawA11y) {
+                const s = JSON.parse(rawA11y);
+                const scale = Math.min(200, Math.max(100, Number(s.scale) || 100));
+                document.documentElement.style.fontSize = scale + '%';
+                if (s.hc) document.documentElement.classList.add('a11y-hc');
+                if (s.dyslexia) document.documentElement.classList.add('a11y-dyslexia');
+                if (s.links) document.documentElement.classList.add('a11y-highlight-links');
+                if (s.motion) document.documentElement.classList.add('a11y-no-motion');
+            }
+        } catch (e) {}
+    </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="flex min-h-screen flex-col bg-mist font-sans text-ink antialiased">

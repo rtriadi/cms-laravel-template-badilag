@@ -8,7 +8,7 @@
                 <a
                     href="{{ route('public.posts') }}"
                     @class([
-                        'inline-flex min-h-10 items-center rounded-md px-3.5 text-xs font-semibold',
+                        'inline-flex min-h-11 items-center rounded-md px-3.5 text-xs font-semibold',
                         'bg-primary text-white' => $activeCategory === '',
                         'border border-hairline bg-mist text-ink hover:bg-primary-soft' => $activeCategory !== '',
                     ])
@@ -19,7 +19,7 @@
                     <a
                         href="{{ route('public.posts', ['kategori' => $catKey]) }}"
                         @class([
-                            'inline-flex min-h-10 items-center rounded-md px-3.5 text-xs font-semibold',
+                            'inline-flex min-h-11 items-center rounded-md px-3.5 text-xs font-semibold',
                             'bg-primary text-white' => $activeCategory === $catKey,
                             'border border-hairline bg-mist text-ink hover:bg-primary-soft' => $activeCategory !== $catKey,
                         ])

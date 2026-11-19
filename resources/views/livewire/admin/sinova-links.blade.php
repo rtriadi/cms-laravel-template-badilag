@@ -110,7 +110,7 @@
                             <button
                                 type="button"
                                 x-on:click="copyGroupUrls(@js($entry['all_urls_text']), @js($group->code))"
-                                class="inline-flex min-h-9 items-center rounded border border-hairline bg-white px-2.5 text-xs font-semibold text-ink hover:bg-mist"
+                                class="inline-flex min-h-11 cursor-pointer items-center rounded border border-hairline bg-white px-2.5 text-xs font-semibold text-ink hover:bg-mist"
                             >
                                 Salin Semua
                             </button>
@@ -176,7 +176,7 @@
                                         <button
                                             type="button"
                                             x-on:click="copyUrl(@js($url), @js($status))"
-                                            class="inline-flex min-h-10 items-center rounded-md bg-primary px-3 text-xs font-semibold text-white hover:bg-primary-hover"
+                                            class="inline-flex min-h-11 cursor-pointer items-center rounded-md bg-primary px-3 text-xs font-semibold text-white hover:bg-primary-hover"
                                         >
                                             Salin
                                         </button>
@@ -186,7 +186,7 @@
                                                 href="{{ $url }}"
                                                 target="_blank"
                                                 rel="noopener"
-                                                class="inline-flex min-h-10 items-center rounded-md border border-hairline bg-white px-3 text-xs font-semibold text-ink hover:bg-mist"
+                                                class="inline-flex min-h-11 items-center rounded-md border border-hairline bg-white px-3 text-xs font-semibold text-ink hover:bg-mist"
                                             >
                                                 Buka
                                             </a>
@@ -196,7 +196,7 @@
                                             <button
                                                 type="button"
                                                 wire:click="startEdit({{ $item->id }})"
-                                                class="inline-flex min-h-10 items-center rounded-md border border-hairline bg-white px-3 text-xs font-semibold text-primary hover:bg-primary-soft"
+                                                class="inline-flex min-h-11 cursor-pointer items-center rounded-md border border-hairline bg-white px-3 text-xs font-semibold text-primary hover:bg-primary-soft"
                                             >
                                                 Ubah
                                             </button>
@@ -234,10 +234,10 @@
                                         </label>
 
                                         <div class="flex items-center gap-2">
-                                            <flux:button type="submit" variant="primary" class="min-h-10 bg-primary text-xs font-semibold text-white">
+                                            <flux:button type="submit" variant="primary" class="min-h-11 cursor-pointer bg-primary text-xs font-semibold text-white">
                                                 Simpan Tautan
                                             </flux:button>
-                                            <flux:button type="button" wire:click="cancelEdit" variant="outline" class="min-h-10 text-xs">
+                                            <flux:button type="button" wire:click="cancelEdit" variant="outline" class="min-h-11 cursor-pointer text-xs">
                                                 Batal
                                             </flux:button>
                                         </div>

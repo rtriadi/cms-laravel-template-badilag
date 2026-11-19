@@ -4,7 +4,7 @@
         <a
             href="{{ request()->url() }}"
             @class([
-                'inline-flex min-h-9 items-center rounded px-3 font-semibold',
+                'inline-flex min-h-11 items-center rounded px-3 font-semibold',
                 'bg-primary text-white' => $selectedYear <= 0,
                 'border border-hairline bg-white text-ink hover:bg-gray-50' => $selectedYear > 0,
             ])
@@ -15,7 +15,7 @@
             <a
                 href="{{ request()->fullUrlWithQuery(['tahun' => $yr]) }}"
                 @class([
-                    'inline-flex min-h-9 items-center rounded px-3 font-mono font-semibold',
+                    'inline-flex min-h-11 items-center rounded px-3 font-mono font-semibold',
                     'bg-primary text-white' => $selectedYear === (int) $yr,
                     'border border-hairline bg-white text-ink hover:bg-gray-50' => $selectedYear !== (int) $yr,
                 ])

@@ -106,7 +106,7 @@
                                             type="button"
                                             data-slider-dot="{{ $dotIndex }}"
                                             aria-label="Pilih slide {{ $dotIndex + 1 }}"
-                                            class="min-h-8 min-w-8 cursor-pointer rounded-full border border-white/40 px-2 font-mono text-[11px] font-bold text-white"
+                                            class="min-h-11 min-w-11 cursor-pointer rounded-full border border-white/40 px-2 font-mono text-xs font-bold text-white"
                                         >
                                             {{ $dotIndex + 1 }}
                                         </button>

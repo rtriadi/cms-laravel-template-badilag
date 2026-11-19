@@ -15,7 +15,7 @@
             <div class="flex flex-wrap items-center gap-2">
                 <a
                     href="{{ request()->fullUrlWithQuery(['fallback' => 1]) }}"
-                    class="inline-flex min-h-10 items-center rounded border border-primary bg-white px-3 font-semibold text-primary hover:bg-primary-soft"
+                    class="inline-flex min-h-11 items-center rounded border border-primary bg-white px-3 font-semibold text-primary hover:bg-primary-soft"
                 >
                     Tampilkan Data Cadangan Lokal
                 </a>
@@ -23,7 +23,7 @@
                     href="{{ $embedUrl }}"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="inline-flex min-h-10 items-center rounded bg-primary px-3 font-semibold text-white hover:bg-primary-hover"
+                    class="inline-flex min-h-11 items-center rounded bg-primary px-3 font-semibold text-white hover:bg-primary-hover"
                 >
                     Buka Halaman Sumber
                 </a>

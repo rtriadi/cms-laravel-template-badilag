@@ -81,25 +81,25 @@
                                 <button type="button" wire:click="removeBlock({{ $index }})" class="text-xs font-semibold text-red-700">Hapus</button>
                             </div>
 
-                            <flux:input wire:model="blocks.{{ $index }}.heading" placeholder="Judul subbagian blok" />
+                            <flux:input wire:model="blocks.{{ $index }}.heading" aria-label="Judul subbagian blok #{{ $index + 1 }}" placeholder="Judul subbagian blok" />
 
                             @if (($block['type'] ?? '') === 'richtext')
-                                <flux:textarea wire:model="blocks.{{ $index }}.content" rows="4" placeholder="Konten HTML atau teks..." />
+                                <flux:textarea wire:model="blocks.{{ $index }}.content" aria-label="Konten blok teks #{{ $index + 1 }}" rows="4" placeholder="Konten HTML atau teks..." />
                             @elseif (($block['type'] ?? '') === 'document_list')
-                                <flux:select wire:model="blocks.{{ $index }}.collection_type">
+                                <flux:select wire:model="blocks.{{ $index }}.collection_type" aria-label="Koleksi dokumen blok #{{ $index + 1 }}">
                                     @foreach ($collectionTypes as $cKey => $cLabel)
                                         <option value="{{ $cKey }}">{{ $cLabel }}</option>
                                     @endforeach
                                 </flux:select>
                             @elseif (($block['type'] ?? '') === 'embed_fallback')
                                 <div class="grid gap-2 sm:grid-cols-2">
-                                    <flux:select wire:model="blocks.{{ $index }}.source_key">
+                                    <flux:select wire:model="blocks.{{ $index }}.source_key" aria-label="Sumber embed blok #{{ $index + 1 }}">
                                         <option value="simtepa_pegawai">SIMTEPA Pegawai</option>
                                         <option value="simtepa_struktur">SIMTEPA Struktur</option>
                                         <option value="sipp_jadwal">SIPP Jadwal Sidang</option>
                                         <option value="sipp_statistik">SIPP Statistik Perkara</option>
                                     </flux:select>
-                                    <flux:select wire:model="blocks.{{ $index }}.fallback_mode">
+                                    <flux:select wire:model="blocks.{{ $index }}.fallback_mode" aria-label="Mode cadangan lokal blok #{{ $index + 1 }}">
                                         <option value="officials_table">Cadangan Tabel Pegawai</option>
                                         <option value="org_chart">Cadangan Struktur Organisasi</option>
                                         <option value="court_schedule">Cadangan Jadwal Sidang</option>
@@ -107,19 +107,19 @@
                                     </flux:select>
                                 </div>
                             @elseif (($block['type'] ?? '') === 'external_portal')
-                                <flux:input wire:model="blocks.{{ $index }}.default_url" placeholder="https://..." />
-                                <flux:textarea wire:model="blocks.{{ $index }}.description" rows="2" placeholder="Penjelasan singkat portal..." />
+                                <flux:input wire:model="blocks.{{ $index }}.default_url" aria-label="URL bawaan portal blok #{{ $index + 1 }}" placeholder="https://..." />
+                                <flux:textarea wire:model="blocks.{{ $index }}.description" aria-label="Penjelasan portal blok #{{ $index + 1 }}" rows="2" placeholder="Penjelasan singkat portal..." />
                             @endif
                         </div>
                     @endforeach
                 </div>
 
-                <label class="inline-flex items-center gap-2 text-xs font-medium text-ink">
+                <label class="inline-flex min-h-11 cursor-pointer items-center gap-2 text-xs font-medium text-ink">
                     <input type="checkbox" wire:model="is_published" class="size-4 rounded border-hairline text-primary">
                     <span>Publikasikan halaman ini</span>
                 </label>
 
-                <flux:button type="submit" variant="primary" class="min-h-11 w-full bg-primary font-semibold text-white hover:bg-primary-hover">
+                <flux:button type="submit" variant="primary" class="min-h-11 w-full cursor-pointer bg-primary font-semibold text-white hover:bg-primary-hover">
                     {{ $editingId ? 'Simpan Perubahan Halaman' : 'Simpan Halaman Baru' }}
                 </flux:button>
             </form>
@@ -129,7 +129,7 @@
         <div class="rounded-lg border border-hairline bg-white p-5 lg:col-span-6">
             <div class="flex flex-wrap items-center justify-between gap-3 border-b border-hairline pb-3">
                 <h2 class="font-serif text-lg font-bold text-ink">Daftar Halaman ({{ $pages->count() }})</h2>
-                <flux:input wire:model.live.debounce.300ms="search" placeholder="Cari halaman atau kode..." class="w-56" />
+                <flux:input wire:model.live.debounce.300ms="search" aria-label="Cari halaman atau kode kriteria" placeholder="Cari halaman atau kode..." class="w-56" />
             </div>
 
             @if ($pages->isEmpty())

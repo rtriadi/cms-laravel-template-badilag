@@ -120,7 +120,7 @@
                             type="button"
                             wire:click="$set('locationFilter', '{{ $loc }}')"
                             @class([
-                                'min-h-9 rounded px-3 text-xs font-semibold',
+                                'min-h-11 cursor-pointer rounded px-3 text-xs font-semibold',
                                 'bg-primary text-white' => $locationFilter === $loc,
                                 'border border-hairline bg-mist text-ink' => $locationFilter !== $loc,
                             ])
