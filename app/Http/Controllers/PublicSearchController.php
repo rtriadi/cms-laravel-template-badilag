@@ -13,20 +13,24 @@ class PublicSearchController extends Controller
 {
     public function __invoke(Request $request): View
     {
-        $query = trim((string) $request->query('q', ''));
+        $query = mb_substr(trim((string) $request->query('q', '')), 0, 120);
         $satker = SatkerSetting::current();
+        $activeTingkat = $satker?->tingkat ?? 'pertama';
 
         $pages = collect();
         $posts = collect();
         $documents = collect();
 
-        if (mb_strlen($query) >= 2) {
+        $meaningfulChars = trim(str_replace(['\\', '%', '_'], '', $query));
+
+        if (mb_strlen($meaningfulChars) >= 2) {
             $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $query);
             $like = "%{$escaped}%";
 
             $pages = Page::query()
                 ->select(['id', 'title', 'slug', 'criteria_code'])
                 ->where('is_published', true)
+                ->whereIn('tingkat_scope', ['all', $activeTingkat])
                 ->where(function ($q) use ($like): void {
                     $q->where('title', 'like', $like)
                         ->orWhere('summary', 'like', $like)
@@ -46,7 +50,7 @@ class PublicSearchController extends Controller
 
             $posts = Post::query()
                 ->select(['id', 'title', 'slug', 'category', 'published_at'])
-                ->where('is_published', true)
+                ->publishedActive()
                 ->where(function ($q) use ($like): void {
                     $q->where('title', 'like', $like)
                         ->orWhere('excerpt', 'like', $like)

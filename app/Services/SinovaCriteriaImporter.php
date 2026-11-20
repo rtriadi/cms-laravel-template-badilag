@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\CriteriaGroup;
 use App\Models\CriteriaItem;
+use App\Support\SafeHtml;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -87,32 +88,50 @@ class SinovaCriteriaImporter
 
         DB::transaction(function () use ($payload, $version, &$groupsSynced, &$itemsSynced): void {
             foreach ($payload['groups'] as $groupIndex => $groupData) {
+                $aspect = (string) ($groupData['aspect'] ?? 'konten');
+                if (! in_array($aspect, ['konten', 'uiux', 'performa'], true)) {
+                    $aspect = 'konten';
+                }
+
                 $group = CriteriaGroup::query()->updateOrCreate(
                     [
                         'juknis_version' => $version,
-                        'code' => (string) $groupData['code'],
+                        'code' => substr(trim((string) $groupData['code']), 0, 32),
                     ],
                     [
-                        'aspect' => (string) ($groupData['aspect'] ?? 'konten'),
-                        'name' => (string) $groupData['name'],
-                        'weight' => (float) ($groupData['weight'] ?? 0),
-                        'sort_order' => (int) ($groupData['sort_order'] ?? ($groupIndex + 1)),
+                        'aspect' => $aspect,
+                        'name' => substr(trim((string) $groupData['name']), 0, 255),
+                        'weight' => max(0.0, min(100.0, (float) ($groupData['weight'] ?? 0))),
+                        'sort_order' => max(1, (int) ($groupData['sort_order'] ?? ($groupIndex + 1))),
                     ],
                 );
                 $groupsSynced++;
 
                 foreach ($groupData['items'] ?? [] as $itemIndex => $itemData) {
+                    $scope = (string) ($itemData['tingkat_scope'] ?? 'all');
+                    if (! in_array($scope, ['all', 'pertama', 'banding'], true)) {
+                        $scope = 'all';
+                    }
+
+                    $itemType = (string) ($itemData['item_type'] ?? 'link');
+                    if (! in_array($itemType, ['link', 'page', 'collection', 'external_app', 'system', 'item'], true)) {
+                        $itemType = 'link';
+                    }
+
+                    $rawDefaultRoute = isset($itemData['default_route']) ? trim((string) $itemData['default_route']) : '';
+                    $cleanDefaultRoute = $rawDefaultRoute !== '' ? SafeHtml::cleanUrl($rawDefaultRoute) : null;
+
                     $item = CriteriaItem::query()->firstOrNew([
-                        'code' => (string) $itemData['code'],
+                        'code' => substr(trim((string) $itemData['code']), 0, 32),
                     ]);
 
                     $item->criteria_group_id = $group->id;
-                    $item->name = (string) $itemData['name'];
-                    $item->description = $itemData['description'] ?? null;
-                    $item->tingkat_scope = (string) ($itemData['tingkat_scope'] ?? 'all');
-                    $item->item_type = (string) ($itemData['item_type'] ?? 'link');
-                    $item->default_route = $itemData['default_route'] ?? null;
-                    $item->sort_order = (int) ($itemData['sort_order'] ?? ($itemIndex + 1));
+                    $item->name = substr(trim((string) $itemData['name']), 0, 255);
+                    $item->description = isset($itemData['description']) ? (string) $itemData['description'] : null;
+                    $item->tingkat_scope = $scope;
+                    $item->item_type = $itemType;
+                    $item->default_route = $cleanDefaultRoute;
+                    $item->sort_order = max(1, (int) ($itemData['sort_order'] ?? ($itemIndex + 1)));
                     $item->save();
 
                     $itemsSynced++;

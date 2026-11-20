@@ -8,6 +8,10 @@ use Illuminate\Support\Str;
 
 class ImageOptimizerService
 {
+    public const int MAX_SOURCE_DIMENSION = 8000;
+
+    public const int MAX_SOURCE_PIXELS = 25_000_000;
+
     /**
      * Store an uploaded image resized (by max width) and encoded as WebP when supported.
      */
@@ -193,7 +197,14 @@ class ImageOptimizerService
         int $maxWidth,
         int $quality,
     ): ?string {
-        if ($srcWidth <= 0 || $srcHeight <= 0 || $maxWidth <= 0) {
+        if (
+            $srcWidth <= 0
+            || $srcHeight <= 0
+            || $maxWidth <= 0
+            || $srcWidth > self::MAX_SOURCE_DIMENSION
+            || $srcHeight > self::MAX_SOURCE_DIMENSION
+            || ($srcWidth * $srcHeight) > self::MAX_SOURCE_PIXELS
+        ) {
             return null;
         }
 

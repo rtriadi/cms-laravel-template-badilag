@@ -329,8 +329,43 @@ class SinovaHealthCheckService
         }
 
         try {
-            $response = Http::timeout(4)->withUserAgent('SatkerCMS-LinkChecker/1.0')->get($url);
-            $status = $response->status();
+            $currentUrl = $url;
+            $response = null;
+
+            for ($hop = 0; $hop <= 3; $hop++) {
+                if (! $this->isSafeExternalUrl($currentUrl)) {
+                    return [
+                        'ok' => false,
+                        'status' => null,
+                        'message' => 'URL pengalihan menuju alamat privat atau lokal tidak diizinkan.',
+                    ];
+                }
+
+                $response = Http::timeout(4)
+                    ->withoutRedirecting()
+                    ->withUserAgent('SatkerCMS-LinkChecker/1.0')
+                    ->get($currentUrl);
+
+                $status = $response->status();
+                if ($status >= 300 && $status < 400 && $response->hasHeader('Location')) {
+                    $location = trim((string) $response->header('Location'));
+                    $nextUrl = $this->resolveRedirectUrl($currentUrl, $location);
+                    if ($nextUrl === null || $hop === 3) {
+                        return [
+                            'ok' => false,
+                            'status' => $status,
+                            'message' => 'Pengalihan URL tidak valid atau melebihi batas maksimum.',
+                        ];
+                    }
+                    $currentUrl = $nextUrl;
+
+                    continue;
+                }
+
+                break;
+            }
+
+            $status = $response?->status() ?? 500;
             $ok = $status >= 200 && $status < 400;
 
             LinkCheckLog::query()->create([
@@ -375,9 +410,14 @@ class SinovaHealthCheckService
         }
 
         $scheme = strtolower((string) ($parts['scheme'] ?? ''));
-        $host = strtolower(trim((string) ($parts['host'] ?? ''), '[]'));
+        $host = rtrim(strtolower(trim((string) ($parts['host'] ?? ''), '[]')), '.');
+        $port = $parts['port'] ?? null;
 
         if (! in_array($scheme, ['http', 'https'], true) || $host === '') {
+            return false;
+        }
+
+        if ($port !== null && ! in_array((int) $port, [80, 443], true)) {
             return false;
         }
 
@@ -385,13 +425,92 @@ class SinovaHealthCheckService
             return false;
         }
 
-        $ip = filter_var($host, FILTER_VALIDATE_IP) !== false ? $host : gethostbyname($host);
+        if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
+            return $this->isPublicIp($host);
+        }
 
-        if (filter_var($ip, FILTER_VALIDATE_IP) !== false) {
-            return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
+        $resolvedIps = [];
+        $records = @dns_get_record($host, DNS_A | DNS_AAAA);
+        if (is_array($records)) {
+            foreach ($records as $record) {
+                if (isset($record['ip']) && is_string($record['ip'])) {
+                    $resolvedIps[] = $record['ip'];
+                }
+                if (isset($record['ipv6']) && is_string($record['ipv6'])) {
+                    $resolvedIps[] = $record['ipv6'];
+                }
+            }
+        }
+
+        if ($resolvedIps === []) {
+            $fallbackIp = @gethostbyname($host);
+            if ($fallbackIp !== $host && filter_var($fallbackIp, FILTER_VALIDATE_IP) !== false) {
+                $resolvedIps[] = $fallbackIp;
+            }
+        }
+
+        if ($resolvedIps === []) {
+            return false;
+        }
+
+        foreach ($resolvedIps as $ip) {
+            if (! $this->isPublicIp($ip)) {
+                return false;
+            }
         }
 
         return true;
+    }
+
+    private function isPublicIp(string $ip): bool
+    {
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+            return false;
+        }
+
+        if (str_contains($ip, ':')) {
+            $packed = @inet_pton($ip);
+            if ($packed === false || strlen($packed) !== 16) {
+                return false;
+            }
+
+            if (substr($packed, 0, 12) === "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff") {
+                $mappedIpv4 = @inet_ntop(substr($packed, 12, 4));
+                if (! is_string($mappedIpv4) || filter_var($mappedIpv4, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private function resolveRedirectUrl(string $baseUrl, string $location): ?string
+    {
+        if ($location === '' || preg_match('/[\x00-\x1F\x7F]/', $location) === 1) {
+            return null;
+        }
+
+        if (str_starts_with($location, 'http://') || str_starts_with($location, 'https://')) {
+            return $location;
+        }
+
+        $base = parse_url($baseUrl);
+        if (! is_array($base) || empty($base['scheme']) || empty($base['host'])) {
+            return null;
+        }
+
+        $port = isset($base['port']) ? ':'.$base['port'] : '';
+
+        if (str_starts_with($location, '//')) {
+            return $base['scheme'].':'.$location;
+        }
+
+        if (str_starts_with($location, '/')) {
+            return "{$base['scheme']}://{$base['host']}{$port}{$location}";
+        }
+
+        return "{$base['scheme']}://{$base['host']}{$port}/{$location}";
     }
 
     private function auditMenuLinks(string $activeTingkat, bool $probeExternal): void

@@ -17,6 +17,23 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $trustedProxies = trim((string) env('TRUSTED_PROXIES', ''));
+        if ($trustedProxies !== '') {
+            $middleware->trustProxies(
+                at: $trustedProxies === '*'
+                    ? '*'
+                    : array_values(array_filter(array_map('trim', explode(',', $trustedProxies)))),
+            );
+        }
+
+        $trustedHosts = trim((string) env('TRUSTED_HOSTS', ''));
+        if ($trustedHosts !== '') {
+            $hostPatterns = array_values(array_filter(array_map('trim', explode(',', $trustedHosts))));
+            if ($hostPatterns !== []) {
+                $middleware->trustHosts(at: fn (): array => $hostPatterns);
+            }
+        }
+
         $middleware->append(SecurityHeadersMiddleware::class);
         $middleware->web(append: [
             HandleRedirectsMiddleware::class,

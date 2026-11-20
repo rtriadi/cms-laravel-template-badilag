@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\ImageOptimizerService;
 use Database\Seeders\SatkerDefaultContentSeeder;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -100,21 +101,24 @@ class SatkerSettingsManager extends Component
             'kode_satker' => ['nullable', 'string', 'max:32'],
             'tahun_berdiri' => ['nullable', 'integer', 'min:1900', 'max:'.((int) date('Y'))],
             'alamat_jalan' => ['nullable', 'string', 'max:255'],
+            'desa_kelurahan' => ['nullable', 'string', 'max:120'],
+            'kecamatan' => ['nullable', 'string', 'max:120'],
             'kabupaten_kota' => ['nullable', 'string', 'max:120'],
             'provinsi' => ['nullable', 'string', 'max:120'],
+            'kode_pos' => ['nullable', 'string', 'max:10'],
             'telepon' => ['nullable', 'string', 'max:60'],
             'email' => ['nullable', 'email', 'max:160'],
-            'website_url' => ['nullable', 'url', 'max:255'],
-            'sipp_url' => ['nullable', 'url', 'max:500'],
-            'ecourt_url' => ['nullable', 'url', 'max:500'],
-            'direktori_putusan_url' => ['nullable', 'url', 'max:500'],
-            'siwas_url' => ['nullable', 'url', 'max:500'],
-            'simtepa_pegawai_url' => ['nullable', 'url', 'max:500'],
-            'simtepa_struktur_url' => ['nullable', 'url', 'max:500'],
-            'skm_url' => ['nullable', 'url', 'max:500'],
-            'spak_url' => ['nullable', 'url', 'max:500'],
-            'logo' => ['nullable', 'image', 'max:2048'],
-            'foto_gedung' => ['nullable', 'image', 'max:4096'],
+            'website_url' => ['nullable', 'url:http,https', 'max:255'],
+            'sipp_url' => ['nullable', 'url:http,https', 'max:500'],
+            'ecourt_url' => ['nullable', 'url:http,https', 'max:500'],
+            'direktori_putusan_url' => ['nullable', 'url:http,https', 'max:500'],
+            'siwas_url' => ['nullable', 'url:http,https', 'max:500'],
+            'simtepa_pegawai_url' => ['nullable', 'url:http,https', 'max:500'],
+            'simtepa_struktur_url' => ['nullable', 'url:http,https', 'max:500'],
+            'skm_url' => ['nullable', 'url:http,https', 'max:500'],
+            'spak_url' => ['nullable', 'url:http,https', 'max:500'],
+            'logo' => ['nullable', 'image', 'max:2048', 'dimensions:max_width=8000,max_height=8000'],
+            'foto_gedung' => ['nullable', 'image', 'max:4096', 'dimensions:max_width=8000,max_height=8000'],
         ], [
             'nama_satker.required' => 'Nama satuan kerja wajib diisi.',
             'email.email' => 'Format surel resmi satuan kerja tidak valid.',
@@ -124,12 +128,14 @@ class SatkerSettingsManager extends Component
 
         $optimizer = app(ImageOptimizerService::class);
 
-        $logoPath = $setting->logo_path;
+        $oldLogoPath = $setting->logo_path;
+        $logoPath = $oldLogoPath;
         if ($this->logo !== null) {
             $logoPath = $optimizer->storeOptimized($this->logo, 'satker', 512, 88);
         }
 
-        $fotoPath = $setting->foto_gedung_path;
+        $oldFotoPath = $setting->foto_gedung_path;
+        $fotoPath = $oldFotoPath;
         if ($this->foto_gedung !== null) {
             $fotoPath = $optimizer->storeOptimized($this->foto_gedung, 'satker', 1280, 82);
         }
@@ -167,6 +173,14 @@ class SatkerSettingsManager extends Component
         }
 
         $setting->save();
+
+        if ($this->logo !== null && is_string($oldLogoPath) && $oldLogoPath !== '' && $oldLogoPath !== $logoPath) {
+            Storage::disk('public')->delete($oldLogoPath);
+        }
+
+        if ($this->foto_gedung !== null && is_string($oldFotoPath) && $oldFotoPath !== '' && $oldFotoPath !== $fotoPath) {
+            Storage::disk('public')->delete($oldFotoPath);
+        }
 
         $this->logo = null;
         $this->foto_gedung = null;
@@ -268,6 +282,8 @@ class SatkerSettingsManager extends Component
 
     public function render(): View
     {
+        $this->authorizeAccess();
+
         return view('livewire.admin.satker-settings-manager', [
             'satker' => SatkerSetting::current(),
             'isSuperAdmin' => auth()->user()?->hasRole('super_admin') ?? false,

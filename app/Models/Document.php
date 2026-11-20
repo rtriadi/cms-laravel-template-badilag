@@ -93,4 +93,43 @@ class Document extends Model
             'sop_evakuasi' => 'SOP Peringatan Dini & Prosedur Evakuasi Keadaan Darurat',
         ];
     }
+
+    /**
+     * Map each document collection to its owning departmental permission.
+     *
+     * @return array<string, string>
+     */
+    public static function collectionPermissions(): array
+    {
+        return [
+            'renstra' => 'manage-kesekretariatan',
+            'rkt' => 'manage-kesekretariatan',
+            'renaksi' => 'manage-kesekretariatan',
+            'pk' => 'manage-kesekretariatan',
+            'iku' => 'manage-kesekretariatan',
+            'lkjip' => 'manage-kesekretariatan',
+            'laporan_tahunan' => 'manage-kesekretariatan',
+            'dipa' => 'manage-kesekretariatan',
+            'lra' => 'manage-kesekretariatan',
+            'calk' => 'manage-kesekretariatan',
+            'aset_bmn' => 'manage-kesekretariatan',
+            'pbj' => 'manage-kesekretariatan',
+            'lhkpn' => 'manage-kesekretariatan',
+            'hukuman_disiplin' => 'manage-kesekretariatan',
+            'regulasi_sk' => 'manage-kesekretariatan',
+            'sop_evakuasi' => 'manage-kesekretariatan',
+            'biaya_perkara' => 'manage-kepaniteraan',
+            'sisa_panjar' => 'manage-kepaniteraan',
+            'panggilan_ghaib' => 'manage-kepaniteraan',
+            'prodeo_posbakum' => 'manage-kepaniteraan',
+            'biaya_radius' => 'manage-kepaniteraan',
+            'prosedur_sop' => 'manage-kepaniteraan',
+            'standar_pelayanan' => 'manage-kepaniteraan',
+            'akses_informasi' => 'manage-ppid-humas',
+            'dip_ppid' => 'manage-ppid-humas',
+            'biaya_informasi' => 'manage-ppid-humas',
+            'rekap_pengaduan' => 'manage-ppid-humas',
+            'survei' => 'manage-ppid-humas',
+        ];
+    }
 }

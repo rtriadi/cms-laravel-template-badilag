@@ -10,7 +10,7 @@ class CmsUpdateCommand extends Command
 {
     protected $signature = 'cms:update {--dry-run : Tampilkan informasi versi dan cek sistem tanpa menjalankan migrasi}';
 
-    protected $description = 'Menjalankan prosedur pembaruan SatkerCMS (backup, migrasi, pembersihan cache, dan cek kesehatan SINOVA).';
+    protected $description = 'Menjalankan prosedur pembaruan SatkerCMS (migrasi, pembersihan cache, dan cek kesehatan SINOVA; jalankan backup:run sebelumnya).';
 
     public function handle(SinovaHealthCheckService $healthCheck): int
     {

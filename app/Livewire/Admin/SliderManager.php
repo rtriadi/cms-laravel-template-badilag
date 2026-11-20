@@ -6,7 +6,9 @@ use App\Models\HomeSlider;
 use App\Services\ImageOptimizerService;
 use App\Support\SafeHtml;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -15,6 +17,7 @@ class SliderManager extends Component
 {
     use WithFileUploads;
 
+    #[Locked]
     public ?int $editingId = null;
 
     public string $title = '';
@@ -65,7 +68,8 @@ class SliderManager extends Component
 
         $this->validate([
             'title' => ['required', 'string', 'max:255'],
-            'image' => ['nullable', 'image', 'max:2048'],
+            'subtitle' => ['nullable', 'string', 'max:255'],
+            'image' => ['nullable', 'image', 'max:2048', 'dimensions:max_width=8000,max_height=8000'],
             'image_alt' => ['required', 'string', 'max:255'],
             'cta_label' => ['nullable', 'string', 'max:80'],
             'cta_url' => ['nullable', 'string', 'max:255'],
@@ -106,7 +110,8 @@ class SliderManager extends Component
             }
         }
 
-        $imagePath = $existing?->image_path;
+        $oldImagePath = $existing?->image_path;
+        $imagePath = $oldImagePath;
         if ($this->image !== null) {
             $imagePath = app(ImageOptimizerService::class)->storeOptimized($this->image, 'sliders', 1280, 82);
         }
@@ -123,6 +128,9 @@ class SliderManager extends Component
 
         if ($existing !== null) {
             $existing->update($data);
+            if ($this->image !== null && is_string($oldImagePath) && $oldImagePath !== '' && $oldImagePath !== $imagePath) {
+                Storage::disk('public')->delete($oldImagePath);
+            }
             $this->statusNotice = 'Slide beranda berhasil diperbarui.';
         } else {
             $maxOrder = (int) HomeSlider::query()->max('sort_order');
@@ -150,7 +158,12 @@ class SliderManager extends Component
     public function delete(int $id): void
     {
         $this->authorizeAccess();
-        HomeSlider::query()->findOrFail($id)->delete();
+        $slide = HomeSlider::query()->findOrFail($id);
+        $oldImagePath = $slide->image_path;
+        $slide->delete();
+        if (is_string($oldImagePath) && $oldImagePath !== '') {
+            Storage::disk('public')->delete($oldImagePath);
+        }
         $this->statusNotice = 'Slide berhasil dihapus.';
     }
 
@@ -178,6 +191,8 @@ class SliderManager extends Component
 
     public function render(): View
     {
+        $this->authorizeAccess();
+
         $sliders = HomeSlider::query()->orderBy('sort_order')->get();
         $activeCount = $sliders->where('is_active', true)->count();
 

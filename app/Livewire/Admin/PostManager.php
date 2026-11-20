@@ -5,9 +5,11 @@ namespace App\Livewire\Admin;
 use App\Models\Post;
 use App\Services\ImageOptimizerService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -20,6 +22,7 @@ class PostManager extends Component
 
     public bool $editorOpen = false;
 
+    #[Locked]
     public ?int $editingId = null;
 
     public string $title = '';
@@ -106,7 +109,7 @@ class PostManager extends Component
             'slug' => ['required', 'string', 'max:255', Rule::unique('posts', 'slug')->ignore($this->editingId)],
             'category' => ['required', Rule::in(array_keys(Post::categoryLabels()))],
             'body' => ['required', 'string'],
-            'featured_image' => ['nullable', 'image', 'max:4096'],
+            'featured_image' => ['nullable', 'image', 'max:4096', 'dimensions:max_width=8000,max_height=8000'],
             'featured_image_alt' => ['required_with:featured_image', 'nullable', 'string', 'max:255'],
         ], [
             'title.required' => 'Judul publikasi wajib diisi.',
@@ -115,7 +118,8 @@ class PostManager extends Component
         ]);
 
         $existing = $this->editingId !== null ? Post::query()->findOrFail($this->editingId) : null;
-        $imagePath = $existing?->featured_image_path;
+        $oldImagePath = $existing?->featured_image_path;
+        $imagePath = $oldImagePath;
 
         if ($this->featured_image !== null) {
             $imagePath = app(ImageOptimizerService::class)->storeOptimized($this->featured_image, 'posts', 1000, 82);
@@ -137,6 +141,9 @@ class PostManager extends Component
 
         if ($existing !== null) {
             $existing->update($data);
+            if ($this->featured_image !== null && is_string($oldImagePath) && $oldImagePath !== '' && $oldImagePath !== $imagePath) {
+                Storage::disk('public')->delete($oldImagePath);
+            }
             $this->statusNotice = 'Publikasi berhasil diperbarui.';
         } else {
             Post::query()->create($data);
@@ -150,7 +157,12 @@ class PostManager extends Component
     public function delete(int $id): void
     {
         $this->authorizeAccess();
-        Post::query()->findOrFail($id)->delete();
+        $post = Post::query()->findOrFail($id);
+        $oldImagePath = $post->featured_image_path;
+        $post->delete();
+        if (is_string($oldImagePath) && $oldImagePath !== '') {
+            Storage::disk('public')->delete($oldImagePath);
+        }
         $this->statusNotice = 'Publikasi berhasil dihapus.';
     }
 
@@ -180,6 +192,8 @@ class PostManager extends Component
 
     public function render(): View
     {
+        $this->authorizeAccess();
+
         $posts = Post::query()
             ->when($this->categoryFilter !== '', fn ($q) => $q->where('category', $this->categoryFilter))
             ->orderByDesc('is_pinned')

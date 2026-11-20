@@ -145,8 +145,8 @@ return [
     */
 
     'passkeys' => [
-        'relying_party_id' => parse_url(config('app.url'), PHP_URL_HOST),
-        'allowed_origins' => [config('app.url')],
+        'relying_party_id' => parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST),
+        'allowed_origins' => [(string) env('APP_URL', 'http://localhost')],
         'timeout' => 60000,
     ],
 

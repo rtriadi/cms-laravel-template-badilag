@@ -11,13 +11,14 @@ class PublicPostController extends Controller
 {
     public function index(Request $request): View
     {
-        $category = (string) $request->query('kategori', '');
+        $rawCategory = (string) $request->query('kategori', '');
         $categories = Post::categoryLabels();
+        $category = array_key_exists($rawCategory, $categories) ? $rawCategory : '';
 
         $posts = Post::query()
             ->select(['id', 'title', 'slug', 'category', 'excerpt', 'featured_image_path', 'featured_image_alt', 'is_pinned', 'is_published', 'published_at', 'created_at'])
-            ->where('is_published', true)
-            ->when(array_key_exists($category, $categories), fn ($q) => $q->where('category', $category))
+            ->publishedActive()
+            ->when($category !== '', fn ($q) => $q->where('category', $category))
             ->orderByDesc('is_pinned')
             ->orderByDesc('published_at')
             ->orderByDesc('id')
@@ -36,12 +37,12 @@ class PublicPostController extends Controller
     {
         $post = Post::query()
             ->where('slug', $slug)
-            ->where('is_published', true)
+            ->publishedActive()
             ->firstOrFail();
 
         $related = Post::query()
             ->select(['id', 'title', 'slug', 'published_at'])
-            ->where('is_published', true)
+            ->publishedActive()
             ->where('id', '!=', $post->id)
             ->where('category', $post->category)
             ->orderByDesc('published_at')

@@ -4,7 +4,10 @@ namespace App\Livewire\Admin;
 
 use App\Models\Document;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -15,6 +18,7 @@ class DocumentManager extends Component
 
     public string $collectionFilter = 'lkjip';
 
+    #[Locked]
     public ?int $editingId = null;
 
     public string $collection_type = 'lkjip';
@@ -43,8 +47,13 @@ class DocumentManager extends Component
         $this->authorizeAccess();
         $this->year = (int) now()->year;
 
+        $allowedCollections = $this->allowedCollections();
+        $firstAllowed = array_key_first($allowedCollections) ?? 'lkjip';
+        $this->collection_type = $firstAllowed;
+        $this->collectionFilter = $firstAllowed;
+
         $reqCol = (string) request()->query('koleksi', '');
-        if ($reqCol !== '' && array_key_exists($reqCol, Document::collectionTypes())) {
+        if ($reqCol !== '' && array_key_exists($reqCol, $allowedCollections)) {
             $this->collection_type = $reqCol;
             $this->collectionFilter = $reqCol;
         }
@@ -52,7 +61,7 @@ class DocumentManager extends Component
 
     public function updatedCollectionFilter(string $value): void
     {
-        if ($this->editingId === null) {
+        if ($this->editingId === null && array_key_exists($value, $this->allowedCollections())) {
             $this->collection_type = $value;
         }
     }
@@ -67,6 +76,7 @@ class DocumentManager extends Component
     {
         $this->authorizeAccess();
         $doc = Document::query()->findOrFail($id);
+        $this->authorizeCollection($doc->collection_type);
 
         $this->editingId = $doc->id;
         $this->collection_type = $doc->collection_type;
@@ -84,20 +94,32 @@ class DocumentManager extends Component
     {
         $this->authorizeAccess();
 
+        $allCollections = array_keys(Document::collectionTypes());
+
         $this->validate([
-            'collection_type' => ['required', 'string'],
+            'collection_type' => ['required', 'string', Rule::in($allCollections)],
             'title' => ['required', 'string', 'max:255'],
             'year' => ['required', 'integer', 'min:1980', 'max:'.((int) date('Y') + 1)],
             'month' => ['nullable', 'integer', 'min:1', 'max:12'],
+            'status_label' => ['nullable', 'string', 'max:80'],
             'pdf_file' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
-            'external_url' => ['nullable', 'url', 'max:500'],
+            'external_url' => ['nullable', 'url:http,https', 'max:500'],
         ], [
+            'collection_type.in' => 'Jenis koleksi dokumen tidak valid.',
             'title.required' => 'Judul dokumen wajib diisi.',
             'pdf_file.mimes' => 'Berkas dokumen harus berformat PDF.',
+            'external_url.url' => 'Tautan eksternal harus berupa URL http(s):// yang valid.',
         ]);
 
+        $this->authorizeCollection($this->collection_type);
+
         $existing = $this->editingId !== null ? Document::query()->findOrFail($this->editingId) : null;
-        $filePath = $existing?->file_path;
+        if ($existing !== null) {
+            $this->authorizeCollection($existing->collection_type);
+        }
+
+        $oldFilePath = $existing?->file_path;
+        $filePath = $oldFilePath;
 
         if ($this->pdf_file !== null) {
             $filePath = $this->pdf_file->store('documents/'.$this->collection_type, 'public');
@@ -121,6 +143,9 @@ class DocumentManager extends Component
         if ($existing !== null) {
             $existing->update($data);
             $existing->touch();
+            if ($this->pdf_file !== null && is_string($oldFilePath) && $oldFilePath !== '' && $oldFilePath !== $filePath) {
+                Storage::disk('public')->delete($oldFilePath);
+            }
             $this->statusNotice = 'Dokumen berhasil diperbarui.';
         } else {
             Document::query()->create($data);
@@ -133,7 +158,16 @@ class DocumentManager extends Component
     public function delete(int $id): void
     {
         $this->authorizeAccess();
-        Document::query()->findOrFail($id)->delete();
+        $doc = Document::query()->findOrFail($id);
+        $this->authorizeCollection($doc->collection_type);
+
+        $filePath = $doc->file_path;
+        $doc->delete();
+
+        if (is_string($filePath) && $filePath !== '') {
+            Storage::disk('public')->delete($filePath);
+        }
+
         $this->statusNotice = 'Dokumen berhasil dihapus.';
     }
 
@@ -152,6 +186,36 @@ class DocumentManager extends Component
         $this->resetValidation();
     }
 
+    /**
+     * @return array<string, string>
+     */
+    private function allowedCollections(): array
+    {
+        $user = auth()->user();
+        $all = Document::collectionTypes();
+
+        if ($user === null) {
+            return [];
+        }
+
+        if ($user->hasAnyRole(['super_admin', 'admin_konten'])) {
+            return $all;
+        }
+
+        $permMap = Document::collectionPermissions();
+
+        return array_filter(
+            $all,
+            fn (string $label, string $key): bool => isset($permMap[$key]) && $user->can($permMap[$key]),
+            ARRAY_FILTER_USE_BOTH,
+        );
+    }
+
+    private function authorizeCollection(string $collectionType): void
+    {
+        abort_unless(array_key_exists($collectionType, $this->allowedCollections()), 403);
+    }
+
     private function authorizeAccess(): void
     {
         $user = auth()->user();
@@ -163,6 +227,13 @@ class DocumentManager extends Component
 
     public function render(): View
     {
+        $this->authorizeAccess();
+        $allowedCollections = $this->allowedCollections();
+
+        if (! array_key_exists($this->collectionFilter, $allowedCollections)) {
+            $this->collectionFilter = array_key_first($allowedCollections) ?? 'lkjip';
+        }
+
         $documents = Document::query()
             ->where('collection_type', $this->collectionFilter)
             ->orderByDesc('year')
@@ -172,7 +243,7 @@ class DocumentManager extends Component
 
         return view('livewire.admin.document-manager', [
             'documents' => $documents,
-            'collections' => Document::collectionTypes(),
+            'collections' => $allowedCollections,
         ])->title('Dokumen SAKIP, Keuangan & Publik');
     }
 }

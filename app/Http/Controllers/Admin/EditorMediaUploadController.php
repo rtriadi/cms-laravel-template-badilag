@@ -44,6 +44,24 @@ class EditorMediaUploadController extends Controller
         $extension = strtolower($uploaded->getClientOriginalExtension());
         $isPdf = $extension === 'pdf' || $uploaded->getMimeType() === 'application/pdf';
 
+        if (! $isPdf) {
+            $realPath = $uploaded->getRealPath();
+            $imageInfo = is_string($realPath) && is_file($realPath) ? @getimagesize($realPath) : false;
+            if (is_array($imageInfo)) {
+                $width = (int) ($imageInfo[0] ?? 0);
+                $height = (int) ($imageInfo[1] ?? 0);
+                if (
+                    $width > ImageOptimizerService::MAX_SOURCE_DIMENSION
+                    || $height > ImageOptimizerService::MAX_SOURCE_DIMENSION
+                    || ($width * $height) > ImageOptimizerService::MAX_SOURCE_PIXELS
+                ) {
+                    return response()->json([
+                        'message' => 'Dimensi gambar melebihi batas aman maksimal (8000x8000 piksel / 25 megapiksel).',
+                    ], 422);
+                }
+            }
+        }
+
         $path = (! $isPdf && $extension !== 'gif')
             ? app(ImageOptimizerService::class)->storeOptimized($uploaded, 'editor-media', 1280, 82)
             : $uploaded->store('editor-media', 'public');

@@ -5,9 +5,11 @@ namespace App\Livewire\Admin;
 use App\Models\CriteriaGroup;
 use App\Models\CriteriaItem;
 use App\Services\SinovaCriteriaImporter;
+use App\Support\SafeHtml;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -23,6 +25,7 @@ class CriteriaManager extends Component
     public string $tab = 'items';
 
     // Form Kelompok Kriteria
+    #[Locked]
     public ?int $editingGroupId = null;
 
     public string $group_code = '';
@@ -36,6 +39,7 @@ class CriteriaManager extends Component
     public int $group_sort_order = 1;
 
     // Form Butir Kriteria
+    #[Locked]
     public ?int $editingItemId = null;
 
     public ?int $criteria_group_id = null;
@@ -170,6 +174,17 @@ class CriteriaManager extends Component
             'item_name.required' => 'Nama butir kriteria wajib diisi.',
         ]);
 
+        $trimmedDefaultRoute = trim($this->default_route);
+        $cleanDefaultRoute = null;
+        if ($trimmedDefaultRoute !== '') {
+            $cleanDefaultRoute = SafeHtml::cleanUrl($trimmedDefaultRoute);
+            if ($cleanDefaultRoute === null) {
+                $this->addError('default_route', 'Rute default harus berupa path internal (/...) atau URL http(s):// yang valid.');
+
+                return;
+            }
+        }
+
         CriteriaItem::query()->updateOrCreate(
             ['id' => $this->editingItemId],
             [
@@ -179,7 +194,7 @@ class CriteriaManager extends Component
                 'description' => trim($this->item_description) ?: null,
                 'tingkat_scope' => $this->tingkat_scope,
                 'item_type' => $this->item_type,
-                'default_route' => trim($this->default_route) ?: null,
+                'default_route' => $cleanDefaultRoute,
                 'sort_order' => $this->item_sort_order,
             ],
         );
@@ -230,10 +245,11 @@ class CriteriaManager extends Component
         $this->authorizeAccess();
         $data = $importer->export($this->activeVersion);
         $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $safeVersion = preg_replace('/[^A-Za-z0-9._-]/', '-', $this->activeVersion) ?: 'export';
 
         return response()->streamDownload(function () use ($json): void {
             echo $json !== false ? $json : '{}';
-        }, "juknis-sinova-{$this->activeVersion}.json", [
+        }, "juknis-sinova-{$safeVersion}.json", [
             'Content-Type' => 'application/json; charset=UTF-8',
         ]);
     }
@@ -274,6 +290,8 @@ class CriteriaManager extends Component
 
     public function render(): View
     {
+        $this->authorizeAccess();
+
         $groups = CriteriaGroup::query()
             ->with('items')
             ->where('juknis_version', $this->activeVersion)

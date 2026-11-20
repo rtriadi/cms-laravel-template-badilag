@@ -36,9 +36,14 @@ return [
                  * Directories used by the backup process will automatically be excluded.
                  */
                 'exclude' => [
+                    base_path('.env'),
+                    base_path('.env.production'),
+                    base_path('.env.backup'),
+                    base_path('.git'),
                     base_path('vendor'),
                     base_path('node_modules'),
                     storage_path('framework'),
+                    storage_path('app/private'),
                 ],
 
                 /*
@@ -221,12 +226,12 @@ return [
      */
     'notifications' => [
         'notifications' => [
-            BackupHasFailedNotification::class => ['mail'],
-            UnhealthyBackupWasFoundNotification::class => ['mail'],
-            CleanupHasFailedNotification::class => ['mail'],
-            BackupWasSuccessfulNotification::class => ['mail'],
-            HealthyBackupWasFoundNotification::class => ['mail'],
-            CleanupWasSuccessfulNotification::class => ['mail'],
+            BackupHasFailedNotification::class => filled(env('BACKUP_NOTIFICATION_EMAIL')) ? ['mail'] : [],
+            UnhealthyBackupWasFoundNotification::class => filled(env('BACKUP_NOTIFICATION_EMAIL')) ? ['mail'] : [],
+            CleanupHasFailedNotification::class => filled(env('BACKUP_NOTIFICATION_EMAIL')) ? ['mail'] : [],
+            BackupWasSuccessfulNotification::class => filled(env('BACKUP_NOTIFICATION_EMAIL')) ? ['mail'] : [],
+            HealthyBackupWasFoundNotification::class => filled(env('BACKUP_NOTIFICATION_EMAIL')) ? ['mail'] : [],
+            CleanupWasSuccessfulNotification::class => filled(env('BACKUP_NOTIFICATION_EMAIL')) ? ['mail'] : [],
         ],
 
         /*
@@ -236,7 +241,7 @@ return [
         'notifiable' => Notifiable::class,
 
         'mail' => [
-            'to' => 'your@example.com',
+            'to' => env('BACKUP_NOTIFICATION_EMAIL') ?: env('MAIL_FROM_ADDRESS', 'noreply@satker.invalid'),
 
             'from' => [
                 'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),

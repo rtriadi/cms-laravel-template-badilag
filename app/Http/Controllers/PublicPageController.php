@@ -19,10 +19,12 @@ class PublicPageController extends Controller
     {
         $cleanSlug = trim($slug, '/');
         $satker = SatkerSetting::current();
+        $activeTingkat = $satker?->tingkat ?? 'pertama';
 
         $page = Page::query()
             ->where('slug', $cleanSlug)
             ->where('is_published', true)
+            ->whereIn('tingkat_scope', ['all', $activeTingkat])
             ->firstOrFail();
 
         $resolvedTitle = $satker !== null
@@ -68,7 +70,7 @@ class PublicPageController extends Controller
                 $cat = (string) ($block['post_category'] ?? 'layanan_hukum');
                 if (! array_key_exists($cat, $postsByCategory)) {
                     $postsByCategory[$cat] = Post::query()
-                        ->where('is_published', true)
+                        ->publishedActive()
                         ->when($cat !== 'semua', fn ($q) => $q->where('category', $cat))
                         ->orderByDesc('is_pinned')
                         ->orderByDesc('published_at')
@@ -172,7 +174,6 @@ class PublicPageController extends Controller
             'layanan-publik' => 'Layanan Publik & PPID',
         ];
         $sectionLabel = $sectionLabels[$sectionPrefix] ?? 'Informasi & Layanan';
-        $activeTingkat = $satker?->tingkat ?? 'pertama';
 
         $relatedSectionPages = $sectionPrefix !== ''
             ? Page::query()

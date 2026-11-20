@@ -83,7 +83,7 @@ class PublicComplianceController extends Controller
 
         $posts = Post::query()
             ->select(['id', 'title', 'slug', 'published_at'])
-            ->where('is_published', true)
+            ->publishedActive()
             ->orderByDesc('published_at')
             ->limit(40)
             ->get();
@@ -122,7 +122,7 @@ class PublicComplianceController extends Controller
         }
 
         $posts = Post::query()
-            ->where('is_published', true)
+            ->publishedActive()
             ->orderByDesc('updated_at')
             ->limit(1000)
             ->get(['slug', 'updated_at']);
