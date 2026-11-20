@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\SafeHtml;
 use Database\Factories\CriteriaItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -73,7 +74,7 @@ class CriteriaItem extends Model
     public function resolvedUrl(?SatkerSetting $satker = null): ?string
     {
         if ($this->use_manual_url && filled($this->manual_url)) {
-            return $this->manual_url;
+            return SafeHtml::cleanUrl($this->manual_url);
         }
 
         if ($this->linkedPage !== null && $this->linkedPage->is_published) {
@@ -84,20 +85,24 @@ class CriteriaItem extends Model
             $menuUrl = $this->linkedMenu->resolvedUrl();
 
             if ($menuUrl !== '#') {
-                return str_starts_with($menuUrl, 'http') ? $menuUrl : url($menuUrl);
+                return str_starts_with($menuUrl, 'http') ? SafeHtml::cleanUrl($menuUrl) : url($menuUrl);
             }
         }
 
         if (filled($this->default_route)) {
-            return url($this->default_route);
+            $cleanRoute = SafeHtml::cleanUrl($this->default_route);
+
+            if ($cleanRoute !== null) {
+                return str_starts_with($cleanRoute, 'http') ? $cleanRoute : url($cleanRoute);
+            }
         }
 
         if (filled($this->manual_url)) {
-            return $this->manual_url;
+            return SafeHtml::cleanUrl($this->manual_url);
         }
 
         if ($satker !== null && $this->code === '1.a.2.1' && filled($satker->sipp_url)) {
-            return $satker->sipp_url;
+            return SafeHtml::cleanUrl($satker->sipp_url);
         }
 
         return null;

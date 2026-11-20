@@ -495,7 +495,7 @@
                     <a
                         href="{{ route('home') }}"
                         target="_blank"
-                        rel="noopener"
+                        rel="noopener noreferrer"
                         class="inline-flex min-h-11 items-center rounded-md border border-primary bg-white px-3 text-xs font-semibold text-primary hover:bg-primary-soft"
                     >
                         Lihat Website

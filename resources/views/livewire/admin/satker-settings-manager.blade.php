@@ -173,9 +173,9 @@
                                         <li class="flex flex-wrap items-center justify-between gap-2 rounded border border-hairline bg-white px-2.5 py-1">
                                             <span class="font-semibold text-ink">{{ $loop->iteration }}. {{ $sTab['label'] }}</span>
                                             <span class="flex items-center gap-2 font-mono">
-                                                <a href="{{ $sTab['html_url'] }}" target="_blank" rel="noopener" class="font-semibold text-primary hover:underline">HTML &nearr;</a>
+                                                <a href="{{ $sTab['html_url'] }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-primary hover:underline">HTML &nearr;</a>
                                                 <span class="text-ink-muted">|</span>
-                                                <a href="{{ $sTab['json_url'] }}" target="_blank" rel="noopener" class="font-semibold text-ink-body hover:underline">JSON &nearr;</a>
+                                                <a href="{{ $sTab['json_url'] }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-ink-body hover:underline">JSON &nearr;</a>
                                             </span>
                                         </li>
                                     @endforeach

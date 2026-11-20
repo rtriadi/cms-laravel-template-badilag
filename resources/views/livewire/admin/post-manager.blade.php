@@ -253,6 +253,7 @@
                                 <a
                                     href="{{ route('public.posts.show', ['slug' => $post->slug]) }}"
                                     target="_blank"
+                                    rel="noopener noreferrer"
                                     class="inline-flex min-h-10 items-center rounded-md border border-hairline bg-white px-3 font-semibold text-ink hover:bg-primary-soft"
                                 >
                                     Lihat

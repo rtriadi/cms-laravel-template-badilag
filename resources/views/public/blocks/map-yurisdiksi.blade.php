@@ -11,6 +11,8 @@
         src="{{ $osmEmbedUrl }}"
         title="{{ $block['heading'] ?? 'Peta Wilayah Yurisdiksi Satuan Kerja' }}"
         loading="lazy"
+        sandbox="allow-scripts allow-same-origin allow-popups"
+        referrerpolicy="no-referrer-when-downgrade"
         width="100%"
         height="380"
         class="h-96 w-full rounded border border-hairline bg-white"

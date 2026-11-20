@@ -7,8 +7,10 @@ use App\Models\CriteriaItem;
 use App\Models\Page;
 use App\Models\SatkerSetting;
 use App\Services\SinovaHealthCheckService;
+use App\Support\SafeHtml;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -18,6 +20,7 @@ class SinovaLinks extends Component
     /** @var array<int, bool> */
     public array $expandedGroups = [];
 
+    #[Locked]
     public ?int $editingItemId = null;
 
     public string $editingManualUrl = '';
@@ -30,11 +33,7 @@ class SinovaLinks extends Component
 
     public function mount(): void
     {
-        $user = auth()->user();
-        abort_unless(
-            $user !== null && ($user->can('view-compliance-dashboard') || $user->can('manage-sinova-links') || $user->hasRole('super_admin')),
-            403
-        );
+        $this->authorizeView();
 
         $defaultExpanded = CriteriaGroup::query()
             ->where('code', '1.a.2')
@@ -90,21 +89,27 @@ class SinovaLinks extends Component
             'editingManualUrl.max' => 'URL manual maksimal 500 karakter.',
         ]);
 
-        if ($this->editingUseManual && trim($this->editingManualUrl) === '') {
+        $trimmedManualUrl = trim($this->editingManualUrl);
+
+        if ($this->editingUseManual && $trimmedManualUrl === '') {
             $this->addError('editingManualUrl', 'Isi URL manual terlebih dahulu jika mode URL manual diaktifkan.');
 
             return;
         }
 
-        if ($this->editingUseManual && ! filter_var($this->editingManualUrl, FILTER_VALIDATE_URL) && ! str_starts_with($this->editingManualUrl, '/')) {
-            $this->addError('editingManualUrl', 'URL harus diawali http(s):// atau jalur relatif /.');
+        $cleanManualUrl = null;
+        if ($trimmedManualUrl !== '') {
+            $cleanManualUrl = SafeHtml::cleanUrl($trimmedManualUrl);
+            if ($cleanManualUrl === null) {
+                $this->addError('editingManualUrl', 'URL harus diawali http(s):// atau jalur relatif /.');
 
-            return;
+                return;
+            }
         }
 
         $item = CriteriaItem::query()->findOrFail($this->editingItemId);
         $item->update([
-            'manual_url' => trim($this->editingManualUrl) !== '' ? trim($this->editingManualUrl) : null,
+            'manual_url' => $cleanManualUrl,
             'use_manual_url' => $this->editingUseManual,
             'linked_page_id' => $this->editingLinkedPageId ?: null,
         ]);
@@ -125,6 +130,8 @@ class SinovaLinks extends Component
 
     public function exportCsv(): StreamedResponse
     {
+        $this->authorizeView();
+
         $satker = SatkerSetting::current();
         $activeTingkat = $satker?->tingkat ?? 'pertama';
 
@@ -146,13 +153,13 @@ class SinovaLinks extends Component
                     }
 
                     fputcsv($out, [
-                        "{$group->code} - {$group->name}",
-                        $item->code,
-                        $item->name,
-                        $item->resolvedUrl($satker) ?? '',
-                        $item->health_status,
-                        $item->estimated_score,
-                        $item->health_message ?? '',
+                        SafeHtml::sanitizeCsvCell("{$group->code} - {$group->name}"),
+                        SafeHtml::sanitizeCsvCell($item->code),
+                        SafeHtml::sanitizeCsvCell($item->name),
+                        SafeHtml::sanitizeCsvCell($item->resolvedUrl($satker) ?? ''),
+                        SafeHtml::sanitizeCsvCell($item->health_status),
+                        SafeHtml::sanitizeCsvCell($item->estimated_score),
+                        SafeHtml::sanitizeCsvCell($item->health_message ?? ''),
                     ]);
                 }
             }
@@ -161,6 +168,15 @@ class SinovaLinks extends Component
         }, $filename, [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
+    }
+
+    private function authorizeView(): void
+    {
+        $user = auth()->user();
+        abort_unless(
+            $user !== null && ($user->can('view-compliance-dashboard') || $user->can('manage-sinova-links') || $user->hasRole('super_admin')),
+            403
+        );
     }
 
     private function authorizeEdit(): void
@@ -174,6 +190,8 @@ class SinovaLinks extends Component
 
     public function render(SinovaHealthCheckService $healthCheck): View
     {
+        $this->authorizeView();
+
         $satker = SatkerSetting::current();
         $activeTingkat = $satker?->tingkat ?? 'pertama';
 

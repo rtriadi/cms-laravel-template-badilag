@@ -85,6 +85,8 @@
             data-simtepa-iframe
             title="{{ $block['heading'] ?? 'Integrasi Data Eksternal' }}"
             loading="lazy"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            referrerpolicy="no-referrer-when-downgrade"
             width="100%"
             height="580"
             class="h-[580px] w-full rounded border border-hairline bg-white"

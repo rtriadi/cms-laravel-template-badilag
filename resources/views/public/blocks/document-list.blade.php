@@ -93,9 +93,9 @@
                             Unduh PDF
                         </a>
                     @endif
-                    @if ($doc->external_url)
+                    @if ($doc->external_url && \App\Support\SafeHtml::cleanUrl($doc->external_url))
                         <a
-                            href="{{ $doc->external_url }}"
+                            href="{{ \App\Support\SafeHtml::cleanUrl($doc->external_url) }}"
                             target="_blank"
                             rel="noopener noreferrer"
                             class="inline-flex min-h-11 items-center rounded-md border border-primary bg-white px-4 font-semibold text-primary hover:bg-primary-soft"

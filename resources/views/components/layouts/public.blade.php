@@ -470,27 +470,28 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ $satker?->sipp_url ?: 'https://sipp.mahkamahagung.go.id' }}" target="_blank" rel="noopener noreferrer" class="hover:underline">
+                        <a href="{{ \App\Support\SafeHtml::cleanUrl($satker?->sipp_url) ?? 'https://sipp.mahkamahagung.go.id' }}" target="_blank" rel="noopener noreferrer" class="hover:underline">
                             Penelusuran Perkara (SIPP)
                         </a>
                     </li>
                     <li>
-                        <a href="{{ $satker?->ecourt_url ?: 'https://ecourt.mahkamahagung.go.id' }}" target="_blank" rel="noopener noreferrer" class="hover:underline">
+                        <a href="{{ \App\Support\SafeHtml::cleanUrl($satker?->ecourt_url) ?? 'https://ecourt.mahkamahagung.go.id' }}" target="_blank" rel="noopener noreferrer" class="hover:underline">
                             Layanan Elektronik (e-Court MARI)
                         </a>
                     </li>
                     <li>
-                        <a href="{{ $satker?->direktori_putusan_url ?: 'https://putusan3.mahkamahagung.go.id' }}" target="_blank" rel="noopener noreferrer" class="hover:underline">
+                        <a href="{{ \App\Support\SafeHtml::cleanUrl($satker?->direktori_putusan_url) ?? 'https://putusan3.mahkamahagung.go.id' }}" target="_blank" rel="noopener noreferrer" class="hover:underline">
                             Direktori Putusan Mahkamah Agung RI
                         </a>
                     </li>
                     <li>
-                        <a href="{{ $satker?->siwas_url ?: 'https://siwas.mahkamahagung.go.id' }}" target="_blank" rel="noopener noreferrer" class="hover:underline">
+                        <a href="{{ \App\Support\SafeHtml::cleanUrl($satker?->siwas_url) ?? 'https://siwas.mahkamahagung.go.id' }}" target="_blank" rel="noopener noreferrer" class="hover:underline">
                             Pengawasan &amp; Pengaduan (SIWAS MARI)
                         </a>
                     </li>
+                    @php $safeSkmUrl = \App\Support\SafeHtml::cleanUrl($satker?->skm_url); @endphp
                     <li>
-                        <a href="{{ $satker?->skm_url ?: route('public.page', ['slug' => 'layanan-publik/survei-pelayanan']) }}" @if($satker?->skm_url) target="_blank" rel="noopener noreferrer" @endif class="hover:underline">
+                        <a href="{{ $safeSkmUrl ?? route('public.page', ['slug' => 'layanan-publik/survei-pelayanan']) }}" @if($safeSkmUrl) target="_blank" rel="noopener noreferrer" @endif class="hover:underline">
                             Survei Kepuasan &amp; Anti Korupsi (SI SURTI / SKM &amp; SPAK)
                         </a>
                     </li>
@@ -708,7 +709,8 @@
                     if (u.origin !== window.location.origin || u.href === window.location.href || u.hash) {
                         return false;
                     }
-                    if (u.pathname.startsWith('/panel-admin') || u.pathname.startsWith('/setup') || u.pathname.startsWith('/storage')) {
+                    const adminPrefix = @js('/'.trim((string) config('satker.admin_path', 'panel-admin'), '/'));
+                    if (u.pathname === adminPrefix || u.pathname.startsWith(adminPrefix + '/') || u.pathname.startsWith('/setup') || u.pathname.startsWith('/storage')) {
                         return false;
                     }
                     return !prefetched.has(u.href);

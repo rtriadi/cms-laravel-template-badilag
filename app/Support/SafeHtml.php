@@ -2,10 +2,90 @@
 
 namespace App\Support;
 
+use DOMComment;
+use DOMDocument;
+use DOMElement;
+use DOMNode;
+use DOMProcessingInstruction;
+
 class SafeHtml
 {
     /**
-     * Sanitize rich text HTML content while keeping safe structural markup.
+     * Allowed HTML tags from the rich-text editor.
+     *
+     * @var array<string, list<string>>
+     */
+    private const array ALLOWED_TAGS = [
+        'p' => [],
+        'br' => [],
+        'ul' => [],
+        'ol' => ['start', 'type', 'reversed'],
+        'li' => [],
+        'strong' => [],
+        'em' => [],
+        'b' => [],
+        'i' => [],
+        'u' => [],
+        's' => [],
+        'sub' => [],
+        'sup' => [],
+        'h1' => [],
+        'h2' => [],
+        'h3' => [],
+        'h4' => [],
+        'h5' => [],
+        'h6' => [],
+        'a' => ['href', 'target', 'rel'],
+        'img' => ['src', 'alt', 'width', 'height', 'loading', 'decoding'],
+        'figure' => [],
+        'figcaption' => [],
+        'table' => [],
+        'thead' => [],
+        'tbody' => [],
+        'tfoot' => [],
+        'tr' => [],
+        'th' => ['colspan', 'rowspan', 'scope'],
+        'td' => ['colspan', 'rowspan'],
+        'blockquote' => [],
+        'hr' => [],
+        'pre' => [],
+        'code' => [],
+        'span' => [],
+        'div' => [],
+    ];
+
+    /**
+     * Global non-executable attributes allowed on any permitted tag.
+     *
+     * @var list<string>
+     */
+    private const array GLOBAL_ALLOWED_ATTRS = ['class', 'title', 'dir', 'lang'];
+
+    /**
+     * Dangerous elements whose entire subtree must be discarded.
+     *
+     * @var list<string>
+     */
+    private const array DROP_SUBTREE_TAGS = [
+        'script',
+        'style',
+        'iframe',
+        'object',
+        'embed',
+        'svg',
+        'form',
+        'math',
+        'template',
+        'noscript',
+        'textarea',
+        'title',
+        'base',
+        'meta',
+        'link',
+    ];
+
+    /**
+     * Sanitize rich text HTML content using a DOM allowlist parser while keeping safe structural markup.
      */
     public static function clean(?string $html): string
     {
@@ -13,34 +93,41 @@ class SafeHtml
             return '';
         }
 
-        // Remove dangerous container elements including their inner content
-        $sanitized = (string) preg_replace(
-            '#<(script|style|iframe|object|embed|svg|form)\b[^>]*>.*?</\1>#is',
-            '',
-            $html
-        );
+        if (! class_exists(DOMDocument::class)) {
+            return e($html);
+        }
 
-        // Remove standalone self-closing dangerous tags
-        $sanitized = (string) preg_replace(
-            '#<(script|style|iframe|object|embed|svg|form)\b[^>]*?/?>#is',
-            '',
-            $sanitized
-        );
+        $previousState = libxml_use_internal_errors(true);
 
-        // Keep only safe structural, typographic, table, and media tags from the rich text editor
-        $sanitized = strip_tags(
-            $sanitized,
-            '<p><br><ul><ol><li><strong><em><b><i><u><s><sub><sup><h1><h2><h3><h4><h5><h6><a><img><figure><figcaption><table><thead><tbody><tfoot><tr><th><td><blockquote><hr><pre><code><span><div>'
-        );
+        try {
+            $dom = new DOMDocument('1.0', 'UTF-8');
+            $wrapped = '<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div data-safehtml-root="1">'.$html.'</div></body></html>';
+            $dom->loadHTML($wrapped, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING);
 
-        // Strip inline event handlers like onclick= or onerror=
-        $sanitized = (string) preg_replace('/\s+on[a-z]+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/iu', '', $sanitized);
+            $root = null;
+            foreach ($dom->getElementsByTagName('div') as $div) {
+                if ($div->getAttribute('data-safehtml-root') === '1') {
+                    $root = $div;
+                    break;
+                }
+            }
 
-        // Neutralize javascript:, data:, and vbscript: URIs inside href and src attributes
-        $sanitized = (string) preg_replace('/(href|src)\s*=\s*("|\')\s*(javascript|data|vbscript):[^"\']*\2/iu', '$1="#"', $sanitized);
-        $sanitized = (string) preg_replace('/(href|src)\s*=\s*(javascript|data|vbscript):[^\s>]+/iu', '$1="#"', $sanitized);
+            if ($root === null) {
+                return '';
+            }
 
-        return $sanitized;
+            self::sanitizeNodeChildren($root);
+
+            $output = '';
+            foreach ($root->childNodes as $child) {
+                $output .= (string) $dom->saveHTML($child);
+            }
+
+            return trim($output);
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($previousState);
+        }
     }
 
     /**
@@ -70,8 +157,11 @@ class SafeHtml
             return null;
         }
 
-        // Reject protocol-relative //evil.example URLs and control characters
-        if (preg_match('/[\x00-\x1F\x7F]/', $trimmed) === 1 || str_starts_with($trimmed, '//')) {
+        if (
+            preg_match('/[\x00-\x1F\x7F]/', $trimmed) === 1
+            || str_starts_with($trimmed, '//')
+            || str_contains($trimmed, '\\')
+        ) {
             return null;
         }
 
@@ -89,5 +179,128 @@ class SafeHtml
         }
 
         return $trimmed;
+    }
+
+    /**
+     * Neutralize spreadsheet formula triggers (=, +, -, @, tab, CR) before writing to CSV.
+     */
+    public static function sanitizeCsvCell(mixed $value): string
+    {
+        $text = (string) ($value ?? '');
+
+        if ($text !== '' && preg_match('/^[\t\r\n ]*[=+\-@]|^[\t\r]/', $text) === 1) {
+            return "'".$text;
+        }
+
+        return $text;
+    }
+
+    private static function sanitizeNodeChildren(DOMNode $parent): void
+    {
+        $children = [];
+        foreach ($parent->childNodes as $child) {
+            $children[] = $child;
+        }
+
+        foreach ($children as $child) {
+            if ($child instanceof DOMComment || $child instanceof DOMProcessingInstruction) {
+                $parent->removeChild($child);
+
+                continue;
+            }
+
+            if (! $child instanceof DOMElement) {
+                continue;
+            }
+
+            $tag = strtolower($child->tagName);
+
+            if (in_array($tag, self::DROP_SUBTREE_TAGS, true)) {
+                $parent->removeChild($child);
+
+                continue;
+            }
+
+            self::sanitizeNodeChildren($child);
+
+            if (! array_key_exists($tag, self::ALLOWED_TAGS)) {
+                while ($child->firstChild !== null) {
+                    $parent->insertBefore($child->firstChild, $child);
+                }
+                $parent->removeChild($child);
+
+                continue;
+            }
+
+            $allowedAttrs = [...self::GLOBAL_ALLOWED_ATTRS, ...self::ALLOWED_TAGS[$tag]];
+            $attrNames = [];
+            if ($child->hasAttributes()) {
+                foreach ($child->attributes as $attr) {
+                    $attrNames[] = $attr->name;
+                }
+            }
+
+            foreach ($attrNames as $attrName) {
+                $lowerAttr = strtolower($attrName);
+                if (! in_array($lowerAttr, $allowedAttrs, true)) {
+                    $child->removeAttribute($attrName);
+                }
+            }
+
+            if ($tag === 'a') {
+                self::sanitizeAnchorElement($child);
+            } elseif ($tag === 'img') {
+                if (! self::sanitizeImageElement($child)) {
+                    $parent->removeChild($child);
+                }
+            }
+        }
+    }
+
+    private static function sanitizeAnchorElement(DOMElement $element): void
+    {
+        if ($element->hasAttribute('href')) {
+            $rawHref = trim($element->getAttribute('href'));
+            $safeHref = self::isSafeFragment($rawHref) ? $rawHref : self::cleanUrl($rawHref);
+
+            if ($safeHref === null) {
+                $element->setAttribute('href', '#');
+            } else {
+                $element->setAttribute('href', $safeHref);
+            }
+        }
+
+        if ($element->hasAttribute('target')) {
+            $target = strtolower(trim($element->getAttribute('target')));
+            if ($target === '_blank') {
+                $element->setAttribute('target', '_blank');
+                $element->setAttribute('rel', 'noopener noreferrer');
+            } elseif ($target === '_self') {
+                $element->setAttribute('target', '_self');
+            } else {
+                $element->removeAttribute('target');
+            }
+        }
+    }
+
+    private static function sanitizeImageElement(DOMElement $element): bool
+    {
+        if (! $element->hasAttribute('src')) {
+            return false;
+        }
+
+        $safeSrc = self::cleanUrl($element->getAttribute('src'));
+        if ($safeSrc === null) {
+            return false;
+        }
+
+        $element->setAttribute('src', $safeSrc);
+
+        return true;
+    }
+
+    private static function isSafeFragment(string $href): bool
+    {
+        return preg_match('/^#[A-Za-z0-9._-]*$/', $href) === 1;
     }
 }

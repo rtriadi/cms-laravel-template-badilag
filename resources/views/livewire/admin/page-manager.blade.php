@@ -88,6 +88,7 @@
                     <a
                         href="{{ route('public.page', ['slug' => $slug]) }}"
                         target="_blank"
+                        rel="noopener noreferrer"
                         class="inline-flex min-h-11 items-center rounded-md border border-primary bg-primary-soft px-3.5 text-xs font-semibold text-primary hover:bg-primary hover:text-white"
                     >
                         Lihat Halaman Publik &nearr;
@@ -409,6 +410,7 @@
                             <a
                                 href="{{ route('public.page', ['slug' => $pg->slug]) }}"
                                 target="_blank"
+                                rel="noopener noreferrer"
                                 class="inline-flex min-h-10 items-center rounded-md border border-hairline bg-white px-3 font-semibold text-ink hover:bg-primary-soft"
                             >
                                 Lihat

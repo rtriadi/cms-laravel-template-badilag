@@ -197,11 +197,11 @@
                                             Salin
                                         </button>
 
-                                        @if ($url)
+                                        @if ($url && \App\Support\SafeHtml::cleanUrl($url))
                                             <a
-                                                href="{{ $url }}"
+                                                href="{{ \App\Support\SafeHtml::cleanUrl($url) }}"
                                                 target="_blank"
-                                                rel="noopener"
+                                                rel="noopener noreferrer"
                                                 class="inline-flex min-h-11 items-center rounded-md border border-hairline bg-white px-3 text-xs font-semibold text-ink hover:bg-mist"
                                             >
                                                 Buka
