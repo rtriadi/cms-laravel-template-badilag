@@ -222,22 +222,24 @@
 
     <!-- Utility Top Bar -->
     <div class="bg-primary-deep text-xs text-emerald-50">
-        <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2 sm:px-6 lg:px-8">
-            <div class="flex flex-wrap items-center gap-4">
-                <span class="font-semibold text-amber-300">Mahkamah Agung RI &middot; Ditjen Badilag</span>
-                <span class="hidden xl:inline text-emerald-100">PTSP: Senin-Kamis 08.00-16.30 | Jumat 08.00-17.00</span>
+        <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2 sm:px-6 lg:px-8">
+            <div class="flex min-w-0 items-center gap-3.5 whitespace-nowrap">
+                <span class="shrink-0 font-semibold text-amber-300">
+                    <span class="sm:hidden">MA RI &middot; Ditjen Badilag</span>
+                    <span class="hidden sm:inline">Mahkamah Agung RI &middot; Ditjen Badilag</span>
+                </span>
                 @if ($satker?->telepon)
-                    <span class="hidden sm:inline">Telp: {{ $satker->telepon }}</span>
+                    <span class="hidden shrink-0 md:inline">Telp: {{ $satker->telepon }}</span>
                 @endif
                 @if ($satker?->email)
-                    <span class="hidden md:inline">Surel: {{ $satker->email }}</span>
+                    <span class="hidden min-w-0 truncate lg:inline">Surel: {{ $satker->email }}</span>
                 @endif
             </div>
-            <nav aria-label="Tautan Kepatuhan Cepat" class="flex flex-wrap items-center gap-4">
+            <nav aria-label="Tautan Kepatuhan Cepat" class="flex shrink-0 items-center gap-3.5 whitespace-nowrap">
                 <a href="{{ route('public.accessibility') }}" class="font-semibold text-amber-300 underline-offset-4 transition-colors duration-150 hover:text-amber-200 hover:underline">Aksesibilitas</a>
                 <a href="{{ route('public.sitemap') }}" class="font-medium text-emerald-50 underline-offset-4 transition-colors duration-150 hover:text-white hover:underline">Peta Situs</a>
-                <a href="{{ route('public.visitor-stats') }}" class="hidden sm:inline font-medium text-emerald-50 underline-offset-4 transition-colors duration-150 hover:text-white hover:underline">Statistik Pengunjung</a>
-                <a href="{{ route('public.system-status') }}" class="font-medium text-emerald-50 underline-offset-4 transition-colors duration-150 hover:text-white hover:underline">Status Sistem</a>
+                <a href="{{ route('public.visitor-stats') }}" class="hidden font-medium text-emerald-50 underline-offset-4 transition-colors duration-150 hover:text-white hover:underline lg:inline">Statistik Pengunjung</a>
+                <a href="{{ route('public.system-status') }}" class="hidden font-medium text-emerald-50 underline-offset-4 transition-colors duration-150 hover:text-white hover:underline sm:inline">Status Sistem</a>
             </nav>
         </div>
     </div>
