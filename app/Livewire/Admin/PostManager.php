@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Models\Post;
+use App\Services\ImageOptimizerService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -117,7 +118,7 @@ class PostManager extends Component
         $imagePath = $existing?->featured_image_path;
 
         if ($this->featured_image !== null) {
-            $imagePath = $this->featured_image->store('posts', 'public');
+            $imagePath = app(ImageOptimizerService::class)->storeOptimized($this->featured_image, 'posts', 1000, 82);
         }
 
         $data = [

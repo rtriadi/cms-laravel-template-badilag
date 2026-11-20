@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Models\HomeSlider;
+use App\Services\ImageOptimizerService;
 use App\Support\SafeHtml;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -107,7 +108,7 @@ class SliderManager extends Component
 
         $imagePath = $existing?->image_path;
         if ($this->image !== null) {
-            $imagePath = $this->image->store('sliders', 'public');
+            $imagePath = app(ImageOptimizerService::class)->storeOptimized($this->image, 'sliders', 1280, 82);
         }
 
         $data = [

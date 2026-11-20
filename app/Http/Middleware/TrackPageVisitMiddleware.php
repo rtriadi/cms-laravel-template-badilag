@@ -17,10 +17,16 @@ class TrackPageVisitMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $response = $next($request);
+        return $next($request);
+    }
 
+    /**
+     * Increment cookie-free daily visit counter after sending HTTP response to client.
+     */
+    public function terminate(Request $request, Response $response): void
+    {
         if (! $request->isMethod('GET') || $response->getStatusCode() !== 200 || $this->shouldSkip($request)) {
-            return $response;
+            return;
         }
 
         try {
@@ -47,8 +53,6 @@ class TrackPageVisitMiddleware
         } catch (Throwable) {
             // Never block public portal rendering if visit tracking fails
         }
-
-        return $response;
     }
 
     private function shouldSkip(Request $request): bool
@@ -66,8 +70,10 @@ class TrackPageVisitMiddleware
             'livewire-*/*',
             'flux/*',
             'captcha-image',
+            'captcha-text',
             'up',
             'sitemap.xml',
+            'robots.txt',
             'build/*',
             'storage/*',
         );

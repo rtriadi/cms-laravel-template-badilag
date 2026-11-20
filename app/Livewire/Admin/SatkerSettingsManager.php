@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use App\Models\SatkerSetting;
 use App\Models\User;
+use App\Services\ImageOptimizerService;
 use Database\Seeders\SatkerDefaultContentSeeder;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -121,14 +122,16 @@ class SatkerSettingsManager extends Component
 
         $setting = SatkerSetting::current() ?? new SatkerSetting;
 
+        $optimizer = app(ImageOptimizerService::class);
+
         $logoPath = $setting->logo_path;
         if ($this->logo !== null) {
-            $logoPath = $this->logo->store('satker', 'public');
+            $logoPath = $optimizer->storeOptimized($this->logo, 'satker', 512, 88);
         }
 
         $fotoPath = $setting->foto_gedung_path;
         if ($this->foto_gedung !== null) {
-            $fotoPath = $this->foto_gedung->store('satker', 'public');
+            $fotoPath = $optimizer->storeOptimized($this->foto_gedung, 'satker', 1280, 82);
         }
 
         $setting->fill([

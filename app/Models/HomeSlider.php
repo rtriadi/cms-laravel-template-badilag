@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Http\Controllers\PublicHomeController;
 use Database\Factories\HomeSliderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -35,6 +36,17 @@ class HomeSlider extends Model
             'sort_order' => 'integer',
             'is_active' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function (): void {
+            PublicHomeController::flushCache();
+        });
+
+        static::deleted(function (): void {
+            PublicHomeController::flushCache();
+        });
     }
 
     public static function activeCount(): int

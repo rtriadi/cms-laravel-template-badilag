@@ -9,98 +9,151 @@ use App\Models\Post;
 use App\Models\SatkerSetting;
 use App\Support\SafeHtml;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class PublicHomeController extends Controller
 {
+    public static function flushCache(): void
+    {
+        Cache::forget('public_home.pertama');
+        Cache::forget('public_home.banding');
+    }
+
     public function __invoke(): View
     {
         $satker = SatkerSetting::current();
         $activeTingkat = $satker?->tingkat ?? 'pertama';
+        $cacheKey = 'public_home.'.$activeTingkat;
+        $cached = Cache::get($cacheKey);
 
-        $sliders = HomeSlider::query()
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->limit(HomeSlider::MAX_ACTIVE_SLIDES)
-            ->get()
-            ->map(function (HomeSlider $slide) use ($satker): HomeSlider {
-                if ($satker !== null) {
-                    $slide->title = $satker->replacePlaceholders($slide->title);
-                    if ($slide->subtitle !== null) {
-                        $slide->subtitle = $satker->replacePlaceholders($slide->subtitle);
-                    }
-                    $slide->image_alt = $satker->replacePlaceholders($slide->image_alt);
-                    if ($slide->cta_label !== null) {
-                        $slide->cta_label = $satker->replacePlaceholders($slide->cta_label);
-                    }
+        if (
+            ! is_array($cached)
+            || ! isset($cached['sliders'], $cached['sertaMerta'], $cached['latestNews'], $cached['announcements'], $cached['transparencyPages'], $cached['servicePages'])
+        ) {
+            $cached = [
+                'sliders' => HomeSlider::query()
+                    ->where('is_active', true)
+                    ->orderBy('sort_order')
+                    ->limit(HomeSlider::MAX_ACTIVE_SLIDES)
+                    ->get()
+                    ->map(fn (HomeSlider $slide): array => $slide->getAttributes())
+                    ->all(),
+                'sertaMerta' => Post::query()
+                    ->select(['id', 'title', 'slug', 'category', 'is_pinned', 'published_at', 'created_at'])
+                    ->where('is_published', true)
+                    ->where('category', 'serta_merta')
+                    ->where(function ($q): void {
+                        $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                    })
+                    ->orderByDesc('is_pinned')
+                    ->orderByDesc('published_at')
+                    ->limit(2)
+                    ->get()
+                    ->map(fn (Post $post): array => $post->getAttributes())
+                    ->all(),
+                'latestNews' => Post::query()
+                    ->select(['id', 'title', 'slug', 'category', 'excerpt', 'featured_image_path', 'featured_image_alt', 'is_pinned', 'published_at', 'created_at'])
+                    ->where('is_published', true)
+                    ->whereIn('category', ['berita', 'layanan_hukum', 'inovasi', 'opini', 'infografis'])
+                    ->orderByDesc('is_pinned')
+                    ->orderByDesc('published_at')
+                    ->orderByDesc('id')
+                    ->limit(4)
+                    ->get()
+                    ->map(fn (Post $post): array => $post->getAttributes())
+                    ->all(),
+                'announcements' => Post::query()
+                    ->select(['id', 'title', 'slug', 'category', 'is_pinned', 'published_at', 'created_at'])
+                    ->where('is_published', true)
+                    ->where('category', 'pengumuman')
+                    ->orderByDesc('is_pinned')
+                    ->orderByDesc('published_at')
+                    ->orderByDesc('id')
+                    ->limit(5)
+                    ->get()
+                    ->map(fn (Post $post): array => $post->getAttributes())
+                    ->all(),
+                'transparencyPages' => Page::query()
+                    ->select(['id', 'title', 'slug', 'criteria_code'])
+                    ->where('is_published', true)
+                    ->where('slug', 'like', 'transparansi/%')
+                    ->whereIn('tingkat_scope', ['all', $activeTingkat])
+                    ->orderBy('criteria_code')
+                    ->limit(6)
+                    ->get()
+                    ->map(fn (Page $page): array => $page->getAttributes())
+                    ->all(),
+                'servicePages' => Page::query()
+                    ->select(['id', 'title', 'slug', 'criteria_code'])
+                    ->where('is_published', true)
+                    ->where('slug', 'like', 'layanan-hukum/%')
+                    ->whereIn('tingkat_scope', ['all', $activeTingkat])
+                    ->orderBy('criteria_code')
+                    ->limit(6)
+                    ->get()
+                    ->map(fn (Page $page): array => $page->getAttributes())
+                    ->all(),
+            ];
+
+            Cache::put($cacheKey, $cached, 300);
+        }
+
+        $sliders = (new Collection(array_map(
+            fn (array $attrs): HomeSlider => (new HomeSlider)->newFromBuilder($attrs),
+            $cached['sliders']
+        )))->map(function (HomeSlider $slide) use ($satker): HomeSlider {
+            if ($satker !== null) {
+                $slide->title = $satker->replacePlaceholders($slide->title);
+                if ($slide->subtitle !== null) {
+                    $slide->subtitle = $satker->replacePlaceholders($slide->subtitle);
                 }
-                $slide->cta_url = SafeHtml::cleanUrl($slide->cta_url);
-
-                return $slide;
-            });
-
-        $sertaMerta = Post::query()
-            ->select(['id', 'title', 'slug', 'category', 'is_pinned', 'published_at', 'created_at'])
-            ->where('is_published', true)
-            ->where('category', 'serta_merta')
-            ->where(function ($q): void {
-                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
-            })
-            ->orderByDesc('is_pinned')
-            ->orderByDesc('published_at')
-            ->limit(2)
-            ->get();
-
-        $latestNews = Post::query()
-            ->select(['id', 'title', 'slug', 'category', 'excerpt', 'featured_image_path', 'featured_image_alt', 'is_pinned', 'published_at', 'created_at'])
-            ->where('is_published', true)
-            ->whereIn('category', ['berita', 'layanan_hukum', 'inovasi', 'opini', 'infografis'])
-            ->orderByDesc('is_pinned')
-            ->orderByDesc('published_at')
-            ->orderByDesc('id')
-            ->limit(4)
-            ->get();
-
-        $announcements = Post::query()
-            ->select(['id', 'title', 'slug', 'category', 'is_pinned', 'published_at', 'created_at'])
-            ->where('is_published', true)
-            ->where('category', 'pengumuman')
-            ->orderByDesc('is_pinned')
-            ->orderByDesc('published_at')
-            ->orderByDesc('id')
-            ->limit(5)
-            ->get();
-
-        $transparencyPages = Page::query()
-            ->select(['id', 'title', 'slug', 'criteria_code'])
-            ->where('is_published', true)
-            ->where('slug', 'like', 'transparansi/%')
-            ->whereIn('tingkat_scope', ['all', $activeTingkat])
-            ->orderBy('criteria_code')
-            ->limit(6)
-            ->get()
-            ->map(function (Page $page) use ($satker): Page {
-                if ($satker !== null) {
-                    $page->title = $satker->replacePlaceholders($page->title);
+                $slide->image_alt = $satker->replacePlaceholders($slide->image_alt);
+                if ($slide->cta_label !== null) {
+                    $slide->cta_label = $satker->replacePlaceholders($slide->cta_label);
                 }
+            }
+            $slide->cta_url = SafeHtml::cleanUrl($slide->cta_url);
 
-                return $page;
-            });
+            return $slide;
+        });
 
-        $servicePages = Page::query()
-            ->select(['id', 'title', 'slug', 'criteria_code'])
-            ->where('is_published', true)
-            ->where('slug', 'like', 'layanan-hukum/%')
-            ->whereIn('tingkat_scope', ['all', $activeTingkat])
-            ->orderBy('criteria_code')
-            ->limit(6)
-            ->get()
-            ->map(function (Page $page) use ($satker): Page {
-                if ($satker !== null) {
-                    $page->title = $satker->replacePlaceholders($page->title);
-                }
+        $sertaMerta = new Collection(array_map(
+            fn (array $attrs): Post => (new Post)->newFromBuilder($attrs),
+            $cached['sertaMerta']
+        ));
 
-                return $page;
-            });
+        $latestNews = new Collection(array_map(
+            fn (array $attrs): Post => (new Post)->newFromBuilder($attrs),
+            $cached['latestNews']
+        ));
+
+        $announcements = new Collection(array_map(
+            fn (array $attrs): Post => (new Post)->newFromBuilder($attrs),
+            $cached['announcements']
+        ));
+
+        $transparencyPages = (new Collection(array_map(
+            fn (array $attrs): Page => (new Page)->newFromBuilder($attrs),
+            $cached['transparencyPages']
+        )))->map(function (Page $page) use ($satker): Page {
+            if ($satker !== null) {
+                $page->title = $satker->replacePlaceholders($page->title);
+            }
+
+            return $page;
+        });
+
+        $servicePages = (new Collection(array_map(
+            fn (array $attrs): Page => (new Page)->newFromBuilder($attrs),
+            $cached['servicePages']
+        )))->map(function (Page $page) use ($satker): Page {
+            if ($satker !== null) {
+                $page->title = $satker->replacePlaceholders($page->title);
+            }
+
+            return $page;
+        });
 
         $customShortcuts = MenuItem::cachedPublicMenus($activeTingkat)['shortcut'];
 

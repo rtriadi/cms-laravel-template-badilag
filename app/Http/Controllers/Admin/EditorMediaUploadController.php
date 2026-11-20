@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\ImageOptimizerService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -39,11 +40,15 @@ class EditorMediaUploadController extends Controller
         ]);
 
         $uploaded = $request->file('file');
-        $path = $uploaded->store('editor-media', 'public');
-        $url = '/storage/'.ltrim((string) $path, '/');
         $originalName = $uploaded->getClientOriginalName();
         $extension = strtolower($uploaded->getClientOriginalExtension());
         $isPdf = $extension === 'pdf' || $uploaded->getMimeType() === 'application/pdf';
+
+        $path = (! $isPdf && $extension !== 'gif')
+            ? app(ImageOptimizerService::class)->storeOptimized($uploaded, 'editor-media', 1280, 82)
+            : $uploaded->store('editor-media', 'public');
+
+        $url = '/storage/'.ltrim((string) $path, '/');
         $uploadedAt = now()->format('d M Y, H:i');
 
         activity('document')

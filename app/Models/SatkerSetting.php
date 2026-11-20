@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Http\Controllers\PublicHomeController;
 use App\Support\SafeHtml;
 use Database\Factories\SatkerSettingFactory;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -94,10 +95,12 @@ class SatkerSetting extends Model
 
         static::saved(function (): void {
             Cache::forget(self::CACHE_KEY);
+            PublicHomeController::flushCache();
         });
 
         static::deleted(function (): void {
             Cache::forget(self::CACHE_KEY);
+            PublicHomeController::flushCache();
         });
     }
 
@@ -190,10 +193,16 @@ class SatkerSetting extends Model
             $kec = 'Kec. '.$kec;
         }
 
+        $bareKel = preg_replace('/^(kel\.?|kelurahan|desa)\s+/iu', '', trim((string) $this->desa_kelurahan)) ?? '';
+        $bareKec = preg_replace('/^(kec\.?|kecamatan)\s+/iu', '', trim((string) $this->kecamatan)) ?? '';
+
+        $jalanHasKel = $bareKel !== '' && preg_match('/\b(?:kel\.?|kelurahan|desa)\s*'.preg_quote($bareKel, '/').'\b/iu', $jalan) === 1;
+        $jalanHasKec = $bareKec !== '' && preg_match('/\b(?:kec\.?|kecamatan)\s*'.preg_quote($bareKec, '/').'\b/iu', $jalan) === 1;
+
         $parts = array_filter([
             $jalan !== '' ? $jalan : null,
-            ($kel !== '' && ($jalan === '' || stripos($jalan, (string) $this->desa_kelurahan) === false)) ? $kel : null,
-            ($kec !== '' && ($jalan === '' || stripos($jalan, (string) $this->kecamatan) === false)) ? $kec : null,
+            ($kel !== '' && ($jalan === '' || ! $jalanHasKel)) ? $kel : null,
+            ($kec !== '' && ($jalan === '' || ! $jalanHasKec)) ? $kec : null,
             $this->kabupaten_kota,
             $this->provinsi,
             $this->kode_pos,
