@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './shared.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../views/public/**/*.blade.php';
@@ -170,6 +171,69 @@
     transition: transform 380ms var(--ease-out-strong);
 }
 
+.pub-icon-tile {
+    transition:
+        transform 200ms var(--ease-out-strong),
+        background-color 180ms ease,
+        color 180ms ease,
+        border-color 180ms ease;
+}
+
+.pub-nav-link {
+    position: relative;
+    transition:
+        background-color 160ms ease,
+        color 160ms ease;
+}
+
+.pub-nav-link::after {
+    content: '';
+    position: absolute;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 0;
+    height: 2px;
+    border-radius: 9999px;
+    background-color: var(--color-gold);
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 200ms var(--ease-out-strong);
+}
+
+.pub-nav-link:hover::after,
+.pub-nav-link[aria-current='page']::after,
+.pub-nav-link.is-active::after {
+    transform: scaleX(1);
+}
+
+.pub-nav-chevron {
+    transition: transform 180ms var(--ease-out-strong);
+}
+
+[data-nav-trigger][aria-expanded='true'] .pub-nav-chevron {
+    transform: rotate(180deg);
+}
+
+.pub-progress-bar {
+    transform-origin: left center;
+    transform: scaleX(var(--read-progress, 0));
+    will-change: transform;
+}
+
+@keyframes pubCrestFloat {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(-6px);
+    }
+}
+
+.pub-crest-float {
+    animation: pubCrestFloat 7s ease-in-out infinite alternate;
+    will-change: transform;
+}
+
 @media (hover: hover) and (pointer: fine) {
     .pub-card:hover {
         transform: translateY(-3px);
@@ -182,12 +246,35 @@
         box-shadow: 0 6px 14px -6px rgba(5, 110, 79, 0.14);
     }
 
-    .pub-link-card:hover .pub-chevron {
-        transform: translateX(3px);
+    .pub-link-card:hover .pub-chevron,
+    .pub-card:hover .pub-chevron {
+        transform: translateX(4px);
+    }
+
+    .pub-card:hover .pub-icon-tile {
+        transform: scale(1.06);
     }
 
     .pub-card:hover .pub-img-zoom {
         transform: scale(1.035);
+    }
+}
+
+#mobile-nav-drawer:not([hidden]) {
+    opacity: 1;
+    transition: opacity 200ms ease;
+
+    @starting-style {
+        opacity: 0;
+    }
+}
+
+#mobile-nav-drawer:not([hidden]) [data-mobile-drawer-panel] {
+    transform: translateX(0);
+    transition: transform 220ms var(--ease-drawer);
+
+    @starting-style {
+        transform: translateX(100%);
     }
 }
 
@@ -231,91 +318,3 @@
         transform: translateY(6px) scale(0.96);
     }
 }
-
-html.pub-motion-ready:not(.a11y-no-motion) .pub-reveal {
-    opacity: 0;
-    transform: translateY(10px);
-    transition:
-        opacity 340ms var(--ease-out-strong),
-        transform 340ms var(--ease-out-strong);
-    transition-delay: var(--stagger-delay, 0ms);
-}
-
-html.pub-motion-ready:not(.a11y-no-motion) .pub-reveal.is-visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-html.a11y-hc,
-html.a11y-hc body {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-}
-
-html.a11y-hc header,
-html.a11y-hc nav,
-html.a11y-hc main,
-html.a11y-hc section,
-html.a11y-hc article,
-html.a11y-hc aside,
-html.a11y-hc footer,
-html.a11y-hc div,
-html.a11y-hc table,
-html.a11y-hc th,
-html.a11y-hc td,
-html.a11y-hc input,
-html.a11y-hc select,
-html.a11y-hc textarea {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border-color: #ffff00 !important;
-}
-
-html.a11y-hc a,
-html.a11y-hc button,
-html.a11y-hc [role='button'] {
-    background-color: #000000 !important;
-    color: #ffff00 !important;
-    border: 1px solid #ffff00 !important;
-}
-
-html.a11y-hc :focus-visible {
-    outline: 3px solid #ffff00 !important;
-    outline-offset: 2px;
-}
-
-html.a11y-dyslexia body {
-    font-family: var(--font-sans) !important;
-    letter-spacing: 0.04em;
-    word-spacing: 0.12em;
-    line-height: 1.75;
-}
-
-html.a11y-highlight-links a {
-    text-decoration: underline !important;
-    text-decoration-thickness: 2px !important;
-    text-underline-offset: 3px !important;
-    background-color: #fef08a !important;
-    color: #111827 !important;
-}
-
-html.a11y-no-motion *,
-html.a11y-no-motion *::before,
-html.a11y-no-motion *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.001ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.001ms !important;
-        scroll-behavior: auto !important;
-    }
-}
-

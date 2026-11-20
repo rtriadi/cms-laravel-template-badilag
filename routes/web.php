@@ -39,6 +39,7 @@ Route::get('/status-sistem', [PublicComplianceController::class, 'systemStatus']
 Route::get('/statistik-pengunjung', [PublicComplianceController::class, 'visitorStats'])->name('public.visitor-stats');
 Route::get('/peta-situs', [PublicComplianceController::class, 'sitemapHtml'])->name('public.sitemap');
 Route::get('/sitemap.xml', [PublicComplianceController::class, 'sitemapXml'])->name('public.sitemap.xml');
+Route::get('/robots.txt', [PublicComplianceController::class, 'robotsTxt'])->name('public.robots');
 
 Route::get('/setup', SetupWizard::class)->name('setup');
 
@@ -48,6 +49,15 @@ Route::get('/captcha-image', function (LocalCaptchaService $captcha): Response {
         'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
     ]);
 })->name('captcha.image');
+
+// shortcut: kode teks bisa dibaca mesin; pembatas nyata adalah throttle login 5/menit.
+// Ganti ke tantangan audio bila penyalahgunaan bot terdeteksi.
+Route::get('/captcha-text', function (LocalCaptchaService $captcha): Response {
+    return response($captcha->generateCode(), 200, [
+        'Content-Type' => 'text/plain; charset=UTF-8',
+        'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+    ]);
+})->name('captcha.text');
 
 $adminPath = trim((string) config('satker.admin_path', 'panel-admin'), '/');
 

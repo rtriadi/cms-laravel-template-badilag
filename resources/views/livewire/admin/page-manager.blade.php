@@ -30,7 +30,7 @@
             >
                 <span>2. Studio Editor &amp; Page Builder</span>
                 @if ($editingId)
-                    <span class="rounded bg-gold px-1.5 py-0.5 font-mono text-[10px] font-bold text-ink">
+                    <span class="rounded bg-gold px-1.5 py-0.5 font-mono text-2xs font-bold text-ink">
                         #{{ $editingId }}
                     </span>
                 @endif
@@ -61,11 +61,12 @@
     <div
         id="workspace-editor-halaman"
         x-show="$wire.editorOpen"
+        x-cloak
         class="rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-5 shadow-2xs sm:p-6"
     >
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-hairline pb-4">
             <div>
-                <span class="rounded bg-primary-soft px-2.5 py-0.5 font-mono text-[11px] font-bold text-primary uppercase">
+                <span class="rounded bg-primary-soft px-2.5 py-0.5 font-mono text-2xs font-bold text-primary uppercase">
                     {{ $editingId ? 'Mode Edit Halaman #' . $editingId : 'Mode Buat Halaman Baru' }}
                 </span>
                 <h2 class="mt-1 font-serif text-xl font-bold text-ink">
@@ -116,7 +117,7 @@
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-hairline pb-3">
                         <div>
                             <span class="text-sm font-bold text-ink">Kanvas Blok Konten Halaman ({{ count($blocks) }} Blok)</span>
-                            <p class="text-[11px] text-ink-muted">Satu halaman dapat berisi gabungan artikel teks lengkap, daftar dokumen PDF, maupun daftar artikel berita.</p>
+                            <p class="text-2xs text-ink-muted">Satu halaman dapat berisi gabungan artikel teks lengkap, daftar dokumen PDF, maupun daftar artikel berita.</p>
                         </div>
                         <div class="flex flex-wrap gap-1.5">
                             @foreach (['richtext' => '+ Teks / Artikel', 'document_list' => '+ Daftar Dokumen PDF', 'article_list' => '+ Daftar Artikel', 'embed_fallback' => '+ Embed/Cadangan', 'external_portal' => '+ Portal', 'map_yurisdiksi' => '+ Peta', 'satker_contact' => '+ Kontak'] as $bType => $bLabel)
@@ -166,7 +167,7 @@
                                             <option value="{{ $cKey }}">{{ $cLabel }}</option>
                                         @endforeach
                                     </flux:select>
-                                    <p class="mt-1 text-[11px] text-ink-muted">Dokumen PDF yang diunggah pada menu Arsip Dokumen PDF dengan koleksi ini akan otomatis tampil beserta filter tahun.</p>
+                                    <p class="mt-1 text-2xs text-ink-muted">Dokumen PDF yang diunggah pada menu Arsip Dokumen PDF dengan koleksi ini akan otomatis tampil beserta filter tahun.</p>
                                 </flux:field>
                             @elseif (($block['type'] ?? '') === 'article_list')
                                 <flux:field>
@@ -177,7 +178,7 @@
                                         @endforeach
                                         <option value="semua">Semua Kategori Publikasi</option>
                                     </flux:select>
-                                    <p class="mt-1 text-[11px] text-ink-muted">Otomatis menampilkan daftar artikel dari menu Berita, Artikel &amp; Pengumuman sesuai kategori ini.</p>
+                                    <p class="mt-1 text-2xs text-ink-muted">Otomatis menampilkan daftar artikel dari menu Berita, Artikel &amp; Pengumuman sesuai kategori ini.</p>
                                 </flux:field>
                             @elseif (($block['type'] ?? '') === 'embed_fallback')
                                 @php
@@ -223,13 +224,13 @@
                                 <div class="rounded-md border border-emerald-200 bg-primary-soft/60 px-3 py-2 text-xs text-ink">
                                     <p class="font-semibold text-primary-deep">Sumber URL Embed Aktif:</p>
                                     @if (! empty($previewResolved['tabs']))
-                                        <p class="mt-0.5 text-[11px] text-ink-body">
+                                        <p class="mt-0.5 text-2xs text-ink-body">
                                             Otomatis menampilkan <strong>{{ count($previewResolved['tabs']) }} Tab Kategori SIMTEPA</strong> dari token <code>{{ $satker?->extractSimtepaToken() }}</code> (Ketua, Wakil, Hakim, Kepaniteraan, Kesekretariatan, Fungsional{{ count($previewResolved['tabs']) === 7 ? ', Pelaksana' : '' }}).
                                         </p>
                                     @elseif (! empty($previewResolved['embed_url']))
-                                        <p class="mt-0.5 break-all font-mono text-[11px] text-primary">{{ $previewResolved['embed_url'] }}</p>
+                                        <p class="mt-0.5 break-all font-mono text-2xs text-primary">{{ $previewResolved['embed_url'] }}</p>
                                     @else
-                                        <p class="mt-0.5 text-[11px] text-amber-800">URL belum diatur di menu Pengaturan Satker (akan otomatis menampilkan Data Cadangan Lokal).</p>
+                                        <p class="mt-0.5 text-2xs text-amber-800">URL belum diatur di menu Pengaturan Satker (akan otomatis menampilkan Data Cadangan Lokal).</p>
                                     @endif
                                 </div>
 
@@ -289,8 +290,14 @@
                 <flux:field>
                     <flux:label for="page_slug">Slug URL (/halaman/...)</flux:label>
                     <flux:input id="page_slug" wire:model="slug" required placeholder="layanan-hukum/hak-pencari-keadilan" />
-                    <p class="mt-1 text-[11px] text-ink-muted">Gunakan awalan <code>profil/</code>, <code>layanan-hukum/</code>, <code>transparansi/</code>, atau <code>layanan-publik/</code>. Mengubah slug otomatis membuat Redirect 301.</p>
+                    <p class="mt-1 text-2xs text-ink-muted">Gunakan awalan <code>profil/</code>, <code>layanan-hukum/</code>, <code>transparansi/</code>, atau <code>layanan-publik/</code>. Mengubah slug otomatis membuat Redirect 301.</p>
                     <flux:error name="slug" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label for="page_meta_desc">Deskripsi SEO Google (Maks 160 Karakter)</flux:label>
+                    <flux:textarea id="page_meta_desc" wire:model="meta_description" rows="2" maxlength="160" placeholder="Opsional: ringkasan singkat untuk tampil di hasil pencarian Google dan pratinjau WhatsApp..." />
+                    <flux:error name="meta_description" />
                 </flux:field>
 
                 <flux:field>
@@ -379,17 +386,17 @@
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-center gap-2">
                                 <span @class([
-                                    'rounded px-2 py-0.5 text-[11px] font-semibold',
+                                    'rounded px-2 py-0.5 text-2xs font-semibold',
                                     'bg-emerald-50 text-emerald-800' => $pg->is_published,
-                                    'bg-gray-100 text-ink-muted' => ! $pg->is_published,
+                                    'bg-mist text-ink-muted' => ! $pg->is_published,
                                 ])>
                                     {{ $pg->is_published ? 'Aktif' : 'Nonaktif' }}
                                 </span>
-                                <span class="rounded border border-hairline bg-white px-2 py-0.5 font-mono text-[11px] text-ink-muted">
+                                <span class="rounded border border-hairline bg-white px-2 py-0.5 font-mono text-2xs text-ink-muted">
                                     {{ is_array($pg->blocks) ? count($pg->blocks) : 0 }} blok
                                 </span>
                                 @if ($pg->criteria_code)
-                                    <span class="rounded bg-white px-2 py-0.5 font-mono text-[11px] font-semibold text-primary">
+                                    <span class="rounded bg-white px-2 py-0.5 font-mono text-2xs font-semibold text-primary">
                                         [{{ $pg->criteria_code }}]
                                     </span>
                                 @endif

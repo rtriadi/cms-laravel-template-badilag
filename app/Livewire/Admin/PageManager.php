@@ -31,6 +31,8 @@ class PageManager extends Component
 
     public string $summary = '';
 
+    public string $meta_description = '';
+
     public string $category_tag = 'berkala';
 
     public string $criteria_code = '';
@@ -92,6 +94,7 @@ class PageManager extends Component
         $this->title = $page->title;
         $this->slug = $page->slug;
         $this->summary = (string) ($page->summary ?? '');
+        $this->meta_description = (string) ($page->meta_description ?? '');
         $this->category_tag = (string) ($page->category_tag ?? 'berkala');
         $this->criteria_code = (string) ($page->criteria_code ?? '');
         $this->tingkat_scope = $page->tingkat_scope;
@@ -138,6 +141,7 @@ class PageManager extends Component
         $this->validate([
             'title' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', Rule::unique('pages', 'slug')->ignore($this->editingId)],
+            'meta_description' => ['nullable', 'string', 'max:160'],
             'category_tag' => ['nullable', 'in:berkala,serta_merta,setiap_saat'],
             'tingkat_scope' => ['required', 'in:all,pertama,banding'],
         ], [
@@ -162,6 +166,7 @@ class PageManager extends Component
             'title' => trim($this->title),
             'slug' => $this->slug,
             'summary' => trim($this->summary) ?: null,
+            'meta_description' => trim($this->meta_description) ?: null,
             'category_tag' => $this->category_tag ?: null,
             'criteria_code' => trim($this->criteria_code) ?: null,
             'tingkat_scope' => $this->tingkat_scope,
@@ -204,6 +209,7 @@ class PageManager extends Component
         $this->title = '';
         $this->slug = '';
         $this->summary = '';
+        $this->meta_description = '';
         $this->category_tag = 'berkala';
         $this->criteria_code = '';
         $this->tingkat_scope = 'all';

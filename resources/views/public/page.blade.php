@@ -1,4 +1,59 @@
-<x-layouts.public :title="$resolvedTitle" :description="$page->meta_description">
+@php
+    $fallbackContentSnippet = '';
+    foreach ($blocks as $blk) {
+        if (($blk['type'] ?? '') === 'richtext' && ! empty($blk['content'])) {
+            $fallbackContentSnippet = trim((string) preg_replace('/\s+/', ' ', strip_tags((string) $blk['content'])));
+            if ($fallbackContentSnippet !== '') {
+                break;
+            }
+        }
+    }
+    $pageMetaDescription = $page->meta_description
+        ?: ($page->summary ?: ($fallbackContentSnippet !== '' ? \Illuminate\Support\Str::limit($fallbackContentSnippet, 160) : "Informasi resmi {$resolvedTitle} pada " . ($satker?->nama_satker ?? 'Portal Resmi Peradilan Agama') . '.'));
+    $pageCanonical = route('public.page', ['slug' => $page->slug]);
+
+    $pageSchemas = [
+        [
+            '@type' => 'WebPage',
+            '@id' => $pageCanonical . '#webpage',
+            'url' => $pageCanonical,
+            'name' => $resolvedTitle,
+            'description' => $pageMetaDescription,
+            'inLanguage' => 'id-ID',
+            'isPartOf' => ['@id' => route('home') . '#website'],
+            'datePublished' => ($page->published_at ?? $page->created_at)?->toAtomString(),
+            'dateModified' => $page->updated_at?->toAtomString(),
+        ],
+        [
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => 'Beranda',
+                    'item' => route('home'),
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => $sectionLabel ?? 'Informasi & Layanan',
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 3,
+                    'name' => $resolvedTitle,
+                    'item' => $pageCanonical,
+                ],
+            ],
+        ],
+    ];
+@endphp
+<x-layouts.public
+    :title="$resolvedTitle"
+    :description="$pageMetaDescription"
+    :canonical="$pageCanonical"
+    :json-ld="$pageSchemas"
+>
     @php
         $headingBlocks = collect($blocks)->map(fn (array $b, int $i): array => [
             'number' => $i + 1,
@@ -6,9 +61,17 @@
         ])->filter(fn (array $item): bool => $item['heading'] !== '')->values();
     @endphp
 
+    <!-- GPU-Composited Reading Progress Bar -->
+    <div aria-hidden="true" class="pointer-events-none fixed inset-x-0 top-0 z-50 h-0.5 bg-transparent">
+        <div data-read-progress class="pub-progress-bar h-full w-full bg-gold"></div>
+    </div>
+
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <!-- Institutional Judicial Page Hero Banner -->
         <header class="pub-reveal relative overflow-hidden rounded-xl border border-emerald-900 border-b-4 border-b-gold bg-primary-deep p-6 text-white shadow-xs sm:p-8">
+            <svg aria-hidden="true" class="pub-crest-float pointer-events-none absolute -top-8 -right-8 size-60 text-white/6 sm:size-72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <path d="M12 3v18M5 7h14M8 21h8M5 7l-3 6h6l-3-6zM19 7l-3 6h6l-3-6z" />
+            </svg>
             <div class="relative z-10 flex flex-col gap-4">
                 <nav aria-label="Navigasi Remah Roti" class="flex flex-wrap items-center gap-2 text-xs text-emerald-100">
                     <a href="{{ route('home') }}" class="font-semibold text-white hover:underline">Beranda</a>
@@ -20,7 +83,7 @@
 
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div class="max-w-3xl space-y-2">
-                        <span class="inline-block rounded bg-gold px-2.5 py-0.5 font-mono text-[11px] font-bold text-ink uppercase">
+                        <span class="inline-block rounded bg-gold px-2.5 py-0.5 font-mono text-2xs font-bold text-ink uppercase">
                             {{ $sectionLabel ?? 'Informasi Resmi' }}
                         </span>
                         <h1 class="font-serif text-2xl leading-tight font-bold text-white sm:text-3xl lg:text-4xl">
@@ -43,10 +106,10 @@
                     @endauth
                 </div>
 
-                <div class="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-white/15 pt-3 font-mono text-[11px] text-emerald-100">
-                    <span>Diunggah: {{ ($page->published_at ?? $page->created_at)?->format('d M Y, H:i') ?? '-' }}</span>
+                <div class="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-white/15 pt-3 font-mono text-2xs text-emerald-100">
+                    <span>Diunggah: {{ \App\Support\Tanggal::format($page->published_at ?? $page->created_at, 'd M Y, H:i') }}</span>
                     @if ($page->updated_at)
-                        <span>Terakhir diperbarui: {{ $page->updated_at->format('d M Y, H:i') }}</span>
+                        <span>Terakhir diperbarui: {{ \App\Support\Tanggal::format($page->updated_at, 'd M Y, H:i') }}</span>
                     @endif
                 </div>
             </div>
@@ -60,13 +123,14 @@
                     @php $type = $block['type'] ?? 'richtext'; @endphp
                     <section
                         id="bagian-{{ $loop->iteration }}"
+                        @if (empty($block['heading'])) aria-label="Bagian {{ $loop->iteration }}" @endif
                         class="pub-reveal scroll-mt-24 space-y-4 rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-6 shadow-2xs sm:p-7"
                         style="--stagger-delay: {{ min(240, $loop->index * 45) }}ms"
                     >
                         @if (! empty($block['heading']))
                             <div class="border-b border-hairline pb-3">
                                 @if (count($blocks) > 1)
-                                    <span class="font-mono text-[11px] font-bold text-primary uppercase">
+                                    <span class="font-mono text-2xs font-bold text-primary uppercase">
                                         Bagian {{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}
                                     </span>
                                 @endif
@@ -129,12 +193,13 @@
                                     <li>
                                         <a
                                             href="#bagian-{{ $item['number'] }}"
-                                            class="flex min-h-9 items-center gap-2 rounded-md px-2.5 py-1.5 font-medium text-ink-body hover:bg-primary-soft hover:text-primary"
+                                            class="pub-link-card flex min-h-10 items-center gap-2 rounded-md border border-hairline/70 bg-mist/60 px-2.5 py-1.5 font-medium text-ink-body hover:border-primary hover:bg-primary-soft hover:text-primary"
                                         >
-                                            <span class="rounded bg-mist px-1.5 py-0.5 font-mono text-[10px] font-bold text-primary">
+                                            <span class="rounded bg-white px-1.5 py-0.5 font-mono text-2xs font-bold text-primary">
                                                 {{ str_pad((string) $item['number'], 2, '0', STR_PAD_LEFT) }}
                                             </span>
-                                            <span class="line-clamp-2">{{ $item['heading'] }}</span>
+                                            <span class="line-clamp-2 flex-1">{{ $item['heading'] }}</span>
+                                            <span aria-hidden="true" class="pub-chevron text-primary">&rarr;</span>
                                         </a>
                                     </li>
                                 @endforeach
@@ -155,13 +220,13 @@
                                             href="{{ route('public.page', ['slug' => $relPage->slug]) }}"
                                             @if ($isCurrent) aria-current="page" @endif
                                             @class([
-                                                'flex min-h-10 items-center justify-between gap-2 rounded-lg px-3 py-2 font-semibold transition-colors',
+                                                'pub-link-card flex min-h-10 items-center justify-between gap-2 rounded-lg px-3 py-2 font-semibold',
                                                 'bg-primary text-white shadow-2xs' => $isCurrent,
                                                 'border border-hairline bg-mist text-ink hover:border-primary hover:bg-primary-soft hover:text-primary' => ! $isCurrent,
                                             ])
                                         >
                                             <span>{{ $relPage->title }}</span>
-                                            <span aria-hidden="true">&rarr;</span>
+                                            <span aria-hidden="true" class="pub-chevron">&rarr;</span>
                                         </a>
                                     </li>
                                 @endforeach
@@ -177,7 +242,7 @@
                         <p class="mt-1.5 leading-relaxed text-ink-body">
                             Pelayanan Terpadu Satu Pintu (PTSP) dan Pos Bantuan Hukum (Posbakum) siap melayani masyarakat pencari keadilan.
                         </p>
-                        <div class="mt-3 rounded-lg border border-emerald-200 bg-white p-3 font-mono text-[11px] text-ink">
+                        <div class="mt-3 rounded-lg border border-emerald-200 bg-white p-3 font-mono text-2xs text-ink">
                             <p class="font-bold text-primary-deep">Jam Pelayanan PTSP:</p>
                             <p class="mt-1">Senin - Kamis: 08.00 - 16.30</p>
                             <p>Jumat: 08.00 - 17.00</p>
@@ -204,5 +269,30 @@
             </aside>
         </div>
     </div>
+
+    <script>
+        (() => {
+            const bar = document.querySelector('[data-read-progress]');
+            if (!bar) {
+                return;
+            }
+            let ticking = false;
+            const update = () => {
+                ticking = false;
+                const doc = document.documentElement;
+                const max = Math.max(1, doc.scrollHeight - window.innerHeight);
+                const ratio = Math.min(1, Math.max(0, window.scrollY / max));
+                bar.style.setProperty('--read-progress', ratio.toFixed(4));
+            };
+            const onScroll = () => {
+                if (!ticking) {
+                    ticking = true;
+                    window.requestAnimationFrame(update);
+                }
+            };
+            window.addEventListener('scroll', onScroll, { passive: true });
+            update();
+        })();
+    </script>
 </x-layouts.public>
 

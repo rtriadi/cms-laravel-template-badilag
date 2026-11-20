@@ -65,10 +65,12 @@ class PublicComplianceController extends Controller
     public function sitemapHtml(): View
     {
         $satker = SatkerSetting::current();
+        $activeTingkat = $satker?->tingkat ?? 'pertama';
 
         $pages = Page::query()
             ->select(['id', 'title', 'slug', 'criteria_code'])
             ->where('is_published', true)
+            ->whereIn('tingkat_scope', ['all', $activeTingkat])
             ->orderBy('slug')
             ->get()
             ->map(function (Page $page) use ($satker): Page {
@@ -94,6 +96,9 @@ class PublicComplianceController extends Controller
 
     public function sitemapXml(): Response
     {
+        $satker = SatkerSetting::current();
+        $activeTingkat = $satker?->tingkat ?? 'pertama';
+
         $urls = [
             ['loc' => route('home'), 'lastmod' => now()->toAtomString()],
             ['loc' => route('public.posts'), 'lastmod' => now()->toAtomString()],
@@ -105,6 +110,7 @@ class PublicComplianceController extends Controller
 
         $pages = Page::query()
             ->where('is_published', true)
+            ->whereIn('tingkat_scope', ['all', $activeTingkat])
             ->orderBy('slug')
             ->get(['slug', 'updated_at']);
 
@@ -118,7 +124,7 @@ class PublicComplianceController extends Controller
         $posts = Post::query()
             ->where('is_published', true)
             ->orderByDesc('updated_at')
-            ->limit(100)
+            ->limit(1000)
             ->get(['slug', 'updated_at']);
 
         foreach ($posts as $post) {
@@ -131,5 +137,30 @@ class PublicComplianceController extends Controller
         return response()
             ->view('public.sitemap-xml', ['urls' => $urls])
             ->header('Content-Type', 'application/xml; charset=UTF-8');
+    }
+
+    public function robotsTxt(): Response
+    {
+        $adminPath = trim((string) config('satker.admin_path', 'panel-admin'), '/');
+        $sitemapUrl = route('public.sitemap.xml');
+
+        $lines = [
+            'User-agent: *',
+            "Disallow: /{$adminPath}",
+            'Disallow: /login',
+            'Disallow: /two-factor-challenge',
+            'Disallow: /setup',
+            'Disallow: /cari',
+            'Disallow: /captcha-image',
+            'Disallow: /captcha-text',
+            'Disallow: /livewire/',
+            '',
+            "Sitemap: {$sitemapUrl}",
+            '',
+        ];
+
+        return response(implode("\n", $lines), 200, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
+        ]);
     }
 }

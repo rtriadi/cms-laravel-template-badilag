@@ -1,63 +1,146 @@
-<x-layouts.public :title="$post->title">
-    <div class="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-        <nav aria-label="Navigasi Remah Roti" class="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
-            <a href="{{ route('home') }}" class="font-semibold text-primary hover:underline">Beranda</a>
-            <span aria-hidden="true">/</span>
-            <a href="{{ route('public.posts') }}" class="font-semibold text-primary hover:underline">Publikasi</a>
-            <span aria-hidden="true">/</span>
-            <span class="font-medium text-ink">{{ $post->title }}</span>
-        </nav>
+@php
+    $postCanonical = route('public.posts.show', ['slug' => $post->slug]);
+    $rawPostDesc = trim((string) preg_replace('/\s+/', ' ', strip_tags((string) ($post->excerpt ?: $post->body))));
+    $postDescription = $rawPostDesc !== ''
+        ? \Illuminate\Support\Str::limit($rawPostDesc, 160)
+        : $post->title;
+    $postOgImage = $post->featured_image_path ? asset('storage/' . $post->featured_image_path) : null;
+    $publishedIso = ($post->published_at ?? $post->created_at)?->toAtomString();
+    $modifiedIso = ($post->updated_at ?? $post->published_at ?? $post->created_at)?->toAtomString();
+    $categoryLabel = $categories[$post->category] ?? $post->category;
 
-        <article class="rounded-xl border border-hairline bg-white p-6 sm:p-8">
-            <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
-                <div class="flex flex-wrap items-center gap-2">
-                    <span class="rounded bg-primary-soft px-2.5 py-0.5 font-semibold text-primary">
-                        {{ $categories[$post->category] ?? $post->category }}
-                    </span>
-                    <span class="font-mono text-ink-muted">
-                        Diunggah: {{ ($post->published_at ?? $post->created_at)?->format('d M Y, H:i') }}
-                    </span>
-                    @if ($post->updated_at && $post->created_at && $post->updated_at->gt($post->created_at))
-                        <span class="font-mono text-ink-muted">
-                            · Diperbarui: {{ $post->updated_at->format('d M Y, H:i') }}
+    $postSchemas = [
+        array_filter([
+            '@type' => 'NewsArticle',
+            'headline' => $post->title,
+            'description' => $postDescription,
+            'articleSection' => $categoryLabel,
+            'inLanguage' => 'id-ID',
+            'mainEntityOfPage' => [
+                '@type' => 'WebPage',
+                '@id' => $postCanonical,
+            ],
+            'image' => $postOgImage ? [$postOgImage] : null,
+            'datePublished' => $publishedIso,
+            'dateModified' => $modifiedIso,
+            'author' => [
+                '@type' => 'Organization',
+                '@id' => route('home') . '#organization',
+                'name' => $satker?->nama_satker ?? 'Portal Resmi Peradilan Agama',
+            ],
+            'publisher' => [
+                '@id' => route('home') . '#organization',
+            ],
+        ], static fn (mixed $v): bool => $v !== null),
+        [
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => 'Beranda',
+                    'item' => route('home'),
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => 'Publikasi',
+                    'item' => route('public.posts'),
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 3,
+                    'name' => $post->title,
+                    'item' => $postCanonical,
+                ],
+            ],
+        ],
+    ];
+@endphp
+<x-layouts.public
+    :title="$post->title"
+    :description="$postDescription"
+    :canonical="$postCanonical"
+    og-type="article"
+    :og-image="$postOgImage"
+    :published-at="$publishedIso"
+    :modified-at="$modifiedIso"
+    :json-ld="$postSchemas"
+>
+    <!-- GPU-Composited Reading Progress Bar -->
+    <div aria-hidden="true" class="pointer-events-none fixed inset-x-0 top-0 z-50 h-0.5 bg-transparent">
+        <div data-read-progress class="pub-progress-bar h-full w-full bg-gold"></div>
+    </div>
+
+    <div class="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+        <!-- Institutional Judicial Hero Banner -->
+        <header class="pub-reveal relative overflow-hidden rounded-xl border border-emerald-900 border-b-4 border-b-gold bg-primary-deep p-6 text-white shadow-xs sm:p-8">
+            <svg aria-hidden="true" class="pub-crest-float pointer-events-none absolute -top-8 -right-8 size-56 text-white/6 sm:size-68" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <path d="M12 3v18M5 7h14M8 21h8M5 7l-3 6h6l-3-6zM19 7l-3 6h6l-3-6z" />
+            </svg>
+            <div class="relative z-10 flex flex-col gap-4">
+                <nav aria-label="Navigasi Remah Roti" class="flex flex-wrap items-center gap-2 text-xs text-emerald-100">
+                    <a href="{{ route('home') }}" class="font-semibold text-white hover:underline">Beranda</a>
+                    <span aria-hidden="true" class="text-emerald-300">/</span>
+                    <a href="{{ route('public.posts') }}" class="font-semibold text-white hover:underline">Publikasi</a>
+                    <span aria-hidden="true" class="text-emerald-300">/</span>
+                    <span class="font-medium text-gold">{{ $post->title }}</span>
+                </nav>
+
+                <div class="flex flex-wrap items-start justify-between gap-4">
+                    <div class="max-w-3xl space-y-2">
+                        <span class="inline-block rounded bg-gold px-2.5 py-0.5 font-mono text-2xs font-bold text-ink uppercase">
+                            {{ $categories[$post->category] ?? $post->category }}
                         </span>
+                        <h1 class="font-serif text-2xl leading-tight font-bold text-white sm:text-3xl">
+                            {{ $post->title }}
+                        </h1>
+                    </div>
+                    @auth
+                        <a
+                            href="{{ route('admin.posts', ['edit' => $post->id]) }}"
+                            class="pub-btn inline-flex min-h-11 shrink-0 items-center rounded-md bg-gold px-4 py-2 text-xs font-bold text-ink shadow-2xs hover:opacity-95"
+                        >
+                            Edit Artikel Ini
+                        </a>
+                    @endauth
+                </div>
+
+                <div class="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-white/15 pt-3 font-mono text-2xs text-emerald-100">
+                    <span>Diunggah: {{ \App\Support\Tanggal::format($post->published_at ?? $post->created_at, 'd M Y, H:i') }}</span>
+                    @if ($post->updated_at && $post->created_at && $post->updated_at->gt($post->created_at))
+                        <span>Diperbarui: {{ \App\Support\Tanggal::format($post->updated_at, 'd M Y, H:i') }}</span>
                     @endif
                 </div>
-                @auth
-                    <a
-                        href="{{ route('admin.posts', ['edit' => $post->id]) }}"
-                        class="inline-flex min-h-11 items-center rounded-md border border-primary bg-primary-soft px-3.5 text-xs font-semibold text-primary hover:bg-primary hover:text-white"
-                    >
-                        Edit Artikel Ini
-                    </a>
-                @endauth
             </div>
+        </header>
 
-            <h1 class="mt-3 font-serif text-2xl font-bold text-ink sm:text-3xl">{{ $post->title }}</h1>
-
+        <article class="pub-reveal rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-6 shadow-2xs sm:p-8" style="--stagger-delay: 50ms">
             @if ($post->featured_image_path)
                 <img
                     src="{{ asset('storage/' . $post->featured_image_path) }}"
                     alt="{{ $post->featured_image_alt ?: $post->title }}"
                     width="820"
                     height="440"
-                    class="mt-5 max-h-96 w-full rounded-lg object-cover"
+                    decoding="async"
+                    class="mb-6 max-h-96 w-full rounded-lg object-cover"
                 />
             @endif
 
-            <div class="prose mt-6 max-w-none space-y-4 text-sm leading-relaxed text-ink-body">
+            <div class="prose max-w-none space-y-4 text-sm leading-relaxed text-ink-body">
                 {!! \App\Support\SafeHtml::cleanBody($post->body) !!}
             </div>
         </article>
 
         @if ($related->isNotEmpty())
-            <aside aria-label="Publikasi Terkait" class="rounded-xl border border-hairline bg-white p-6">
+            <aside aria-label="Publikasi Terkait" class="pub-reveal rounded-xl border border-hairline border-t-4 border-t-gold bg-white p-6 shadow-2xs" style="--stagger-delay: 90ms">
                 <h2 class="border-b border-hairline pb-3 font-serif text-lg font-bold text-ink">Publikasi Terkait</h2>
-                <ul class="mt-3 divide-y divide-hairline">
+                <ul class="mt-3 space-y-2">
                     @foreach ($related as $rel)
-                        <li class="py-2.5">
-                            <a href="{{ route('public.posts.show', ['slug' => $rel->slug]) }}" class="text-sm font-semibold text-primary hover:underline">
-                                {{ $rel->title }}
+                        <li>
+                            <a href="{{ route('public.posts.show', ['slug' => $rel->slug]) }}" class="pub-link-card flex min-h-10 items-center justify-between gap-2 rounded-lg border border-hairline bg-mist px-3.5 py-2 text-sm font-semibold text-primary hover:border-primary hover:bg-primary-soft">
+                                <span>{{ $rel->title }}</span>
+                                <span aria-hidden="true" class="pub-chevron">&rarr;</span>
                             </a>
                         </li>
                     @endforeach
@@ -65,5 +148,30 @@
             </aside>
         @endif
     </div>
+
+    <script>
+        (() => {
+            const bar = document.querySelector('[data-read-progress]');
+            if (!bar) {
+                return;
+            }
+            let ticking = false;
+            const update = () => {
+                ticking = false;
+                const doc = document.documentElement;
+                const max = Math.max(1, doc.scrollHeight - window.innerHeight);
+                const ratio = Math.min(1, Math.max(0, window.scrollY / max));
+                bar.style.setProperty('--read-progress', ratio.toFixed(4));
+            };
+            const onScroll = () => {
+                if (!ticking) {
+                    ticking = true;
+                    window.requestAnimationFrame(update);
+                }
+            };
+            window.addEventListener('scroll', onScroll, { passive: true });
+            update();
+        })();
+    </script>
 </x-layouts.public>
 

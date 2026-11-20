@@ -1,4 +1,9 @@
-<x-layouts.public title="Pencarian Informasi Publik">
+<x-layouts.public
+    :title="$query !== '' ? 'Pencarian: ' . $query : 'Pencarian Informasi Publik'"
+    description="Pencarian halaman informasi, berita, pengumuman, dan dokumen publik resmi pengadilan."
+    :canonical="route('public.search')"
+    robots="noindex, follow"
+>
     <div class="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <header class="rounded-xl border border-hairline bg-white p-6">
             <h1 class="font-serif text-2xl font-bold text-ink">Pencarian Informasi &amp; Dokumen</h1>
@@ -73,15 +78,15 @@
                                     <div>
                                         <p class="text-sm font-semibold text-ink">{{ $doc->title }}</p>
                                         <p class="text-ink-muted">{{ $collections[$doc->collection_type] ?? $doc->collection_type }} ({{ $doc->year }})</p>
-                                        <p class="mt-0.5 font-mono text-[11px] text-ink-muted">
-                                            Diunggah: {{ $doc->created_at?->format('d M Y, H:i') ?? '-' }}
+                                        <p class="mt-0.5 font-mono text-2xs text-ink-muted">
+                                            Diunggah: {{ \App\Support\Tanggal::format($doc->created_at, 'd M Y, H:i') }}
                                             @if ($doc->updated_at && $doc->created_at && $doc->updated_at->gt($doc->created_at))
-                                                · Diperbarui: {{ $doc->updated_at->format('d M Y, H:i') }}
+                                                · Diperbarui: {{ \App\Support\Tanggal::format($doc->updated_at, 'd M Y, H:i') }}
                                             @endif
                                         </p>
                                     </div>
                                     @if ($doc->file_path)
-                                        <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" rel="noopener noreferrer" class="rounded bg-primary px-3 py-1.5 font-semibold text-white">Unduh PDF</a>
+                                        <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-11 items-center rounded bg-primary px-3 font-semibold text-white">Unduh PDF</a>
                                     @endif
                                 </li>
                             @endforeach

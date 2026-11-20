@@ -1,6 +1,13 @@
 @props([
     'title' => null,
     'description' => null,
+    'canonical' => null,
+    'ogType' => 'website',
+    'ogImage' => null,
+    'robots' => 'index, follow',
+    'publishedAt' => null,
+    'modifiedAt' => null,
+    'jsonLd' => [],
 ])
 @php
     $satker = \App\Models\SatkerSetting::current();
@@ -11,14 +18,135 @@
     $cachedMenus = \App\Models\MenuItem::cachedPublicMenus($activeTingkat);
     $headerMenus = $cachedMenus['header'];
     $footerMenus = $cachedMenus['footer'];
+
+    $pageTitle = $title ? $title . ' - ' . $satkerName : $satkerName;
+    $rawDescription = trim((string) preg_replace('/\s+/', ' ', strip_tags((string) ($description ?? ''))));
+    $metaDescription = $rawDescription !== ''
+        ? \Illuminate\Support\Str::limit($rawDescription, 160)
+        : "Portal Informasi Resmi {$satkerName}. Layanan penelusuran perkara SIPP, jadwal sidang harian, e-Court, Prodeo & Posbakum, serta transparansi peradilan.";
+    $canonicalUrl = $canonical ?: url()->current();
+
+    $logoUrl = $satker?->logo_path ? asset('storage/' . $satker->logo_path) : null;
+    $faviconUrl = $satker?->favicon_path
+        ? asset('storage/' . $satker->favicon_path)
+        : $logoUrl;
+    $resolvedOgImage = $ogImage
+        ?: ($satker?->foto_gedung_path ? asset('storage/' . $satker->foto_gedung_path) : $logoUrl);
+
+    $homeUrl = route('home');
+    $orgId = $homeUrl . '#organization';
+    $websiteId = $homeUrl . '#website';
+
+    $orgSchema = array_filter([
+        '@type' => ['Courthouse', 'GovernmentOrganization'],
+        '@id' => $orgId,
+        'name' => $satkerName,
+        'url' => $homeUrl,
+        'logo' => $logoUrl,
+        'image' => $satker?->foto_gedung_path ? asset('storage/' . $satker->foto_gedung_path) : $logoUrl,
+        'telephone' => $satker?->telepon ?: null,
+        'email' => $satker?->email ?: null,
+        'address' => $satker ? array_filter([
+            '@type' => 'PostalAddress',
+            'streetAddress' => $satker->alamat_jalan ?: null,
+            'addressLocality' => $satker->kabupaten_kota ?: null,
+            'addressRegion' => $satker->provinsi ?: null,
+            'postalCode' => $satker->kode_pos ?: null,
+            'addressCountry' => 'ID',
+        ]) : null,
+        'openingHoursSpecification' => [
+            [
+                '@type' => 'OpeningHoursSpecification',
+                'dayOfWeek' => ['Monday', 'Tuesday', 'Wednesday', 'Thursday'],
+                'opens' => '08:00',
+                'closes' => '16:30',
+            ],
+            [
+                '@type' => 'OpeningHoursSpecification',
+                'dayOfWeek' => ['Friday'],
+                'opens' => '08:00',
+                'closes' => '17:00',
+            ],
+        ],
+    ], static fn (mixed $v): bool => $v !== null && $v !== []);
+
+    $websiteSchema = [
+        '@type' => 'WebSite',
+        '@id' => $websiteId,
+        'url' => $homeUrl,
+        'name' => $satkerName,
+        'inLanguage' => 'id-ID',
+        'publisher' => ['@id' => $orgId],
+        'potentialAction' => [
+            '@type' => 'SearchAction',
+            'target' => [
+                '@type' => 'EntryPoint',
+                'urlTemplate' => route('public.search') . '?q={search_term_string}',
+            ],
+            'query-input' => 'required name=search_term_string',
+        ],
+    ];
+
+    $graphNodes = [$orgSchema, $websiteSchema];
+    if (is_array($jsonLd) && $jsonLd !== []) {
+        foreach ($jsonLd as $node) {
+            if (is_array($node) && $node !== []) {
+                $graphNodes[] = $node;
+            }
+        }
+    }
+
+    $structuredDataJson = json_encode(
+        [
+            '@context' => 'https://schema.org',
+            '@graph' => $graphNodes,
+        ],
+        JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+    );
 @endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="{{ $description ?: 'Portal Informasi Resmi ' . $satkerName }}">
-    <title>{{ $title ? $title . ' - ' . $satkerName : $satkerName }}</title>
+    <meta name="description" content="{{ $metaDescription }}">
+    <meta name="robots" content="{{ $robots }}">
+    <meta name="theme-color" content="#056e4f">
+    <title>{{ $pageTitle }}</title>
+    <link rel="canonical" href="{{ $canonicalUrl }}">
+    @if ($faviconUrl)
+        <link rel="icon" href="{{ $faviconUrl }}">
+    @endif
+
+    <!-- Open Graph / WhatsApp / Social Preview -->
+    <meta property="og:locale" content="id_ID">
+    <meta property="og:type" content="{{ $ogType }}">
+    <meta property="og:site_name" content="{{ $satkerName }}">
+    <meta property="og:title" content="{{ $pageTitle }}">
+    <meta property="og:description" content="{{ $metaDescription }}">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
+    @if ($resolvedOgImage)
+        <meta property="og:image" content="{{ $resolvedOgImage }}">
+    @endif
+    @if ($ogType === 'article' && $publishedAt)
+        <meta property="article:published_time" content="{{ $publishedAt }}">
+    @endif
+    @if ($ogType === 'article' && $modifiedAt)
+        <meta property="article:modified_time" content="{{ $modifiedAt }}">
+    @endif
+
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card" content="{{ $resolvedOgImage ? 'summary_large_image' : 'summary' }}">
+    <meta name="twitter:title" content="{{ $pageTitle }}">
+    <meta name="twitter:description" content="{{ $metaDescription }}">
+    @if ($resolvedOgImage)
+        <meta name="twitter:image" content="{{ $resolvedOgImage }}">
+    @endif
+
+    @if (is_string($structuredDataJson))
+        <script type="application/ld+json">{!! $structuredDataJson !!}</script>
+    @endif
+
     <script>
         try {
             const rawA11y = localStorage.getItem('satkercms_a11y_v1');
@@ -55,10 +183,11 @@
     @endauth
 
     <!-- Utility Top Bar -->
-    <div class="bg-primary-deep text-xs text-white">
+    <div class="bg-primary-deep text-xs text-emerald-50">
         <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2 sm:px-6 lg:px-8">
             <div class="flex flex-wrap items-center gap-4">
-                <span>Portal Resmi Mahkamah Agung RI</span>
+                <span class="font-semibold text-amber-300">Mahkamah Agung RI &middot; Ditjen Badilag</span>
+                <span class="hidden xl:inline text-emerald-100">PTSP: Senin-Kamis 08.00-16.30 | Jumat 08.00-17.00</span>
                 @if ($satker?->telepon)
                     <span class="hidden sm:inline">Telp: {{ $satker->telepon }}</span>
                 @endif
@@ -67,18 +196,19 @@
                 @endif
             </div>
             <nav aria-label="Tautan Kepatuhan Cepat" class="flex flex-wrap items-center gap-4">
-                <a href="{{ route('public.accessibility') }}" class="underline-offset-4 hover:underline">Aksesibilitas</a>
-                <a href="{{ route('public.sitemap') }}" class="underline-offset-4 hover:underline">Peta Situs</a>
-                <a href="{{ route('public.system-status') }}" class="underline-offset-4 hover:underline">Status Sistem</a>
+                <a href="{{ route('public.accessibility') }}" class="font-semibold text-amber-300 underline-offset-4 transition-colors duration-150 hover:text-amber-200 hover:underline">Aksesibilitas</a>
+                <a href="{{ route('public.sitemap') }}" class="font-medium text-emerald-50 underline-offset-4 transition-colors duration-150 hover:text-white hover:underline">Peta Situs</a>
+                <a href="{{ route('public.visitor-stats') }}" class="hidden sm:inline font-medium text-emerald-50 underline-offset-4 transition-colors duration-150 hover:text-white hover:underline">Statistik Pengunjung</a>
+                <a href="{{ route('public.system-status') }}" class="font-medium text-emerald-50 underline-offset-4 transition-colors duration-150 hover:text-white hover:underline">Status Sistem</a>
             </nav>
         </div>
     </div>
 
     <!-- 4px Institutional Gold Ribbon -->
-    <div class="h-1 w-full bg-gold" aria-hidden="true"></div>
+    <div class="h-1 w-full bg-gold shadow-sm" aria-hidden="true"></div>
 
     <!-- Main Identity & Search Bar -->
-    <header class="border-b border-hairline bg-white">
+    <header class="sticky top-0 z-30 border-b border-hairline bg-white shadow-2xs lg:static">
         <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
             <a href="{{ route('home') }}" class="flex min-w-0 items-center gap-3.5">
                 @if ($satker?->logo_path)
@@ -108,7 +238,7 @@
                     <p class="mt-0.5 text-xs font-medium text-ink-muted">
                         {{ $tingkatLabel }}
                         @if ($satker?->kode_satker)
-                            | Kode Satker: <span class="font-mono">{{ $satker->kode_satker }}</span>
+                            &middot; Kode Satker: <span class="font-mono">{{ $satker->kode_satker }}</span>
                         @endif
                     </p>
                 </div>
@@ -122,10 +252,10 @@
                         type="search"
                         name="q"
                         value="{{ request('q') }}"
-                        placeholder="Cari informasi atau dokumen..."
-                        class="min-h-11 w-full rounded-md border border-hairline bg-mist px-3 text-xs text-ink placeholder:text-ink-muted sm:w-56"
+                        placeholder="Cari perkara, jadwal, atau dokumen..."
+                        class="min-h-11 w-full rounded-lg border border-hairline bg-mist px-3.5 text-xs text-ink placeholder:text-ink-muted transition-colors duration-150 focus:border-primary focus:bg-white sm:w-64"
                     />
-                    <button type="submit" class="min-h-11 shrink-0 cursor-pointer rounded-md bg-primary px-3.5 text-xs font-semibold text-white hover:bg-primary-hover">
+                    <button type="submit" class="pub-btn min-h-11 shrink-0 cursor-pointer rounded-lg bg-primary px-4 text-xs font-semibold text-white hover:bg-primary-hover">
                         Cari
                     </button>
                 </form>
@@ -135,7 +265,7 @@
                     type="button"
                     aria-expanded="false"
                     aria-controls="mobile-nav-drawer"
-                    class="inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-hairline bg-white px-3.5 text-xs font-bold text-ink hover:bg-mist lg:hidden"
+                    class="pub-btn inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-hairline bg-white px-3.5 text-xs font-bold text-ink hover:bg-mist lg:hidden"
                 >
                     <span>Menu</span>
                 </button>
@@ -143,14 +273,37 @@
         </div>
     </header>
 
+    @php
+        $currentPath = '/' . ltrim(request()->path(), '/');
+        $isMenuActive = function (\App\Models\MenuItem $item) use (&$isMenuActive, $currentPath): bool {
+            $url = $item->resolvedUrl();
+            if ($url !== '#' && ! str_starts_with($url, 'http')) {
+                $norm = '/' . ltrim((string) parse_url($url, PHP_URL_PATH), '/');
+                if ($norm === '/' && request()->routeIs('home')) {
+                    return true;
+                }
+                if ($norm !== '/' && str_starts_with($currentPath, $norm)) {
+                    return true;
+                }
+            }
+            foreach ($item->children as $child) {
+                if ($isMenuActive($child)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+    @endphp
+
     <!-- Primary 6-Menu Sticky Navigation Bar (Desktop) -->
-    <nav aria-label="Navigasi Utama Website" class="sticky top-0 z-40 hidden border-b border-primary-hover bg-primary text-white shadow-xs lg:block">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <nav id="desktop-primary-nav" aria-label="Navigasi Utama Website" class="sticky top-0 z-40 hidden border-b border-primary-hover bg-primary text-white shadow-xs lg:block">
+        <div class="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 sm:px-6 lg:px-8">
             <ul class="flex flex-wrap items-center gap-1">
                 @foreach ($headerMenus as $topMenu)
                     @php
                         $hasChildren = $topMenu->children->isNotEmpty();
                         $menuHref = $topMenu->resolvedUrl();
+                        $isTopActive = $isMenuActive($topMenu);
                     @endphp
                     <li class="relative" data-nav-group>
                         @if ($hasChildren)
@@ -158,10 +311,14 @@
                                 type="button"
                                 aria-expanded="false"
                                 data-nav-trigger
-                                class="inline-flex min-h-12 cursor-pointer items-center gap-1.5 px-3.5 text-sm font-semibold text-white hover:bg-primary-hover"
+                                @class([
+                                    'pub-nav-link inline-flex min-h-12 cursor-pointer items-center gap-1.5 px-3.5 text-sm font-semibold hover:bg-primary-hover',
+                                    'is-active bg-primary-deep text-amber-300' => $isTopActive,
+                                    'text-white' => ! $isTopActive,
+                                ])
                             >
                                 <span>{{ $topMenu->title }}</span>
-                                <svg class="size-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <svg class="pub-nav-chevron size-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                     <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"></path>
                                 </svg>
                             </button>
@@ -205,8 +362,13 @@
                         @else
                             <a
                                 href="{{ $menuHref }}"
+                                @if ($isTopActive) aria-current="page" @endif
                                 @if ($topMenu->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
-                                class="inline-flex min-h-12 items-center px-3.5 text-sm font-semibold text-white hover:bg-primary-hover"
+                                @class([
+                                    'pub-nav-link inline-flex min-h-12 items-center px-3.5 text-sm font-semibold hover:bg-primary-hover',
+                                    'is-active bg-primary-deep text-amber-300' => $isTopActive,
+                                    'text-white' => ! $isTopActive,
+                                ])
                             >
                                 {{ $topMenu->title }}
                             </a>
@@ -214,6 +376,13 @@
                     </li>
                 @endforeach
             </ul>
+
+            <a
+                href="{{ route('public.page', ['slug' => 'layanan-hukum/hak-pencari-keadilan']) }}"
+                class="pub-btn hidden shrink-0 items-center rounded-md border border-gold/60 bg-primary-deep px-3 py-1.5 font-mono text-2xs font-semibold text-amber-300 hover:bg-primary-hover xl:inline-flex"
+            >
+                PTSP &amp; Posbakum Terintegrasi
+            </a>
         </div>
     </nav>
 
@@ -226,7 +395,7 @@
         hidden
         class="fixed inset-0 z-50 flex justify-end bg-black/50 lg:hidden"
     >
-        <div class="flex h-full w-full max-w-sm flex-col overflow-y-auto bg-white p-5 shadow-2xl">
+        <div data-mobile-drawer-panel class="flex h-full w-full max-w-sm flex-col overflow-y-auto bg-white p-5 shadow-2xl">
             <div class="flex items-center justify-between border-b border-hairline pb-3">
                 <span class="font-serif text-base font-bold text-primary-deep">Menu Navigasi</span>
                 <button
@@ -238,56 +407,7 @@
                 </button>
             </div>
 
-            <nav aria-label="Navigasi Seluler" class="mt-4 space-y-4">
-                @foreach ($headerMenus as $topMenu)
-                    <div class="border-b border-hairline pb-3">
-                        @if ($topMenu->children->isNotEmpty())
-                            <p class="font-serif text-sm font-bold text-primary-deep">{{ $topMenu->title }}</p>
-                            <ul class="mt-2 space-y-1">
-                                @foreach ($topMenu->children as $childMenu)
-                                    <li>
-                                        @if ($childMenu->type === 'group')
-                                            <span class="block px-2 py-2 text-xs font-bold text-ink-muted uppercase">{{ $childMenu->title }}</span>
-                                        @else
-                                            <a
-                                                href="{{ $childMenu->resolvedUrl() }}"
-                                                @if ($childMenu->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
-                                                class="flex min-h-11 items-center rounded px-2 text-xs font-medium text-ink hover:bg-primary-soft hover:text-primary"
-                                            >
-                                                {{ $childMenu->title }}
-                                            </a>
-                                        @endif
-
-                                        @if ($childMenu->children->isNotEmpty())
-                                            <ul class="border-s-2 border-hairline ps-3 ml-2 space-y-1">
-                                                @foreach ($childMenu->children as $grandChild)
-                                                    <li>
-                                                        <a
-                                                            href="{{ $grandChild->resolvedUrl() }}"
-                                                            @if ($grandChild->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
-                                                            class="flex min-h-11 items-center rounded px-2 text-xs text-ink-body hover:bg-primary-soft hover:text-primary"
-                                                        >
-                                                            {{ $grandChild->title }}
-                                                        </a>
-                                                    </li>
-                                                @endforeach
-                                            </ul>
-                                        @endif
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <a
-                                href="{{ $topMenu->resolvedUrl() }}"
-                                @if ($topMenu->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
-                                class="flex min-h-11 items-center font-serif text-sm font-bold text-primary-deep hover:text-primary"
-                            >
-                                {{ $topMenu->title }}
-                            </a>
-                        @endif
-                    </div>
-                @endforeach
-            </nav>
+            <nav id="mobile-nav-content" aria-label="Navigasi Seluler" class="mt-4 space-y-4"></nav>
         </div>
     </div>
 
@@ -310,12 +430,12 @@
                     @if ($satker?->email)
                         <div><dt class="inline font-semibold">Surel:</dt> <dd class="inline">{{ $satker->email }}</dd></div>
                     @endif
-                    <div><dt class="inline font-semibold">Jam Kerja:</dt> <dd class="inline">Senin - Kamis 08.00-16.30 | Jumat 08.00-17.00</dd></div>
+                    <div class="mt-2"><dt class="inline font-semibold text-amber-300">Jam Kerja:</dt> <dd class="inline font-mono text-2xs text-amber-200">Senin - Kamis 08.00-16.30 | Jumat 08.00-17.00</dd></div>
                 </dl>
             </div>
 
             <div>
-                <h2 class="font-serif text-base font-bold text-white">Informasi &amp; Layanan Portal</h2>
+                <h2 class="font-serif text-base font-bold text-amber-300">Informasi &amp; Layanan Portal</h2>
                 <ul class="mt-3 space-y-2 text-xs text-emerald-100">
                     <li><a href="{{ route('public.accessibility') }}" class="hover:underline">Pernyataan &amp; Panduan Aksesibilitas</a></li>
                     <li><a href="{{ route('public.sitemap') }}" class="hover:underline">Peta Situs Portal</a></li>
@@ -337,7 +457,7 @@
             </div>
 
             <div>
-                <h2 class="font-serif text-base font-bold text-white">Portal Layanan Nasional &amp; MARI</h2>
+                <h2 class="font-serif text-base font-bold text-amber-300">Portal Layanan Nasional &amp; MARI</h2>
                 <ul class="mt-3 space-y-2 text-xs text-emerald-100">
                     <li>
                         <a href="https://www.mahkamahagung.go.id" target="_blank" rel="noopener noreferrer" class="hover:underline">
@@ -379,7 +499,7 @@
         </div>
 
         <div class="border-t border-emerald-900 bg-black/20">
-            <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-3 text-[11px] text-emerald-100 sm:px-6 lg:px-8">
+            <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-3 text-2xs text-emerald-100 sm:px-6 lg:px-8">
                 <p>Hak Cipta &copy; {{ date('Y') }} {{ $satkerName }}.</p>
                 <p class="font-mono">SatkerCMS v{{ config('satker.cms_version', '1.0.0-dev') }}</p>
             </div>
@@ -429,11 +549,102 @@
             const mobileOpen = document.getElementById('mobile-menu-open');
             const mobileClose = document.getElementById('mobile-menu-close');
             const mobileDrawer = document.getElementById('mobile-nav-drawer');
+            const mobileNavContent = document.getElementById('mobile-nav-content');
+            const desktopNav = document.getElementById('desktop-primary-nav');
+            let drawerRelease = null;
+
+            const copyLinkAttributes = (source, target) => {
+                const href = source.getAttribute('href') || '#';
+                target.setAttribute('href', href);
+                const tgt = source.getAttribute('target');
+                const rel = source.getAttribute('rel');
+                if (tgt) target.setAttribute('target', tgt);
+                if (rel) target.setAttribute('rel', rel);
+                target.textContent = (source.textContent || '').trim();
+            };
+
+            const hydrateMobileNav = () => {
+                if (!mobileNavContent || mobileNavContent.dataset.hydrated || !desktopNav) {
+                    return;
+                }
+                const frag = document.createDocumentFragment();
+                desktopNav.querySelectorAll('[data-nav-group]').forEach((group) => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'border-b border-hairline pb-3';
+
+                    const trigger = group.querySelector('[data-nav-trigger]');
+                    const submenu = group.querySelector('[data-nav-submenu]');
+
+                    if (trigger && submenu) {
+                        const titleEl = document.createElement('p');
+                        titleEl.className = 'font-serif text-sm font-bold text-primary-deep';
+                        const labelSpan = trigger.querySelector('span');
+                        titleEl.textContent = ((labelSpan ? labelSpan.textContent : trigger.textContent) || '').trim();
+                        wrapper.appendChild(titleEl);
+
+                        const childList = document.createElement('ul');
+                        childList.className = 'mt-2 space-y-1';
+                        let lastLi = null;
+
+                        Array.from(submenu.children).forEach((el) => {
+                            if (el.tagName === 'P') {
+                                const li = document.createElement('li');
+                                const span = document.createElement('span');
+                                span.className = 'block px-2 py-2 text-xs font-bold text-ink-muted uppercase';
+                                span.textContent = (el.textContent || '').trim();
+                                li.appendChild(span);
+                                childList.appendChild(li);
+                                lastLi = li;
+                            } else if (el.tagName === 'A') {
+                                const li = document.createElement('li');
+                                const link = document.createElement('a');
+                                link.className = 'flex min-h-11 items-center rounded px-2 text-xs font-medium text-ink hover:bg-primary-soft hover:text-primary';
+                                copyLinkAttributes(el, link);
+                                li.appendChild(link);
+                                childList.appendChild(li);
+                                lastLi = li;
+                            } else if (el.tagName === 'UL') {
+                                const grandList = document.createElement('ul');
+                                grandList.className = 'border-s-2 border-hairline ps-3 ml-2 space-y-1';
+                                el.querySelectorAll('a').forEach((gAnchor) => {
+                                    const gLi = document.createElement('li');
+                                    const gLink = document.createElement('a');
+                                    gLink.className = 'flex min-h-11 items-center rounded px-2 text-xs text-ink-body hover:bg-primary-soft hover:text-primary';
+                                    copyLinkAttributes(gAnchor, gLink);
+                                    gLi.appendChild(gLink);
+                                    grandList.appendChild(gLi);
+                                });
+                                (lastLi || childList).appendChild(grandList);
+                            }
+                        });
+
+                        wrapper.appendChild(childList);
+                    } else {
+                        const direct = group.querySelector('a');
+                        if (direct) {
+                            const link = document.createElement('a');
+                            link.className = 'flex min-h-11 items-center font-serif text-sm font-bold text-primary-deep hover:text-primary';
+                            copyLinkAttributes(direct, link);
+                            wrapper.appendChild(link);
+                        }
+                    }
+
+                    frag.appendChild(wrapper);
+                });
+
+                mobileNavContent.appendChild(frag);
+                mobileNavContent.dataset.hydrated = '1';
+            };
 
             const closeDrawer = (restoreFocus = false) => {
                 if (!mobileDrawer || !mobileOpen) {
                     return;
                 }
+                if (mobileDrawer.hidden) {
+                    return;
+                }
+                drawerRelease?.();
+                drawerRelease = null;
                 mobileDrawer.hidden = true;
                 mobileOpen.setAttribute('aria-expanded', 'false');
                 if (restoreFocus) {
@@ -445,9 +656,10 @@
                 if (!mobileDrawer) {
                     return;
                 }
+                hydrateMobileNav();
                 mobileDrawer.hidden = false;
                 mobileOpen.setAttribute('aria-expanded', 'true');
-                mobileClose?.focus();
+                drawerRelease = window.createFocusTrap(mobileDrawer, mobileClose);
             });
 
             mobileClose?.addEventListener('click', () => closeDrawer(true));
