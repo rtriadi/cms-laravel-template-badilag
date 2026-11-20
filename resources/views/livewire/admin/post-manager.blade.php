@@ -30,7 +30,7 @@
             >
                 <span>2. Studio Penulisan Artikel &amp; Berita</span>
                 @if ($editingId)
-                    <span class="rounded bg-gold px-1.5 py-0.5 font-mono text-[10px] font-bold text-ink">
+                    <span class="rounded bg-gold px-1.5 py-0.5 font-mono text-2xs font-bold text-ink">
                         #{{ $editingId }}
                     </span>
                 @endif
@@ -61,11 +61,12 @@
     <div
         id="workspace-editor-publikasi"
         x-show="$wire.editorOpen"
+        x-cloak
         class="rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-5 shadow-2xs sm:p-6"
     >
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-hairline pb-4">
             <div>
-                <span class="rounded bg-primary-soft px-2.5 py-0.5 font-mono text-[11px] font-bold text-primary uppercase">
+                <span class="rounded bg-primary-soft px-2.5 py-0.5 font-mono text-2xs font-bold text-primary uppercase">
                     {{ $editingId ? 'Mode Edit Artikel #' . $editingId : 'Mode Tulis Publikasi Baru' }}
                 </span>
                 <h2 class="mt-1 font-serif text-xl font-bold text-ink">
@@ -229,16 +230,16 @@
                     >
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-center gap-2">
-                                <span class="rounded bg-primary-soft px-2 py-0.5 text-[11px] font-semibold text-primary">
+                                <span class="rounded bg-primary-soft px-2 py-0.5 text-2xs font-semibold text-primary">
                                     {{ $categories[$post->category] ?? $post->category }}
                                 </span>
                                 @if ($post->is_pinned)
-                                    <span class="rounded bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-ink">Disematkan</span>
+                                    <span class="rounded bg-amber-100 px-2 py-0.5 text-2xs font-semibold text-ink">Disematkan</span>
                                 @endif
                                 <span @class([
-                                    'rounded px-2 py-0.5 text-[11px] font-semibold',
+                                    'rounded px-2 py-0.5 text-2xs font-semibold',
                                     'bg-emerald-50 text-emerald-800' => $post->is_published,
-                                    'bg-gray-100 text-ink-muted' => ! $post->is_published,
+                                    'bg-mist text-ink-muted' => ! $post->is_published,
                                 ])>
                                     {{ $post->is_published ? 'Tayang' : 'Draf' }}
                                 </span>

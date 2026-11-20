@@ -127,12 +127,12 @@
                     <flux:field>
                         <flux:label for="ext_sim_peg">URL / Token Share SIMTEPA Pegawai</flux:label>
                         <flux:input id="ext_sim_peg" wire:model="simtepa_pegawai_url" placeholder="https://simtepa.mahkamahagung.go.id/share/profil_ketua/html/..." />
-                        <p class="mt-1 text-[11px] text-ink-muted">Cukup tempelkan salah satu link Share SIMTEPA atau kode hash 32 karakternya; sistem otomatis membentuk 7 kategori (Ketua s.d. Pelaksana).</p>
+                        <p class="mt-1 text-2xs text-ink-muted">Cukup tempelkan salah satu link Share SIMTEPA atau kode hash 32 karakternya; sistem otomatis membentuk 7 kategori (Ketua s.d. Pelaksana).</p>
                     </flux:field>
                     <flux:field>
                         <flux:label for="ext_sim_str">URL / Token Share SIMTEPA Struktur</flux:label>
                         <flux:input id="ext_sim_str" wire:model="simtepa_struktur_url" placeholder="https://simtepa.mahkamahagung.go.id/share/profil_ketua/html/..." />
-                        <p class="mt-1 text-[11px] text-ink-muted">Otomatis menampilkan 6 kategori pejabat struktural/fungsional (tanpa Pelaksana sesuai SK Badilag).</p>
+                        <p class="mt-1 text-2xs text-ink-muted">Otomatis menampilkan 6 kategori pejabat struktural/fungsional (tanpa Pelaksana sesuai SK Badilag).</p>
                     </flux:field>
                     <flux:field>
                         <flux:label for="ext_skm">URL Survei SKM / IKPM</flux:label>
@@ -149,13 +149,13 @@
                         <div>
                             <p class="font-bold text-primary-deep">Pemetaan Otomatis Endpoint SIPP Aktif:</p>
                             @if ($satker->sipp_url)
-                                <ul class="mt-1 space-y-1 font-mono text-[11px] text-ink-body">
+                                <ul class="mt-1 space-y-1 font-mono text-2xs text-ink-body">
                                     <li><strong>Daftar Perkara:</strong> {{ $satker->resolvedSippEmbedUrl('sipp_perkara') }}</li>
                                     <li><strong>Jadwal Sidang:</strong> {{ $satker->resolvedSippEmbedUrl('sipp_jadwal') }}</li>
                                     <li><strong>Statistik Perkara:</strong> {{ $satker->resolvedSippEmbedUrl('sipp_statistik') }}</li>
                                 </ul>
                             @else
-                                <p class="mt-1 text-[11px] text-ink-muted">URL SIPP belum diisi.</p>
+                                <p class="mt-1 text-2xs text-ink-muted">URL SIPP belum diisi.</p>
                             @endif
                         </div>
 
@@ -168,7 +168,7 @@
                                 @endif
                             </p>
                             @if ($simtepaTabs !== [])
-                                <ul class="mt-1.5 space-y-1 text-[11px]">
+                                <ul class="mt-1.5 space-y-1 text-2xs">
                                     @foreach ($simtepaTabs as $sTab)
                                         <li class="flex flex-wrap items-center justify-between gap-2 rounded border border-hairline bg-white px-2.5 py-1">
                                             <span class="font-semibold text-ink">{{ $loop->iteration }}. {{ $sTab['label'] }}</span>
@@ -181,7 +181,7 @@
                                     @endforeach
                                 </ul>
                             @else
-                                <p class="mt-1 text-[11px] text-ink-muted">Tempelkan salah satu URL Share SIMTEPA di atas lalu klik Simpan untuk menghasilkan 7 kategori otomatis.</p>
+                                <p class="mt-1 text-2xs text-ink-muted">Tempelkan salah satu URL Share SIMTEPA di atas lalu klik Simpan untuk menghasilkan 7 kategori otomatis.</p>
                             @endif
                         </div>
                     </div>
@@ -201,7 +201,7 @@
                             </button>
                         @endif
                     </div>
-                    <p class="mt-2 text-[11px] text-ink-muted">
+                    <p class="mt-2 text-2xs text-ink-muted">
                         Perubahan tingkat peradilan bersifat non-destruktif: halaman yang sudah diisi tetap tersimpan dan struktur menu disesuaikan otomatis oleh Super Admin.
                     </p>
                 </div>
@@ -219,6 +219,9 @@
             role="dialog"
             aria-modal="true"
             aria-labelledby="tingkat-modal-title"
+            x-data
+            x-init="window.createFocusTrap($el)"
+            x-on:click.self="$wire.closeTingkatModal()"
             @keydown.escape.window="$wire.closeTingkatModal()"
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
         >

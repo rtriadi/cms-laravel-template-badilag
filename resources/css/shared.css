@@ -1,0 +1,109 @@
+/* Shared public/admin motion & accessibility modes.
+   Imported by app.css and public.css so both entries stay identical. */
+
+@theme {
+    --text-2xs: 0.75rem;
+    --text-2xs--line-height: 1rem;
+}
+
+/* Progressive Scroll & Stagger Entrance on Public Pages */
+html.pub-motion-ready:not(.a11y-no-motion) .pub-reveal {
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+        opacity 340ms var(--ease-out-strong),
+        transform 340ms var(--ease-out-strong);
+    transition-delay: var(--stagger-delay, 0ms);
+}
+
+html.pub-motion-ready:not(.a11y-no-motion) .pub-reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* High contrast mode: keep images and overlays readable instead of blacking out every div. */
+html.a11y-hc,
+html.a11y-hc body {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+html.a11y-hc * {
+    text-shadow:
+        0 1px 3px #000000,
+        0 0 6px #000000;
+}
+
+html.a11y-hc header,
+html.a11y-hc nav,
+html.a11y-hc main,
+html.a11y-hc section,
+html.a11y-hc article,
+html.a11y-hc aside,
+html.a11y-hc footer,
+html.a11y-hc table,
+html.a11y-hc th,
+html.a11y-hc td,
+html.a11y-hc input,
+html.a11y-hc select,
+html.a11y-hc textarea,
+html.a11y-hc .bg-white,
+html.a11y-hc .bg-mist,
+html.a11y-hc .bg-primary-soft {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #ffff00 !important;
+}
+
+html.a11y-hc a,
+html.a11y-hc button,
+html.a11y-hc [role='button'] {
+    background-color: #000000 !important;
+    color: #ffff00 !important;
+    border: 1px solid #ffff00 !important;
+}
+
+html.a11y-hc :focus-visible {
+    outline: 3px solid #ffff00 !important;
+    outline-offset: 2px;
+}
+
+html.a11y-dyslexia body {
+    font-family: var(--font-sans) !important;
+    letter-spacing: 0.04em;
+    word-spacing: 0.12em;
+    line-height: 1.75;
+}
+
+html.a11y-highlight-links a {
+    text-decoration: underline !important;
+    text-decoration-thickness: 2px !important;
+    text-underline-offset: 3px !important;
+    background-color: #fef08a !important;
+    color: #111827 !important;
+}
+
+html.a11y-no-motion *,
+html.a11y-no-motion *::before,
+html.a11y-no-motion *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+}
+
+button[aria-busy='true'] {
+    cursor: progress;
+    opacity: 0.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+}

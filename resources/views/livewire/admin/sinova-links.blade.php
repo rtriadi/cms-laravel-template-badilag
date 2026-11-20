@@ -30,13 +30,9 @@
                 this.copiedNotice = 'Tautan masih kosong. Isi halaman atau URL manual terlebih dahulu.';
                 return;
             }
-            if (status === 'broken' || status === 'empty') {
-                if (! confirm('Peringatan: Status tautan ini masih bermasalah/kosong. Tetap salin ke clipboard?')) {
-                    return;
-                }
-            }
             const ok = await this.writeClipboard(url);
-            this.copiedNotice = ok ? 'URL disalin: ' + url : 'Gagal menyalin otomatis. Salin manual: ' + url;
+            const warn = (status === 'broken' || status === 'empty') ? ' (status tautan masih bermasalah)' : '';
+            this.copiedNotice = ok ? 'URL disalin' + warn + ': ' + url : 'Gagal menyalin otomatis. Salin manual: ' + url;
         },
         async copyGroupUrls(text, title) {
             if (! text) {
@@ -49,14 +45,14 @@
     }"
 >
     @if ($statusNotice)
-        <div class="rounded-lg border border-emerald-200 bg-primary-soft px-4 py-3 text-sm font-medium text-primary">
+        <div role="status" class="rounded-lg border border-emerald-200 bg-primary-soft px-4 py-3 text-sm font-medium text-primary">
             {{ $statusNotice }}
         </div>
     @endif
 
-    <div x-cloak x-show="copiedNotice !== ''" class="flex items-center justify-between rounded-lg border border-primary/30 bg-white px-4 py-2.5 text-sm font-medium text-ink">
+    <div x-cloak x-show="copiedNotice !== ''" role="status" class="flex items-center justify-between rounded-lg border border-primary/30 bg-white px-4 py-2.5 text-sm font-medium text-ink">
         <span x-text="copiedNotice"></span>
-        <button type="button" x-on:click="copiedNotice = ''" class="text-xs font-semibold text-primary">Tutup</button>
+        <button type="button" x-on:click="copiedNotice = ''" class="inline-flex min-h-11 items-center px-2 text-xs font-semibold text-primary">Tutup</button>
     </div>
 
     <!-- Header Summary & Bulk Actions -->
@@ -116,6 +112,7 @@
                         type="button"
                         wire:click="toggleGroup({{ $group->id }})"
                         aria-expanded="{{ $isOpen ? 'true' : 'false' }}"
+                        aria-controls="criteria-group-{{ $group->id }}"
                         class="flex min-h-11 flex-1 items-center gap-3 text-left"
                     >
                         <span class="font-mono text-xs font-bold text-primary">{{ $isOpen ? 'v' : '>' }}</span>
@@ -146,7 +143,7 @@
                 </div>
 
                 @if ($isOpen)
-                    <div class="divide-y divide-hairline border-t border-hairline">
+                    <div id="criteria-group-{{ $group->id }}" class="divide-y divide-hairline border-t border-hairline">
                         @foreach ($entry['items'] as $row)
                             @php
                                 $item = $row['model'];

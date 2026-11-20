@@ -22,10 +22,11 @@
         <span class="font-semibold text-ink">Filter Tahun:</span>
         <a
             href="{{ request()->url() }}"
+            @if ($selectedYear <= 0) aria-current="true" @endif
             @class([
                 'inline-flex min-h-11 items-center rounded px-3 font-semibold',
                 'bg-primary text-white' => $selectedYear <= 0,
-                'border border-hairline bg-white text-ink hover:bg-gray-50' => $selectedYear > 0,
+                'border border-hairline bg-white text-ink hover:bg-mist' => $selectedYear > 0,
             ])
         >
             Semua Tahun
@@ -33,10 +34,11 @@
         @foreach ($years as $yr)
             <a
                 href="{{ request()->fullUrlWithQuery(['tahun' => $yr]) }}"
+                @if ($selectedYear === (int) $yr) aria-current="true" @endif
                 @class([
                     'inline-flex min-h-11 items-center rounded px-3 font-mono font-semibold',
                     'bg-primary text-white' => $selectedYear === (int) $yr,
-                    'border border-hairline bg-white text-ink hover:bg-gray-50' => $selectedYear !== (int) $yr,
+                    'border border-hairline bg-white text-ink hover:bg-mist' => $selectedYear !== (int) $yr,
                 ])
             >
                 {{ $yr }}
@@ -65,10 +67,10 @@
                         @endif
                     </div>
                     <p class="mt-1 text-sm font-semibold text-ink">{{ $doc->title }}</p>
-                    <p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-[11px] text-ink-muted">
-                        <span>Diunggah: {{ $doc->created_at?->format('d M Y, H:i') ?? '-' }}</span>
+                    <p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-2xs text-ink-muted">
+                        <span>Diunggah: {{ \App\Support\Tanggal::format($doc->created_at, 'd M Y, H:i') }}</span>
                         @if ($doc->updated_at && $doc->created_at && $doc->updated_at->gt($doc->created_at))
-                            <span>Diperbarui: {{ $doc->updated_at->format('d M Y, H:i') }}</span>
+                            <span>Diperbarui: {{ \App\Support\Tanggal::format($doc->updated_at, 'd M Y, H:i') }}</span>
                         @endif
                     </p>
                     @if (is_array($doc->metadata) && $doc->metadata !== [])

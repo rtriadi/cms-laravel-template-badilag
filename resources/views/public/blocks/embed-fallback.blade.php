@@ -63,7 +63,7 @@
                         data-simtepa-json-link
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="pub-btn inline-flex min-h-10 items-center rounded border border-hairline bg-white px-3 font-mono font-semibold text-ink hover:bg-gray-50"
+                        class="pub-btn inline-flex min-h-10 items-center rounded border border-hairline bg-white px-3 font-mono font-semibold text-ink hover:bg-mist"
                     >
                         Endpoint JSON &nearr;
                     </a>
@@ -152,7 +152,7 @@
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach ($orgOfficials as $person)
                         <div class="rounded-lg border border-hairline bg-white p-4 shadow-2xs">
-                            <span class="rounded bg-primary-soft px-2 py-0.5 text-[11px] font-semibold uppercase text-primary">
+                            <span class="rounded bg-primary-soft px-2 py-0.5 text-2xs font-semibold uppercase text-primary">
                                 {{ $person->kategori }}
                             </span>
                             <p class="mt-2 font-serif text-base font-bold text-ink">{{ $person->jabatan }}</p>
@@ -161,7 +161,7 @@
                                 <p class="mt-1 text-xs text-ink-muted">{{ $person->pangkat_golongan }}</p>
                             @endif
                             @if ($person->parent)
-                                <p class="mt-1 text-[11px] text-ink-muted">Koordinasi: {{ $person->parent->jabatan }}</p>
+                                <p class="mt-1 text-2xs text-ink-muted">Koordinasi: {{ $person->parent->jabatan }}</p>
                             @endif
                         </div>
                     @endforeach
@@ -256,7 +256,7 @@
                                     <td class="px-3 py-2.5 text-ink-muted">
                                         <div class="prose max-w-none text-xs text-ink-muted">{!! $person->riwayat_pendidikan ? \App\Support\SafeHtml::cleanBody($person->riwayat_pendidikan) : '-' !!}</div>
                                         @if ($person->riwayat_jabatan)
-                                            <div class="prose mt-0.5 max-w-none text-[11px] text-ink-muted">Riwayat: {!! \App\Support\SafeHtml::cleanBody($person->riwayat_jabatan) !!}</div>
+                                            <div class="prose mt-0.5 max-w-none text-2xs text-ink-muted">Riwayat: {!! \App\Support\SafeHtml::cleanBody($person->riwayat_jabatan) !!}</div>
                                         @endif
                                     </td>
                                 </tr>

@@ -11,12 +11,11 @@
     </div>
 
     <!-- Tab Selector -->
-    <div role="tablist" aria-label="Kategori Data Kepaniteraan dan Aparatur" class="flex flex-wrap gap-2 border-b border-hairline pb-3">
+    <div role="group" aria-label="Kategori Data Kepaniteraan dan Aparatur" class="flex flex-wrap gap-2 border-b border-hairline pb-3">
         @foreach (['jadwal' => 'Jadwal Sidang (SIPP Cadangan)', 'statistik' => 'Statistik Perkara', 'pegawai' => 'Struktur & Aparatur (SIMTEPA Cadangan)'] as $tKey => $tLabel)
             <button
                 type="button"
-                role="tab"
-                aria-selected="{{ $tab === $tKey ? 'true' : 'false' }}"
+                aria-pressed="{{ $tab === $tKey ? 'true' : 'false' }}"
                 wire:click="$set('tab', '{{ $tKey }}')"
                 @class([
                     'min-h-11 cursor-pointer rounded-md px-4 py-2 text-xs font-semibold transition-colors',
@@ -257,7 +256,7 @@
                             <li wire:key="off-{{ $off->id }}" class="flex flex-wrap items-center justify-between gap-3 py-3">
                                 <div class="min-w-0 flex-1">
                                     <div class="flex flex-wrap items-center gap-2">
-                                        <span class="rounded bg-primary-soft px-2 py-0.5 text-[11px] font-semibold uppercase text-primary">{{ $off->kategori }}</span>
+                                        <span class="rounded bg-primary-soft px-2 py-0.5 text-2xs font-semibold uppercase text-primary">{{ $off->kategori }}</span>
                                         @if ($off->pangkat_golongan)
                                             <span class="text-xs text-ink-muted">{{ $off->pangkat_golongan }}</span>
                                         @endif

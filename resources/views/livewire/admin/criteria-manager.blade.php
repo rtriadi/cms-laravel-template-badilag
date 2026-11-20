@@ -6,12 +6,11 @@
     @endif
 
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-hairline pb-3">
-        <div role="tablist" aria-label="Pengaturan Kriteria SINOVA" class="flex flex-wrap gap-2">
+        <div role="group" aria-label="Pengaturan Kriteria SINOVA" class="flex flex-wrap gap-2">
             @foreach (['items' => 'Butir Kriteria (40 Item)', 'groups' => 'Kelompok & Bobot', 'import' => 'Impor / Ekspor JSON Juknis'] as $tKey => $tLabel)
                 <button
                     type="button"
-                    role="tab"
-                    aria-selected="{{ $tab === $tKey ? 'true' : 'false' }}"
+                    aria-pressed="{{ $tab === $tKey ? 'true' : 'false' }}"
                     wire:click="$set('tab', '{{ $tKey }}')"
                     @class([
                         'min-h-11 cursor-pointer rounded-md px-4 py-2 text-xs font-semibold transition-colors',
@@ -36,7 +35,7 @@
                         {{ $editingItemId ? 'Edit Butir Kriteria' : 'Tambah Butir Kriteria' }}
                     </h2>
                     @if ($editingItemId)
-                        <button type="button" wire:click="newItem" class="cursor-pointer text-xs font-semibold text-primary hover:underline">Butir Baru</button>
+                        <button type="button" wire:click="newItem" class="inline-flex min-h-11 cursor-pointer items-center px-1 text-xs font-semibold text-primary hover:underline">Butir Baru</button>
                     @endif
                 </div>
 
@@ -123,7 +122,7 @@
                                     <span class="font-mono text-xs font-bold text-primary">{{ $grp->code }}</span>
                                     <span class="text-sm font-bold text-ink">{{ $grp->name }}</span>
                                 </div>
-                                <span class="rounded bg-white px-2 py-0.5 font-mono text-[11px] font-semibold text-ink-muted">
+                                <span class="rounded bg-mist px-2 py-0.5 font-mono text-2xs font-semibold text-ink-muted">
                                     {{ strtoupper($grp->aspect) }} | Bobot {{ number_format((float) $grp->weight, 1) }}%
                                 </span>
                             </div>
@@ -134,11 +133,11 @@
                                         <div class="min-w-0 flex-1">
                                             <span class="font-mono font-bold text-primary">{{ $cItem->code }}</span>
                                             <span class="font-medium text-ink">{{ $cItem->name }}</span>
-                                            <span class="ml-1 rounded bg-mist px-1.5 py-0.5 font-mono text-[10px] text-ink-muted">{{ $cItem->tingkat_scope }}</span>
+                                            <span class="ml-1 rounded bg-mist px-2 py-0.5 font-mono text-2xs text-ink-muted">{{ $cItem->tingkat_scope }}</span>
                                         </div>
                                         <div class="flex items-center gap-1.5">
-                                            <button type="button" wire:click="editItem({{ $cItem->id }})" class="cursor-pointer rounded border border-primary px-2 py-1 font-semibold text-primary hover:bg-primary-soft">Edit</button>
-                                            <button type="button" wire:click="deleteItem({{ $cItem->id }})" wire:confirm="Hapus butir kriteria ini?" class="cursor-pointer rounded border border-red-200 px-2 py-1 text-red-700 hover:bg-red-50">Hapus</button>
+                                            <button type="button" wire:click="editItem({{ $cItem->id }})" class="min-h-11 cursor-pointer rounded border border-primary px-3 py-1 font-semibold text-primary hover:bg-primary-soft">Edit</button>
+                                            <button type="button" wire:click="deleteItem({{ $cItem->id }})" wire:confirm="Hapus butir kriteria ini?" class="min-h-11 cursor-pointer rounded border border-red-200 px-3 py-1 text-red-700 hover:bg-red-50">Hapus</button>
                                         </div>
                                     </li>
                                 @empty

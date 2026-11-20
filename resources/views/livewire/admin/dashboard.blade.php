@@ -44,7 +44,14 @@
                         <span class="text-xs font-semibold text-ink">{{ $aspect['label'] }}</span>
                         <span class="font-mono text-xs font-bold text-primary">{{ $aspect['weight'] }}%</span>
                     </div>
-                    <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                    <div
+                        class="mt-2 h-2 w-full overflow-hidden rounded-full bg-hairline/50"
+                        role="progressbar"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        aria-valuenow="{{ (int) $aspect['score_pct'] }}"
+                        aria-label="Skor {{ $aspect['label'] }}"
+                    >
                         <div class="h-full bg-primary" style="width: {{ min(100, (int) $aspect['score_pct']) }}%"></div>
                     </div>
                     <div class="mt-2 flex items-center justify-between font-mono text-xs text-ink-muted">
@@ -60,7 +67,7 @@
     <section aria-label="Pintasan Pengisian Konten" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <a href="{{ route('admin.pages') }}" class="flex flex-col justify-between rounded-lg border border-hairline border-t-4 border-t-primary bg-white p-4 shadow-2xs hover:border-primary">
             <div>
-                <span class="rounded bg-primary-soft px-2 py-0.5 font-mono text-[11px] font-bold text-primary">36+ HALAMAN</span>
+                <span class="rounded bg-primary-soft px-2 py-0.5 font-mono text-2xs font-bold text-primary">36+ HALAMAN</span>
                 <h2 class="mt-2 font-serif text-base font-bold text-ink">Halaman Profil &amp; Layanan Hukum</h2>
                 <p class="mt-1 text-xs leading-relaxed text-ink-muted">Edit isi halaman Prodeo &amp; Posbakum, Prosedur Berperkara, Biaya, Visi Misi, hingga Standar Pelayanan.</p>
             </div>
@@ -69,7 +76,7 @@
 
         <a href="{{ route('admin.posts') }}" class="flex flex-col justify-between rounded-lg border border-hairline border-t-4 border-t-gold bg-white p-4 shadow-2xs hover:border-primary">
             <div>
-                <span class="rounded bg-amber-100 px-2 py-0.5 font-mono text-[11px] font-bold text-ink">ARTIKEL &amp; BERITA</span>
+                <span class="rounded bg-amber-100 px-2 py-0.5 font-mono text-2xs font-bold text-ink">ARTIKEL &amp; BERITA</span>
                 <h2 class="mt-2 font-serif text-base font-bold text-ink">Berita, Artikel &amp; Pengumuman</h2>
                 <p class="mt-1 text-xs leading-relaxed text-ink-muted">Tulis berita kegiatan, pengumuman, informasi serta merta, serta artikel edukasi bantuan hukum (Prodeo/Posbakum).</p>
             </div>
@@ -78,7 +85,7 @@
 
         <a href="{{ route('admin.documents') }}" class="flex flex-col justify-between rounded-lg border border-hairline border-t-4 border-t-primary bg-white p-4 shadow-2xs hover:border-primary">
             <div>
-                <span class="rounded bg-primary-soft px-2 py-0.5 font-mono text-[11px] font-bold text-primary">23 KOLEKSI PDF</span>
+                <span class="rounded bg-primary-soft px-2 py-0.5 font-mono text-2xs font-bold text-primary">23 KOLEKSI PDF</span>
                 <h2 class="mt-2 font-serif text-base font-bold text-ink">Arsip Dokumen PDF &amp; SAKIP</h2>
                 <p class="mt-1 text-xs leading-relaxed text-ink-muted">Unggah PDF LKjIP, Renstra, DIPA, LRA, LHKPN, Panggilan Ghaib, SK Biaya Perkara, dan Brosur Posbakum.</p>
             </div>
@@ -87,7 +94,7 @@
 
         <a href="{{ route('admin.kepaniteraan') }}" class="flex flex-col justify-between rounded-lg border border-hairline border-t-4 border-t-primary-deep bg-white p-4 shadow-2xs hover:border-primary">
             <div>
-                <span class="rounded bg-primary-soft px-2 py-0.5 font-mono text-[11px] font-bold text-primary-deep">DATA PERADILAN</span>
+                <span class="rounded bg-primary-soft px-2 py-0.5 font-mono text-2xs font-bold text-primary-deep">DATA PERADILAN</span>
                 <h2 class="mt-2 font-serif text-base font-bold text-ink">Pegawai, Sidang &amp; Statistik</h2>
                 <p class="mt-1 text-xs leading-relaxed text-ink-muted">Kelola data pimpinan/hakim/pegawai, jadwal persidangan harian, dan rekap statistik perkara bulanan.</p>
             </div>

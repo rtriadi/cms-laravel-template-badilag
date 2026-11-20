@@ -240,6 +240,8 @@
     x-data="{
         cmdOpen: false,
         cmdQuery: '',
+        cmdActive: 0,
+        cmdTrap: null,
         items: @js($commands),
         get filteredItems() {
             const q = this.cmdQuery.trim().toLowerCase();
@@ -251,10 +253,31 @@
         openCmd() {
             this.cmdOpen = true;
             this.cmdQuery = '';
-            this.$nextTick(() => this.$refs.cmdInput?.focus());
+            this.cmdActive = 0;
+            this.$nextTick(() => {
+                this.cmdTrap = window.createFocusTrap(this.$refs.cmdDialog, this.$refs.cmdInput);
+            });
+        },
+        closeCmd() {
+            this.cmdOpen = false;
+            this.cmdTrap?.();
+            this.cmdTrap = null;
+        },
+        moveCmd(step) {
+            const total = this.filteredItems.length;
+            if (total === 0) {
+                return;
+            }
+            this.cmdActive = (this.cmdActive + step + total) % total;
+        },
+        runCmd() {
+            const item = this.filteredItems[this.cmdActive];
+            if (item) {
+                window.location.assign(item.url);
+            }
         }
     }"
-    x-on:keydown.window="if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); openCmd(); } else if (event.key === 'Escape' && cmdOpen) { cmdOpen = false; }"
+    x-on:keydown.window="if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); openCmd(); } else if (event.key === 'Escape' && cmdOpen) { closeCmd(); }"
 >
     <div class="min-h-screen lg:flex">
         <flux:sidebar sticky collapsible="mobile" class="border-e border-hairline bg-white lg:w-64">
@@ -270,7 +293,7 @@
                     <p class="truncate text-xs font-semibold text-ink">
                         {{ $satker?->nama_satker ?? 'Satuan Kerja' }}
                     </p>
-                    <span class="inline-flex items-center rounded border border-emerald-200 bg-primary-soft px-2 py-0.5 font-mono text-[11px] font-medium text-primary">
+                    <span class="inline-flex items-center rounded border border-emerald-200 bg-primary-soft px-2 py-0.5 font-mono text-2xs font-medium text-primary">
                         {{ $tingkatLabel }}
                     </span>
                 </div>
@@ -425,7 +448,7 @@
                 <div class="rounded-md border border-hairline bg-mist p-3">
                     <p class="truncate text-xs font-semibold text-ink">{{ $user?->name }}</p>
                     <p @class([
-                        'mt-0.5 font-mono text-[11px]',
+                        'mt-0.5 font-mono text-2xs',
                         'text-emerald-700' => $user?->two_factor_confirmed_at !== null,
                         'text-amber-700' => $user?->two_factor_confirmed_at === null,
                     ])>
@@ -433,7 +456,7 @@
                     </p>
                     <form method="POST" action="{{ route('logout') }}" class="mt-2">
                         @csrf
-                        <button type="submit" class="inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded border border-hairline bg-white px-2 text-xs font-semibold text-ink hover:bg-gray-50">
+                        <button type="submit" class="inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded border border-hairline bg-white px-2 text-xs font-semibold text-ink hover:bg-mist">
                             Keluar
                         </button>
                     </form>
@@ -466,7 +489,7 @@
                         class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-hairline bg-mist px-3 text-xs font-medium text-ink-muted hover:text-ink"
                     >
                         <span>Cari cepat...</span>
-                        <kbd class="hidden rounded border border-hairline bg-white px-1.5 py-0.5 font-mono text-[11px] text-ink sm:inline">Ctrl+K</kbd>
+                        <kbd class="hidden rounded border border-hairline bg-white px-1.5 py-0.5 font-mono text-2xs text-ink sm:inline">Ctrl+K</kbd>
                     </button>
 
                     <a
@@ -482,7 +505,7 @@
 
             <main class="mx-auto w-full max-w-[1600px] flex-1 p-4 sm:p-6 lg:p-8">
                 @if (session('status'))
-                    <div class="mb-6 rounded-lg border border-emerald-200 bg-primary-soft px-4 py-3 text-sm font-medium text-primary">
+                    <div role="status" class="mb-6 rounded-lg border border-emerald-200 bg-primary-soft px-4 py-3 text-sm font-medium text-primary">
                         {{ session('status') }}
                     </div>
                 @endif
@@ -496,11 +519,12 @@
     <div
         x-cloak
         x-show="cmdOpen"
+        x-ref="cmdDialog"
         role="dialog"
         aria-modal="true"
         aria-label="Navigasi Cepat Admin"
         class="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-4 pt-20"
-        x-on:click.self="cmdOpen = false"
+        x-on:click.self="closeCmd()"
     >
         <div class="w-full max-w-lg rounded-xl border border-hairline bg-white p-4 shadow-lg">
             <div class="flex items-center gap-2 border-b border-hairline pb-3">
@@ -509,24 +533,39 @@
                     id="admin-cmd-input"
                     x-ref="cmdInput"
                     x-model="cmdQuery"
+                    x-on:input="cmdActive = 0"
+                    x-on:keydown.arrow-down.prevent="moveCmd(1)"
+                    x-on:keydown.arrow-up.prevent="moveCmd(-1)"
+                    x-on:keydown.enter.prevent="runCmd()"
                     type="text"
+                    role="combobox"
+                    aria-autocomplete="list"
+                    aria-controls="admin-cmd-list"
+                    x-bind:aria-activedescendant="'admin-cmd-item-' + cmdActive"
+                    autocomplete="off"
                     placeholder="Ketik nama menu admin..."
-                    class="min-h-11 w-full rounded-md border border-hairline px-3 text-sm text-ink focus:border-primary focus:outline-none"
+                    class="min-h-11 w-full rounded-md border border-hairline px-3 text-sm text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                 <button
                     type="button"
-                    x-on:click="cmdOpen = false"
+                    x-on:click="closeCmd()"
                     class="inline-flex min-h-11 cursor-pointer items-center rounded-md border border-hairline px-3 text-xs font-semibold text-ink-muted hover:text-ink"
                 >
                     Esc
                 </button>
             </div>
-            <ul class="mt-3 max-h-72 space-y-1 overflow-y-auto">
-                <template x-for="item in filteredItems" :key="item.url">
-                    <li>
+            <ul id="admin-cmd-list" x-ref="cmdList" role="listbox" aria-label="Menu admin" class="mt-3 max-h-72 space-y-1 overflow-y-auto">
+                <template x-for="(item, i) in filteredItems" :key="item.url">
+                    <li
+                        role="option"
+                        x-bind:id="'admin-cmd-item-' + i"
+                        x-bind:aria-selected="i === cmdActive ? 'true' : 'false'"
+                        x-on:mouseenter="cmdActive = i"
+                    >
                         <a
                             :href="item.url"
-                            class="flex min-h-11 items-center justify-between rounded-md px-3 text-sm font-medium text-ink hover:bg-primary-soft hover:text-primary"
+                            x-bind:class="i === cmdActive ? 'bg-primary-soft text-primary' : 'text-ink'"
+                            class="flex min-h-11 items-center justify-between rounded-md px-3 text-sm font-medium hover:bg-primary-soft hover:text-primary"
                             x-text="item.label"
                         ></a>
                     </li>

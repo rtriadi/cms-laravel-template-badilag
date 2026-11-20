@@ -5,12 +5,11 @@
         </div>
     @endif
 
-    <div role="tablist" aria-label="Audit Tautan, Redirect, Log Aktivitas, dan Backup" class="flex flex-wrap gap-2 border-b border-hairline pb-3">
+    <div role="group" aria-label="Audit Tautan, Redirect, Log Aktivitas, dan Backup" class="flex flex-wrap gap-2 border-b border-hairline pb-3">
         @foreach (['links' => 'Audit Tautan Rusak', 'redirects' => 'Pengalihan (Redirect 301)', 'activity' => 'Log Aktivitas Admin', 'backup' => 'Backup & Pembaruan Sistem'] as $tKey => $tLabel)
             <button
                 type="button"
-                role="tab"
-                aria-selected="{{ $tab === $tKey ? 'true' : 'false' }}"
+                aria-pressed="{{ $tab === $tKey ? 'true' : 'false' }}"
                 wire:click="$set('tab', '{{ $tKey }}')"
                 @class([
                     'min-h-11 cursor-pointer rounded-md px-4 py-2 text-xs font-semibold transition-colors',

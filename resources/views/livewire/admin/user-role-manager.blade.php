@@ -48,7 +48,23 @@
 
                 <flux:field>
                     <flux:label for="usr_pass">Kata Sandi {{ $editingId ? '(Kosongkan jika tidak diubah)' : '(Minimal 8 karakter)' }}</flux:label>
-                    <flux:input id="usr_pass" type="password" wire:model="password" autocomplete="new-password" />
+                    <div x-data="{ show: false }" class="flex items-center gap-2">
+                        <input
+                            id="usr_pass"
+                            x-bind:type="show ? 'text' : 'password'"
+                            wire:model="password"
+                            autocomplete="new-password"
+                            class="min-h-11 w-full rounded-md border border-hairline bg-white px-3 text-sm text-ink"
+                        />
+                        <button
+                            type="button"
+                            x-on:click="show = !show"
+                            x-bind:aria-pressed="show ? 'true' : 'false'"
+                            class="min-h-11 shrink-0 cursor-pointer rounded-md border border-hairline bg-white px-3 text-xs font-semibold text-ink hover:bg-mist"
+                        >
+                            <span x-text="show ? 'Sembunyikan' : 'Tampilkan'">Tampilkan</span>
+                        </button>
+                    </div>
                     <flux:error name="password" />
                 </flux:field>
 

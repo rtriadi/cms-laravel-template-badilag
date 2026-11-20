@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import '../../vendor/livewire/flux/dist/flux.css';
+@import './shared.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
@@ -250,94 +251,5 @@
     @starting-style {
         opacity: 0;
         transform: translateY(6px) scale(0.96);
-    }
-}
-
-/* Progressive Scroll & Stagger Entrance on Public Pages */
-html.pub-motion-ready:not(.a11y-no-motion) .pub-reveal {
-    opacity: 0;
-    transform: translateY(10px);
-    transition:
-        opacity 340ms var(--ease-out-strong),
-        transform 340ms var(--ease-out-strong);
-    transition-delay: var(--stagger-delay, 0ms);
-}
-
-html.pub-motion-ready:not(.a11y-no-motion) .pub-reveal.is-visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* Public Accessibility Widget Modes */
-html.a11y-hc,
-html.a11y-hc body {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-}
-
-html.a11y-hc header,
-html.a11y-hc nav,
-html.a11y-hc main,
-html.a11y-hc section,
-html.a11y-hc article,
-html.a11y-hc aside,
-html.a11y-hc footer,
-html.a11y-hc div,
-html.a11y-hc table,
-html.a11y-hc th,
-html.a11y-hc td,
-html.a11y-hc input,
-html.a11y-hc select,
-html.a11y-hc textarea {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border-color: #ffff00 !important;
-}
-
-html.a11y-hc a,
-html.a11y-hc button,
-html.a11y-hc [role='button'] {
-    background-color: #000000 !important;
-    color: #ffff00 !important;
-    border: 1px solid #ffff00 !important;
-}
-
-html.a11y-hc :focus-visible {
-    outline: 3px solid #ffff00 !important;
-    outline-offset: 2px;
-}
-
-html.a11y-dyslexia body {
-    font-family: var(--font-sans) !important;
-    letter-spacing: 0.04em;
-    word-spacing: 0.12em;
-    line-height: 1.75;
-}
-
-html.a11y-highlight-links a {
-    text-decoration: underline !important;
-    text-decoration-thickness: 2px !important;
-    text-underline-offset: 3px !important;
-    background-color: #fef08a !important;
-    color: #111827 !important;
-}
-
-html.a11y-no-motion *,
-html.a11y-no-motion *::before,
-html.a11y-no-motion *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.001ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.001ms !important;
-        scroll-behavior: auto !important;
     }
 }

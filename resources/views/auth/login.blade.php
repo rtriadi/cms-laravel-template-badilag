@@ -31,7 +31,7 @@
             <flux:field>
                 <flux:label for="captcha">Kode Keamanan (Captcha Lokal)</flux:label>
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
                         <img
                             id="local-captcha-img"
                             src="{{ route('captcha.image') }}"
@@ -40,17 +40,30 @@
                             alt="Gambar kode keamanan captcha"
                             class="h-12 w-44 rounded-md border border-primary/30 bg-primary-soft"
                         >
+                        <p id="local-captcha-text" hidden class="flex h-12 min-w-44 items-center justify-center rounded-md border border-primary/30 bg-primary-soft px-3 font-mono text-2xl font-bold tracking-widest text-primary-deep"></p>
                         <button
                             type="button"
-                            onclick="document.getElementById('local-captcha-img').src='{{ route('captcha.image') }}?t='+Date.now()"
-                            aria-label="Muat ulang gambar captcha"
+                            id="local-captcha-refresh"
+                            aria-label="Muat ulang kode keamanan"
                             class="inline-flex min-h-11 items-center rounded-md border border-hairline bg-white px-3 text-xs font-semibold text-ink hover:bg-mist"
                         >
                             Ulang
                         </button>
+                        <button
+                            type="button"
+                            id="local-captcha-mode"
+                            aria-controls="local-captcha-text"
+                            aria-expanded="false"
+                            class="inline-flex min-h-11 items-center rounded-md border border-hairline bg-white px-3 text-xs font-semibold text-ink hover:bg-mist"
+                        >
+                            Mode teks
+                        </button>
                     </div>
-                    <flux:input id="captcha" name="captcha" type="text" required autocomplete="off" placeholder="Ketik 5 karakter" class="flex-1" />
+                    <flux:input id="captcha" name="captcha" type="text" required autocomplete="off" aria-describedby="captcha-help" placeholder="Ketik 5 karakter" class="flex-1" />
                 </div>
+                <p id="captcha-help" class="mt-1 text-xs text-ink-muted">
+                    Ketik 5 karakter pada gambar atau kode teks. Huruf besar dan kecil tidak dibedakan.
+                </p>
                 <flux:error name="captcha" />
             </flux:field>
 
@@ -65,6 +78,49 @@
                 Lanjut ke Verifikasi 2FA
             </flux:button>
         </form>
+
+        <script>
+            (() => {
+                const image = document.getElementById('local-captcha-img');
+                const text = document.getElementById('local-captcha-text');
+                const refresh = document.getElementById('local-captcha-refresh');
+                const mode = document.getElementById('local-captcha-mode');
+                let textMode = false;
+
+                const loadImage = () => {
+                    image.hidden = false;
+                    text.hidden = true;
+                    image.src = @js(route('captcha.image')) + '?t=' + Date.now();
+                };
+
+                const loadText = async () => {
+                    try {
+                        const response = await fetch(@js(route('captcha.text')), { cache: 'no-store' });
+                        text.textContent = (await response.text()).trim();
+                        text.hidden = false;
+                        image.hidden = true;
+                    } catch (error) {
+                        textMode = false;
+                        mode.setAttribute('aria-expanded', 'false');
+                        mode.textContent = 'Mode teks';
+                        loadImage();
+                    }
+                };
+
+                refresh.addEventListener('click', () => (textMode ? loadText() : loadImage()));
+
+                mode.addEventListener('click', () => {
+                    textMode = ! textMode;
+                    mode.setAttribute('aria-expanded', textMode ? 'true' : 'false');
+                    mode.textContent = textMode ? 'Mode gambar' : 'Mode teks';
+                    if (textMode) {
+                        loadText();
+                    } else {
+                        loadImage();
+                    }
+                });
+            })();
+        </script>
     </div>
 </x-layouts.auth>
 

@@ -59,7 +59,7 @@
             </button>
         </div>
 
-        <div class="text-[11px] text-ink-muted">
+        <div class="text-2xs text-ink-muted">
             <span x-show="uploading" class="font-semibold text-primary">Mengunggah berkas...</span>
             <span x-show="!uploading && uploadMessage" x-text="uploadMessage" class="font-semibold text-emerald-700"></span>
             <span x-show="!uploading && uploadError" x-text="uploadError" class="font-semibold text-red-700"></span>

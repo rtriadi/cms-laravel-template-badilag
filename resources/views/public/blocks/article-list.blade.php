@@ -38,12 +38,12 @@
                             />
                         </div>
                     @endif
-                    <div class="flex items-center justify-between gap-2 text-[11px]">
+                    <div class="flex items-center justify-between gap-2 text-2xs">
                         <span class="rounded bg-primary-soft px-2 py-0.5 font-semibold text-primary">
                             {{ \App\Models\Post::categoryLabels()[$article->category] ?? $article->category }}
                         </span>
                         <span class="font-mono text-ink-muted">
-                            {{ $article->published_at?->format('d M Y') ?? $article->created_at?->format('d M Y') }}
+                            {{ \App\Support\Tanggal::format($article->published_at ?? $article->created_at, 'd M Y') }}
                         </span>
                     </div>
                     <h3 class="mt-2 font-serif text-base font-bold text-ink">

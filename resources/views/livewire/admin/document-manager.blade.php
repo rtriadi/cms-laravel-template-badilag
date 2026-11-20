@@ -117,17 +117,17 @@
                                         {{ $doc->year }}@if($doc->month)/{{ str_pad((string) $doc->month, 2, '0', STR_PAD_LEFT) }}@endif
                                     </span>
                                     @if ($doc->status_label)
-                                        <span class="rounded bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-ink">{{ $doc->status_label }}</span>
+                                        <span class="rounded bg-amber-100 px-2 py-0.5 text-2xs font-semibold text-ink">{{ $doc->status_label }}</span>
                                     @endif
                                     @if ($doc->file_path)
-                                        <span class="rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">PDF Lokal</span>
+                                        <span class="rounded bg-emerald-50 px-2 py-0.5 text-2xs font-semibold text-emerald-800">PDF Lokal</span>
                                     @endif
                                 </div>
                                 <p class="mt-1 truncate text-sm font-semibold text-ink">{{ $doc->title }}</p>
-                                <p class="mt-0.5 font-mono text-[11px] text-ink-muted">
-                                    Diunggah: {{ $doc->created_at?->format('d M Y, H:i') ?? '-' }}
+                                <p class="mt-0.5 font-mono text-2xs text-ink-muted">
+                                    Diunggah: {{ \App\Support\Tanggal::format($doc->created_at, 'd M Y, H:i') }}
                                     @if ($doc->updated_at && $doc->created_at && $doc->updated_at->gt($doc->created_at))
-                                        · Diedit: {{ $doc->updated_at->format('d M Y, H:i') }}
+                                        · Diedit: {{ \App\Support\Tanggal::format($doc->updated_at, 'd M Y, H:i') }}
                                     @endif
                                 </p>
                                 @if ($doc->external_url)

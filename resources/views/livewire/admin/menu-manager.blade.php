@@ -1,6 +1,6 @@
 <div class="space-y-6">
     @if ($statusNotice)
-        <div class="rounded-lg border border-emerald-200 bg-primary-soft px-4 py-3 text-sm font-medium text-primary">
+        <div role="status" class="rounded-lg border border-emerald-200 bg-primary-soft px-4 py-3 text-sm font-medium text-primary">
             {{ $statusNotice }}
         </div>
     @endif
@@ -122,6 +122,7 @@
                         <button
                             type="button"
                             wire:click="$set('locationFilter', '{{ $loc }}')"
+                            aria-pressed="{{ $locationFilter === $loc ? 'true' : 'false' }}"
                             @class([
                                 'min-h-11 cursor-pointer rounded px-3 text-xs font-semibold',
                                 'bg-primary text-white' => $locationFilter === $loc,
@@ -143,17 +144,17 @@
                             <div class="flex flex-wrap items-center justify-between gap-2">
                                 <div>
                                     <span class="text-sm font-bold text-ink">{{ $menu->title }}</span>
-                                    <span class="ml-2 font-mono text-[11px] text-ink-muted">{{ $menu->resolvedUrl() }}</span>
+                                    <span class="ml-2 font-mono text-2xs text-ink-muted">{{ $menu->resolvedUrl() }}</span>
                                     @unless ($menu->is_visible)
-                                        <span class="ml-2 rounded bg-gray-200 px-1.5 py-0.5 text-[11px] text-ink-muted">Nonaktif</span>
+                                        <span class="ml-2 rounded bg-mist px-2 py-0.5 text-2xs text-ink-muted">Nonaktif</span>
                                     @endunless
                                 </div>
                                 <div class="flex flex-wrap items-center gap-1.5 text-xs">
-                                    <button type="button" wire:click="moveUp({{ $menu->id }})" class="min-h-11 cursor-pointer rounded border border-hairline bg-white px-2.5">Naik</button>
-                                    <button type="button" wire:click="moveDown({{ $menu->id }})" class="min-h-11 cursor-pointer rounded border border-hairline bg-white px-2.5">Turun</button>
-                                    <button type="button" wire:click="toggleVisible({{ $menu->id }})" class="min-h-11 cursor-pointer rounded border border-hairline bg-white px-2.5">{{ $menu->is_visible ? 'Sembunyi' : 'Tampil' }}</button>
-                                    <button type="button" wire:click="edit({{ $menu->id }})" class="min-h-11 cursor-pointer rounded border border-primary bg-white px-2.5 font-semibold text-primary">Edit</button>
-                                    <button type="button" wire:click="delete({{ $menu->id }})" wire:confirm="Hapus menu ini beserta submenunya?" class="min-h-11 cursor-pointer rounded border border-red-200 bg-white px-2.5 text-red-700">Hapus</button>
+                                    <button type="button" wire:click="moveUp({{ $menu->id }})" aria-label="Naikkan menu {{ $menu->title }}" class="min-h-11 cursor-pointer rounded border border-hairline bg-white px-2.5">Naik</button>
+                                    <button type="button" wire:click="moveDown({{ $menu->id }})" aria-label="Turunkan menu {{ $menu->title }}" class="min-h-11 cursor-pointer rounded border border-hairline bg-white px-2.5">Turun</button>
+                                    <button type="button" wire:click="toggleVisible({{ $menu->id }})" aria-label="{{ $menu->is_visible ? 'Sembunyikan' : 'Tampilkan' }} menu {{ $menu->title }}" class="min-h-11 cursor-pointer rounded border border-hairline bg-white px-2.5">{{ $menu->is_visible ? 'Sembunyi' : 'Tampil' }}</button>
+                                    <button type="button" wire:click="edit({{ $menu->id }})" aria-label="Edit menu {{ $menu->title }}" class="min-h-11 cursor-pointer rounded border border-primary bg-white px-2.5 font-semibold text-primary">Edit</button>
+                                    <button type="button" wire:click="delete({{ $menu->id }})" wire:confirm="Hapus menu ini beserta submenunya?" aria-label="Hapus menu {{ $menu->title }}" class="min-h-11 cursor-pointer rounded border border-red-200 bg-white px-2.5 text-red-700">Hapus</button>
                                 </div>
                             </div>
 
@@ -164,20 +165,20 @@
                                             <div class="flex flex-wrap items-center justify-between gap-2">
                                                 <div>
                                                     <span class="font-semibold text-ink">{{ $child->title }}</span>
-                                                    <span class="ml-2 font-mono text-[11px] text-ink-muted">{{ $child->resolvedUrl() }}</span>
+                                                    <span class="ml-2 font-mono text-2xs text-ink-muted">{{ $child->resolvedUrl() }}</span>
                                                     @if ($child->criteria_code)
-                                                        <span class="ml-2 rounded bg-primary-soft px-1.5 py-0.5 font-mono text-[10px] text-primary">{{ $child->criteria_code }}</span>
+                                                        <span class="ml-2 rounded bg-primary-soft px-2 py-0.5 font-mono text-2xs text-primary">{{ $child->criteria_code }}</span>
                                                     @endif
                                                     @unless ($child->is_visible)
-                                                        <span class="ml-2 rounded bg-gray-200 px-1.5 py-0.5 text-[10px] text-ink-muted">Nonaktif</span>
+                                                        <span class="ml-2 rounded bg-mist px-2 py-0.5 text-2xs text-ink-muted">Nonaktif</span>
                                                     @endunless
                                                 </div>
                                                 <div class="flex flex-wrap items-center gap-1">
-                                                    <button type="button" wire:click="moveUp({{ $child->id }})" class="min-h-11 cursor-pointer rounded border border-hairline px-2.5">Naik</button>
-                                                    <button type="button" wire:click="moveDown({{ $child->id }})" class="min-h-11 cursor-pointer rounded border border-hairline px-2.5">Turun</button>
-                                                    <button type="button" wire:click="toggleVisible({{ $child->id }})" class="min-h-11 cursor-pointer rounded border border-hairline px-2.5">{{ $child->is_visible ? 'Sembunyi' : 'Tampil' }}</button>
-                                                    <button type="button" wire:click="edit({{ $child->id }})" class="min-h-11 cursor-pointer rounded border border-primary px-2.5 font-semibold text-primary">Edit</button>
-                                                    <button type="button" wire:click="delete({{ $child->id }})" wire:confirm="Hapus submenu ini?" class="min-h-11 cursor-pointer rounded border border-red-200 px-2.5 text-red-700">Hapus</button>
+                                                    <button type="button" wire:click="moveUp({{ $child->id }})" aria-label="Naikkan submenu {{ $child->title }}" class="min-h-11 cursor-pointer rounded border border-hairline px-2.5">Naik</button>
+                                                    <button type="button" wire:click="moveDown({{ $child->id }})" aria-label="Turunkan submenu {{ $child->title }}" class="min-h-11 cursor-pointer rounded border border-hairline px-2.5">Turun</button>
+                                                    <button type="button" wire:click="toggleVisible({{ $child->id }})" aria-label="{{ $child->is_visible ? 'Sembunyikan' : 'Tampilkan' }} submenu {{ $child->title }}" class="min-h-11 cursor-pointer rounded border border-hairline px-2.5">{{ $child->is_visible ? 'Sembunyi' : 'Tampil' }}</button>
+                                                    <button type="button" wire:click="edit({{ $child->id }})" aria-label="Edit submenu {{ $child->title }}" class="min-h-11 cursor-pointer rounded border border-primary px-2.5 font-semibold text-primary">Edit</button>
+                                                    <button type="button" wire:click="delete({{ $child->id }})" wire:confirm="Hapus submenu ini?" aria-label="Hapus submenu {{ $child->title }}" class="min-h-11 cursor-pointer rounded border border-red-200 px-2.5 text-red-700">Hapus</button>
                                                 </div>
                                             </div>
 
@@ -187,17 +188,17 @@
                                                         <li wire:key="menu-grand-{{ $grandchild->id }}" class="flex flex-wrap items-center justify-between gap-2 rounded border border-hairline bg-mist px-2.5 py-1.5 text-xs">
                                                             <div>
                                                                 <span class="font-medium text-ink">{{ $grandchild->title }}</span>
-                                                                <span class="ml-2 font-mono text-[11px] text-ink-muted">{{ $grandchild->resolvedUrl() }}</span>
+                                                                <span class="ml-2 font-mono text-2xs text-ink-muted">{{ $grandchild->resolvedUrl() }}</span>
                                                                 @unless ($grandchild->is_visible)
-                                                                    <span class="ml-2 rounded bg-gray-200 px-1.5 py-0.5 text-[10px] text-ink-muted">Nonaktif</span>
+                                                                    <span class="ml-2 rounded bg-mist px-2 py-0.5 text-2xs text-ink-muted">Nonaktif</span>
                                                                 @endunless
                                                             </div>
                                                             <div class="flex flex-wrap items-center gap-1">
-                                                                <button type="button" wire:click="moveUp({{ $grandchild->id }})" class="min-h-11 cursor-pointer rounded border border-hairline bg-white px-2.5">Naik</button>
-                                                                <button type="button" wire:click="moveDown({{ $grandchild->id }})" class="min-h-11 cursor-pointer rounded border border-hairline bg-white px-2.5">Turun</button>
-                                                                <button type="button" wire:click="toggleVisible({{ $grandchild->id }})" class="min-h-11 cursor-pointer rounded border border-hairline bg-white px-2.5">{{ $grandchild->is_visible ? 'Sembunyi' : 'Tampil' }}</button>
-                                                                <button type="button" wire:click="edit({{ $grandchild->id }})" class="min-h-11 cursor-pointer rounded border border-primary bg-white px-2.5 font-semibold text-primary">Edit</button>
-                                                                <button type="button" wire:click="delete({{ $grandchild->id }})" wire:confirm="Hapus sub-submenu ini?" class="min-h-11 cursor-pointer rounded border border-red-200 bg-white px-2.5 text-red-700">Hapus</button>
+                                                                <button type="button" wire:click="moveUp({{ $grandchild->id }})" aria-label="Naikkan sub-submenu {{ $grandchild->title }}" class="min-h-11 cursor-pointer rounded border border-hairline bg-white px-2.5">Naik</button>
+                                                                <button type="button" wire:click="moveDown({{ $grandchild->id }})" aria-label="Turunkan sub-submenu {{ $grandchild->title }}" class="min-h-11 cursor-pointer rounded border border-hairline bg-white px-2.5">Turun</button>
+                                                                <button type="button" wire:click="toggleVisible({{ $grandchild->id }})" aria-label="{{ $grandchild->is_visible ? 'Sembunyikan' : 'Tampilkan' }} sub-submenu {{ $grandchild->title }}" class="min-h-11 cursor-pointer rounded border border-hairline bg-white px-2.5">{{ $grandchild->is_visible ? 'Sembunyi' : 'Tampil' }}</button>
+                                                                <button type="button" wire:click="edit({{ $grandchild->id }})" aria-label="Edit sub-submenu {{ $grandchild->title }}" class="min-h-11 cursor-pointer rounded border border-primary bg-white px-2.5 font-semibold text-primary">Edit</button>
+                                                                <button type="button" wire:click="delete({{ $grandchild->id }})" wire:confirm="Hapus sub-submenu ini?" aria-label="Hapus sub-submenu {{ $grandchild->title }}" class="min-h-11 cursor-pointer rounded border border-red-200 bg-white px-2.5 text-red-700">Hapus</button>
                                                             </div>
                                                         </li>
                                                     @endforeach

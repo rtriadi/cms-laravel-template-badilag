@@ -96,7 +96,7 @@
                                 @if ($slide->image_path)
                                     <img src="{{ asset('storage/' . $slide->image_path) }}" alt="{{ $slide->image_alt }}" width="88" height="50" class="h-12 w-22 shrink-0 rounded border border-hairline object-cover" />
                                 @else
-                                    <div class="flex h-12 w-22 shrink-0 items-center justify-center rounded border border-hairline bg-primary-soft font-mono text-[10px] font-bold text-primary">
+                                    <div class="flex h-12 w-22 shrink-0 items-center justify-center rounded border border-hairline bg-primary-soft font-mono text-2xs font-bold text-primary">
                                         BANNER #{{ $loop->iteration }}
                                     </div>
                                 @endif
@@ -110,7 +110,7 @@
                                 <button type="button" wire:click="toggleActive({{ $slide->id }})" @class([
                                     'min-h-11 cursor-pointer rounded border px-3 py-1 font-semibold',
                                     'border-emerald-300 bg-emerald-50 text-emerald-800' => $slide->is_active,
-                                    'border-hairline bg-gray-100 text-ink-muted' => ! $slide->is_active,
+                                    'border-hairline bg-mist text-ink-muted' => ! $slide->is_active,
                                 ])>
                                     {{ $slide->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </button>

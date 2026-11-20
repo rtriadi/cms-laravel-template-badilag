@@ -19,7 +19,7 @@
         aria-modal="false"
         aria-labelledby="a11y-panel-title"
         hidden
-        class="mt-3 w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-hairline bg-white p-4 text-ink shadow-2xl"
+        class="mt-3 max-h-[calc(100vh-2rem)] w-80 max-w-[calc(100vw-2rem)] overflow-y-auto overscroll-contain rounded-xl border border-hairline bg-white p-4 text-ink shadow-2xl"
     >
         <div class="flex items-center justify-between border-b border-hairline pb-2.5">
             <h2 id="a11y-panel-title" class="font-serif text-base font-bold text-ink">
@@ -38,7 +38,7 @@
             <!-- Pembaca Suara Bahasa Indonesia (TTS) -->
             <div class="rounded-lg border border-hairline bg-mist p-3">
                 <p class="font-bold text-ink">Pembaca Halaman (Suara id-ID)</p>
-                <p id="a11y-tts-status" class="mt-0.5 text-[11px] text-ink-muted">Siap membacakan teks halaman.</p>
+                <p id="a11y-tts-status" class="mt-0.5 text-xs text-ink-muted">Siap membacakan teks halaman.</p>
                 <div class="mt-2 grid grid-cols-2 gap-2">
                     <button
                         id="a11y-tts-read-page"
@@ -57,7 +57,7 @@
                     <button
                         id="a11y-tts-stop"
                         type="button"
-                        class="col-span-2 min-h-11 cursor-pointer rounded-md border border-hairline bg-white px-2.5 py-1.5 font-semibold text-ink hover:bg-gray-50"
+                        class="col-span-2 min-h-11 cursor-pointer rounded-md border border-hairline bg-white px-2.5 py-1.5 font-semibold text-ink hover:bg-mist"
                     >
                         Hentikan Pembacaan
                     </button>
@@ -74,14 +74,14 @@
                     <button
                         id="a11y-scale-down"
                         type="button"
-                        class="min-h-11 cursor-pointer rounded-md border border-hairline bg-mist px-3 font-semibold text-ink hover:bg-gray-100"
+                        class="min-h-11 cursor-pointer rounded-md border border-hairline bg-mist px-3 font-semibold text-ink hover:bg-hairline/40"
                     >
                         Perkecil Teks
                     </button>
                     <button
                         id="a11y-scale-up"
                         type="button"
-                        class="min-h-11 cursor-pointer rounded-md border border-hairline bg-mist px-3 font-semibold text-ink hover:bg-gray-100"
+                        class="min-h-11 cursor-pointer rounded-md border border-hairline bg-mist px-3 font-semibold text-ink hover:bg-hairline/40"
                     >
                         Perbesar Teks (Max 200%)
                     </button>
@@ -97,7 +97,7 @@
                     class="flex min-h-11 cursor-pointer items-center justify-between rounded-md border border-hairline bg-white px-3 font-semibold text-ink hover:bg-mist"
                 >
                     <span>Mode Kontras Tinggi</span>
-                    <span data-a11y-state="hc" class="font-mono text-[11px] text-ink-muted">Nonaktif</span>
+                    <span data-a11y-state="hc" class="font-mono text-2xs text-ink-muted">Nonaktif</span>
                 </button>
                 <button
                     type="button"
@@ -106,7 +106,7 @@
                     class="flex min-h-11 cursor-pointer items-center justify-between rounded-md border border-hairline bg-white px-3 font-semibold text-ink hover:bg-mist"
                 >
                     <span>Spasi Ramah Disleksia</span>
-                    <span data-a11y-state="dyslexia" class="font-mono text-[11px] text-ink-muted">Nonaktif</span>
+                    <span data-a11y-state="dyslexia" class="font-mono text-2xs text-ink-muted">Nonaktif</span>
                 </button>
                 <button
                     type="button"
@@ -115,7 +115,7 @@
                     class="flex min-h-11 cursor-pointer items-center justify-between rounded-md border border-hairline bg-white px-3 font-semibold text-ink hover:bg-mist"
                 >
                     <span>Sorot Semua Tautan</span>
-                    <span data-a11y-state="links" class="font-mono text-[11px] text-ink-muted">Nonaktif</span>
+                    <span data-a11y-state="links" class="font-mono text-2xs text-ink-muted">Nonaktif</span>
                 </button>
                 <button
                     type="button"
@@ -124,7 +124,7 @@
                     class="flex min-h-11 cursor-pointer items-center justify-between rounded-md border border-hairline bg-white px-3 font-semibold text-ink hover:bg-mist"
                 >
                     <span>Hentikan Animasi</span>
-                    <span data-a11y-state="motion" class="font-mono text-[11px] text-ink-muted">Nonaktif</span>
+                    <span data-a11y-state="motion" class="font-mono text-2xs text-ink-muted">Nonaktif</span>
                 </button>
             </div>
 

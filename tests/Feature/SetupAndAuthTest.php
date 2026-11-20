@@ -62,6 +62,17 @@ it('renders login page and local captcha svg image', function (): void {
         ->assertHeader('Content-Type', 'image/svg+xml');
 });
 
+it('serves a text captcha alternative for screen readers', function (): void {
+    SatkerSetting::factory()->setupCompleted()->create();
+
+    $response = $this->get(route('captcha.text'))
+        ->assertOk()
+        ->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
+
+    expect($response->getContent())->toMatch('/^[2-9A-HJ-NP-Z]{5}$/');
+    $this->assertNotNull(session(LocalCaptchaService::SESSION_KEY));
+});
+
 it('rejects wrong local captcha on login', function (): void {
     $this->seed(RoleAndPermissionSeeder::class);
     SatkerSetting::factory()->setupCompleted()->create();
