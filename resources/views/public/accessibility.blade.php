@@ -1,4 +1,7 @@
-<x-layouts.public title="Pernyataan & Panduan Aksesibilitas">
+@php
+    $a11yDesc = 'Pernyataan dan panduan aksesibilitas portal ' . ($satker?->nama_satker ?? 'Peradilan Agama') . ': pembaca suara id-ID, kontras tinggi, perbesar teks 200%, dan navigasi keyboard.';
+@endphp
+<x-layouts.public title="Pernyataan & Panduan Aksesibilitas" :description="$a11yDesc" :canonical="route('public.accessibility')">
     <div class="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <article class="rounded-xl border border-hairline bg-white p-6 sm:p-8">
             <h1 class="font-serif text-2xl font-bold text-ink sm:text-3xl">

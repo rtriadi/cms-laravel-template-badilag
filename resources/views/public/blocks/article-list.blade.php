@@ -27,13 +27,18 @@
             @foreach ($posts as $article)
                 <article class="pub-card flex flex-col rounded-lg border border-hairline bg-mist p-4">
                     @if ($article->featured_image_path)
+                        @php
+                            $articleImg = \App\Services\ImageOptimizerService::responsiveAttributes($article->featured_image_path, [400, 480, 720], '(max-width: 640px) calc(100vw - 64px), 340px', null, 1000);
+                        @endphp
                         <div class="mb-3 overflow-hidden rounded">
                             <img
-                                src="{{ asset('storage/' . $article->featured_image_path) }}"
+                                src="{{ $articleImg['src'] }}"
+                                @if ($articleImg['srcset']) srcset="{{ $articleImg['srcset'] }}" sizes="{{ $articleImg['sizes'] }}" @endif
                                 alt="{{ $article->featured_image_alt ?: $article->title }}"
                                 width="400"
                                 height="210"
                                 loading="lazy"
+                                decoding="async"
                                 class="pub-img-zoom h-40 w-full object-cover"
                             />
                         </div>

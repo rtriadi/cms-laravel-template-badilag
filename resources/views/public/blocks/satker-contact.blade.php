@@ -32,11 +32,17 @@
 
     <div class="flex flex-col items-center justify-center rounded-lg border border-hairline bg-white p-4 md:col-span-5">
         @if ($satker?->foto_gedung_path)
+            @php
+                $gedungImg = \App\Services\ImageOptimizerService::responsiveAttributes($satker->foto_gedung_path, [480, 800], '(max-width: 768px) calc(100vw - 64px), 420px', null, 1280);
+            @endphp
             <img
-                src="{{ asset('storage/' . $satker->foto_gedung_path) }}"
+                src="{{ $gedungImg['src'] }}"
+                @if ($gedungImg['srcset']) srcset="{{ $gedungImg['srcset'] }}" sizes="{{ $gedungImg['sizes'] }}" @endif
                 alt="Foto Gedung Kantor {{ $satker->nama_satker }}"
                 width="420"
                 height="260"
+                loading="lazy"
+                decoding="async"
                 class="h-52 w-full rounded object-cover"
             />
         @else

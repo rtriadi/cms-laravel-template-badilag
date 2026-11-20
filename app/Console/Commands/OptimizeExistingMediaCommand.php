@@ -41,6 +41,7 @@ class OptimizeExistingMediaCommand extends Command
                     $totalAfter += $res['after_bytes'];
                     $this->line(sprintf('[Satker Foto Gedung] %s -> %s (%.1f KB -> %.1f KB)', $oldPath, $res['path'], $res['before_bytes'] / 1024, $res['after_bytes'] / 1024));
                 }
+                $optimizer->generateVariants($setting->foto_gedung_path, [480, 800], 80);
             }
 
             if ($setting->logo_path) {
@@ -54,6 +55,7 @@ class OptimizeExistingMediaCommand extends Command
                     $totalAfter += $res['after_bytes'];
                     $this->line(sprintf('[Satker Logo] %s -> %s (%.1f KB -> %.1f KB)', $oldLogo, $res['path'], $res['before_bytes'] / 1024, $res['after_bytes'] / 1024));
                 }
+                $optimizer->generateVariants($setting->logo_path, [128], 86);
             }
 
             if ($dirty) {
@@ -71,6 +73,7 @@ class OptimizeExistingMediaCommand extends Command
                 $totalAfter += $res['after_bytes'];
                 $this->line(sprintf('[Slider #%d] %s -> %s (%.1f KB -> %.1f KB)', $slide->id, $oldPath, $res['path'], $res['before_bytes'] / 1024, $res['after_bytes'] / 1024));
             }
+            $optimizer->generateVariants((string) $slide->image_path, [480, 800], 80);
         }
 
         foreach (Post::query()->whereNotNull('featured_image_path')->get() as $post) {
@@ -83,6 +86,7 @@ class OptimizeExistingMediaCommand extends Command
                 $totalAfter += $res['after_bytes'];
                 $this->line(sprintf('[Post #%d] %s -> %s (%.1f KB -> %.1f KB)', $post->id, $oldPath, $res['path'], $res['before_bytes'] / 1024, $res['after_bytes'] / 1024));
             }
+            $optimizer->generateVariants((string) $post->featured_image_path, [400, 720], 80);
         }
 
         if ($optimizedCount === 0) {

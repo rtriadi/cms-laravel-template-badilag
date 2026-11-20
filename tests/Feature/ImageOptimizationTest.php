@@ -86,3 +86,29 @@ it('converts uploaded editor images to WebP while preserving PDF uploads', funct
     expect($pdfLocation)->toEndWith('.pdf');
     Storage::disk('public')->assertExists(ltrim(str_replace('/storage/', '', $pdfLocation), '/'));
 });
+
+it('generates responsive WebP variants without upscaling and deletes variants cleanly', function (): void {
+    Storage::fake('public');
+
+    $optimizer = app(ImageOptimizerService::class);
+    $file = UploadedFile::fake()->image('hero-wide.png', 1600, 900);
+    $path = $optimizer->storeOptimized($file, 'sliders', 1280, 82, 'public', [480, 800, 1600]);
+
+    $var480 = ImageOptimizerService::variantPath($path, 480);
+    $var800 = ImageOptimizerService::variantPath($path, 800);
+    $var1600 = ImageOptimizerService::variantPath($path, 1600);
+
+    Storage::disk('public')->assertExists($path);
+    Storage::disk('public')->assertExists($var480);
+    Storage::disk('public')->assertExists($var800);
+    Storage::disk('public')->assertMissing($var1600);
+
+    $info480 = @getimagesizefromstring(Storage::disk('public')->get($var480));
+    expect($info480)->toBeArray()->and($info480[0])->toBe(480);
+
+    $optimizer->deleteWithVariants($path);
+
+    Storage::disk('public')->assertMissing($path);
+    Storage::disk('public')->assertMissing($var480);
+    Storage::disk('public')->assertMissing($var800);
+});

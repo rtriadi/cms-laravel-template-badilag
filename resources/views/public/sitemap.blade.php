@@ -1,4 +1,7 @@
-<x-layouts.public title="Peta Situs (Sitemap)">
+@php
+    $sitemapDesc = 'Peta situs lengkap seluruh halaman informasi publik, layanan hukum, transparansi SAKIP, dan publikasi resmi ' . ($satker?->nama_satker ?? 'Peradilan Agama') . '.';
+@endphp
+<x-layouts.public title="Peta Situs (Sitemap)" :description="$sitemapDesc" :canonical="route('public.sitemap')">
     <div class="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <header class="rounded-xl border border-hairline bg-white p-6">
             <div class="flex flex-wrap items-center justify-between gap-3">

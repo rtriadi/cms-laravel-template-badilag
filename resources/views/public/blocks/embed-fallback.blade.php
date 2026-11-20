@@ -91,43 +91,6 @@
             height="580"
             class="h-[580px] w-full rounded border border-hairline bg-white"
         ></iframe>
-
-        @if ($embedTabs !== [])
-            <script>
-                (() => {
-                    document.querySelectorAll('[data-simtepa-embed-block]').forEach((container) => {
-                        if (container.dataset.simtepaBound) return;
-                        container.dataset.simtepaBound = '1';
-                        const iframe = container.querySelector('[data-simtepa-iframe]');
-                        const htmlLink = container.querySelector('[data-simtepa-html-link]');
-                        const jsonLink = container.querySelector('[data-simtepa-json-link]');
-                        const buttons = Array.from(container.querySelectorAll('[data-simtepa-tab-btn]'));
-
-                        buttons.forEach((btn) => {
-                            btn.addEventListener('click', (e) => {
-                                const htmlUrl = btn.getAttribute('data-html-url');
-                                const jsonUrl = btn.getAttribute('data-json-url');
-                                if (!iframe || !htmlUrl) return;
-                                e.preventDefault();
-                                iframe.src = htmlUrl;
-                                if (htmlLink) htmlLink.href = htmlUrl;
-                                if (jsonLink && jsonUrl) jsonLink.href = jsonUrl;
-                                buttons.forEach((b) => {
-                                    const active = b === btn;
-                                    b.setAttribute('aria-selected', active ? 'true' : 'false');
-                                    b.classList.toggle('bg-primary', active);
-                                    b.classList.toggle('text-white', active);
-                                    b.classList.toggle('border', !active);
-                                    b.classList.toggle('border-hairline', !active);
-                                    b.classList.toggle('bg-white', !active);
-                                    b.classList.toggle('text-ink', !active);
-                                });
-                            });
-                        });
-                    });
-                })();
-            </script>
-        @endif
     </div>
 @else
     <div class="space-y-4">

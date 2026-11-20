@@ -9,7 +9,7 @@
         }
     }
     $pageMetaDescription = $page->meta_description
-        ?: ($page->summary ?: ($fallbackContentSnippet !== '' ? \Illuminate\Support\Str::limit($fallbackContentSnippet, 160) : "Informasi resmi {$resolvedTitle} pada " . ($satker?->nama_satker ?? 'Portal Resmi Peradilan Agama') . '.'));
+        ?: ($page->summary ?: ($fallbackContentSnippet !== '' ? \App\Support\SeoText::excerpt($fallbackContentSnippet, 155) : "Informasi resmi {$resolvedTitle} pada " . ($satker?->nama_satker ?? 'Portal Resmi Peradilan Agama') . '.'));
     $pageCanonical = route('public.page', ['slug' => $page->slug]);
 
     $pageSchemas = [
@@ -37,6 +37,7 @@
                     '@type' => 'ListItem',
                     'position' => 2,
                     'name' => $sectionLabel ?? 'Informasi & Layanan',
+                    'item' => route('public.sitemap'),
                 ],
                 [
                     '@type' => 'ListItem',
@@ -68,7 +69,7 @@
 
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <!-- Institutional Judicial Page Hero Banner -->
-        <header class="pub-reveal relative overflow-hidden rounded-xl border border-emerald-900 border-b-4 border-b-gold bg-primary-deep p-6 text-white shadow-xs sm:p-8">
+        <header class="relative overflow-hidden rounded-xl border border-emerald-900 border-b-4 border-b-gold bg-primary-deep p-6 text-white shadow-xs sm:p-8">
             <svg aria-hidden="true" class="pub-crest-float pointer-events-none absolute -top-8 -right-8 size-60 text-white/6 sm:size-72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                 <path d="M12 3v18M5 7h14M8 21h8M5 7l-3 6h6l-3-6zM19 7l-3 6h6l-3-6z" />
             </svg>
@@ -124,8 +125,11 @@
                     <section
                         id="bagian-{{ $loop->iteration }}"
                         @if (empty($block['heading'])) aria-label="Bagian {{ $loop->iteration }}" @endif
-                        class="pub-reveal scroll-mt-24 space-y-4 rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-6 shadow-2xs sm:p-7"
-                        style="--stagger-delay: {{ min(240, $loop->index * 45) }}ms"
+                        @class([
+                            'scroll-mt-24 space-y-4 rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-6 shadow-2xs sm:p-7',
+                            'pub-reveal' => ! $loop->first,
+                        ])
+                        @if (! $loop->first) style="--stagger-delay: {{ min(240, ($loop->index - 1) * 45) }}ms" @endif
                     >
                         @if (! empty($block['heading']))
                             <div class="border-b border-hairline pb-3">
@@ -269,30 +273,5 @@
             </aside>
         </div>
     </div>
-
-    <script>
-        (() => {
-            const bar = document.querySelector('[data-read-progress]');
-            if (!bar) {
-                return;
-            }
-            let ticking = false;
-            const update = () => {
-                ticking = false;
-                const doc = document.documentElement;
-                const max = Math.max(1, doc.scrollHeight - window.innerHeight);
-                const ratio = Math.min(1, Math.max(0, window.scrollY / max));
-                bar.style.setProperty('--read-progress', ratio.toFixed(4));
-            };
-            const onScroll = () => {
-                if (!ticking) {
-                    ticking = true;
-                    window.requestAnimationFrame(update);
-                }
-            };
-            window.addEventListener('scroll', onScroll, { passive: true });
-            update();
-        })();
-    </script>
 </x-layouts.public>
 

@@ -1,4 +1,7 @@
-<x-layouts.public title="Status Keamanan & Versi Sistem">
+@php
+    $sysDesc = 'Dokumentasi versi perangkat lunak SatkerCMS, Laravel, PHP non-EOL, dan standar autentikasi 2FA portal resmi ' . ($satker?->nama_satker ?? 'Peradilan Agama') . '.';
+@endphp
+<x-layouts.public title="Status Keamanan & Versi Sistem" :description="$sysDesc" :canonical="route('public.system-status')">
     <div class="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <article class="rounded-xl border border-hairline bg-white p-6 sm:p-8">
             <h1 class="font-serif text-2xl font-bold text-ink sm:text-3xl">

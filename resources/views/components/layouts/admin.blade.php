@@ -26,6 +26,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'Panel Admin' }} - {{ $satker?->nama_satker ?? 'SatkerCMS' }}</title>
+    @if (is_file(public_path('build/fonts-manifest.json')) || \Illuminate\Support\Facades\Vite::isRunningHot())
+        {{ \Illuminate\Support\Facades\Vite::fonts() }}
+    @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>try{localStorage.setItem('flux.appearance','light')}catch(e){}document.documentElement.classList.remove('dark');</script>
     <script src="{{ asset('vendor/tinymce/tinymce.min.js') }}"></script>

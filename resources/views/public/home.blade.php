@@ -1,11 +1,27 @@
 @php
-    $firstSlideImage = $sliders->first(fn ($s) => ! empty($s->image_path))?->image_path;
+    $firstSlide = $sliders->first();
+    $firstSlideImage = $firstSlide && ! empty($firstSlide->image_path) ? $firstSlide->image_path : null;
     $homeOgImage = $firstSlideImage ? asset('storage/' . $firstSlideImage) : null;
-    $homeDescription = $satker
-        ? "Portal Resmi {$satker->nama_satker}. Layanan perkara SIPP, jadwal persidangan harian, e-Court, bantuan hukum Prodeo & Posbakum, serta transparansi peradilan."
+    $heroSizes = '(max-width: 1024px) calc(100vw - 32px), 800px';
+    $firstSlideImgAttrs = $firstSlideImage
+        ? \App\Services\ImageOptimizerService::responsiveAttributes($firstSlideImage, [480, 800], $heroSizes, null, 1280)
         : null;
+    $homeDescription = $satker
+        ? "Portal Resmi {$satker->nama_satker}. Layanan perkara SIPP, jadwal sidang harian, e-Court, Prodeo & Posbakum, serta transparansi peradilan."
+        : null;
+    $transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 @endphp
-<x-layouts.public title="Beranda" :description="$homeDescription" :canonical="route('home')" :og-image="$homeOgImage">
+<x-layouts.public
+    title="Beranda"
+    :description="$homeDescription"
+    :canonical="route('home')"
+    :og-image="$homeOgImage"
+    :og-image-path="$firstSlideImage"
+    :og-image-alt="$firstSlide?->image_alt"
+    :preload-image="$firstSlideImgAttrs['src'] ?? null"
+    :preload-image-srcset="$firstSlideImgAttrs['srcset'] ?? null"
+    :preload-image-sizes="$firstSlideImgAttrs['sizes'] ?? null"
+>
     {{-- Banner Informasi Serta Merta --}}
     @if ($sertaMerta->isNotEmpty())
         <section aria-label="Informasi Serta Merta" class="border-b border-amber-300 bg-amber-50 text-ink">
@@ -33,7 +49,7 @@
     <div class="mx-auto max-w-7xl space-y-10 px-4 py-8 sm:px-6 lg:px-8">
         <!-- Hero 8/4 Grid: Slider (3-5 Slide Tanpa Video) + Direktori Akses Cepat -->
         <section aria-label="Sorotan Utama dan Akses Cepat" class="grid gap-6 lg:grid-cols-12">
-            <div class="pub-reveal lg:col-span-8" style="--stagger-delay: 0ms">
+            <div class="lg:col-span-8">
                 @if ($sliders->isNotEmpty())
                     <div
                         data-hero-slider
@@ -53,15 +69,32 @@
                                     class="flex min-h-80 flex-col justify-between p-6 sm:min-h-96 sm:p-8"
                                 >
                                     @if ($slide->image_path)
-                                        <img
-                                            src="{{ asset('storage/' . $slide->image_path) }}"
-                                            alt="{{ $slide->image_alt }}"
-                                            width="860"
-                                            height="420"
-                                            decoding="async"
-                                            @if ($slideIndex === 0) fetchpriority="high" @else loading="lazy" @endif
-                                            class="absolute inset-0 h-full w-full object-cover"
-                                        />
+                                        @php
+                                            $slideImg = \App\Services\ImageOptimizerService::responsiveAttributes($slide->image_path, [480, 800], $heroSizes, null, 1280);
+                                        @endphp
+                                        @if ($slideIndex === 0)
+                                            <img
+                                                src="{{ $slideImg['src'] }}"
+                                                @if ($slideImg['srcset']) srcset="{{ $slideImg['srcset'] }}" sizes="{{ $slideImg['sizes'] }}" @endif
+                                                alt="{{ $slide->image_alt }}"
+                                                width="860"
+                                                height="420"
+                                                decoding="async"
+                                                fetchpriority="high"
+                                                class="absolute inset-0 h-full w-full object-cover"
+                                            />
+                                        @else
+                                            <img
+                                                src="{{ $transparentPixel }}"
+                                                data-lazy-src="{{ $slideImg['src'] }}"
+                                                @if ($slideImg['srcset']) data-lazy-srcset="{{ $slideImg['srcset'] }}" data-lazy-sizes="{{ $slideImg['sizes'] }}" @endif
+                                                alt="{{ $slide->image_alt }}"
+                                                width="860"
+                                                height="420"
+                                                decoding="async"
+                                                class="absolute inset-0 h-full w-full object-cover"
+                                            />
+                                        @endif
                                         <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-black/25" aria-hidden="true"></div>
                                     @else
                                         <div class="sr-only">{{ $slide->image_alt }}</div>
@@ -212,7 +245,7 @@
                 @endif
             </div>
 
-            <aside aria-label="Akses Layanan Cepat" class="pub-reveal rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-5 shadow-2xs lg:col-span-4" style="--stagger-delay: 55ms">
+            <aside aria-label="Akses Layanan Cepat" class="rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-5 shadow-2xs lg:col-span-4">
                 <div class="border-b border-hairline pb-3">
                     <h2 class="font-serif text-lg font-bold text-ink">Akses Layanan Cepat</h2>
                     <p class="mt-0.5 text-xs text-ink-muted">Jalur langsung maksimal dua klik menuju informasi inti.</p>
@@ -355,9 +388,13 @@
                         @foreach ($latestNews as $news)
                             <article class="pub-card flex flex-col rounded-lg border border-hairline bg-mist p-4">
                                 @if ($news->featured_image_path)
+                                    @php
+                                        $newsImg = \App\Services\ImageOptimizerService::responsiveAttributes($news->featured_image_path, [400, 480, 720], '(max-width: 640px) calc(100vw - 64px), 340px', null, 1000);
+                                    @endphp
                                     <div class="mb-3 overflow-hidden rounded-md">
                                         <img
-                                            src="{{ asset('storage/' . $news->featured_image_path) }}"
+                                            src="{{ $newsImg['src'] }}"
+                                            @if ($newsImg['srcset']) srcset="{{ $newsImg['srcset'] }}" sizes="{{ $newsImg['sizes'] }}" @endif
                                             alt="{{ $news->featured_image_alt ?: $news->title }}"
                                             width="360"
                                             height="200"
@@ -476,101 +513,5 @@
             </div>
         </section>
     </div>
-
-    @if ($sliders->count() > 1)
-        <script>
-            (() => {
-                const container = document.querySelector('[data-hero-slider]');
-                if (!container) {
-                    return;
-                }
-                const slides = Array.from(container.querySelectorAll('[data-hero-slide]'));
-                const dots = Array.from(container.querySelectorAll('[data-slider-dot]'));
-                const prevBtn = container.querySelector('[data-slider-prev]');
-                const nextBtn = container.querySelector('[data-slider-next]');
-                const pauseBtn = container.querySelector('[data-slider-pause]');
-                let index = 0;
-                let autoTimer = null;
-                let paused = false;
-
-                const showSlide = (nextIdx) => {
-                    index = (nextIdx + slides.length) % slides.length;
-                    slides.forEach((el, i) => {
-                        el.hidden = i !== index;
-                    });
-                    dots.forEach((dot, i) => {
-                        dot.classList.toggle('bg-gold', i === index);
-                        dot.classList.toggle('text-ink', i === index);
-                        dot.setAttribute('aria-current', i === index ? 'true' : 'false');
-                    });
-                };
-
-                const stopAuto = () => {
-                    if (autoTimer) {
-                        window.clearInterval(autoTimer);
-                        autoTimer = null;
-                    }
-                };
-
-                const startAuto = () => {
-                    stopAuto();
-                    const reduced = (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
-                        || document.documentElement.classList.contains('a11y-no-motion');
-                    if (!paused && !reduced && slides.length > 1 && !document.hidden) {
-                        autoTimer = window.setInterval(() => showSlide(index + 1), 7000);
-                    }
-                };
-
-                const setPaused = (value) => {
-                    paused = value;
-                    if (pauseBtn) {
-                        pauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
-                        pauseBtn.textContent = paused ? 'Lanjutkan' : 'Jeda';
-                    }
-                    if (paused) {
-                        stopAuto();
-                    } else {
-                        startAuto();
-                    }
-                };
-
-                prevBtn?.addEventListener('click', () => {
-                    showSlide(index - 1);
-                    startAuto();
-                });
-                nextBtn?.addEventListener('click', () => {
-                    showSlide(index + 1);
-                    startAuto();
-                });
-                dots.forEach((dot) => {
-                    dot.addEventListener('click', () => {
-                        showSlide(Number(dot.getAttribute('data-slider-dot')));
-                        startAuto();
-                    });
-                });
-                pauseBtn?.addEventListener('click', () => setPaused(!paused));
-
-                container.addEventListener('mouseenter', () => { if (!paused) { stopAuto(); } });
-                container.addEventListener('mouseleave', startAuto);
-                container.addEventListener('focusin', () => { if (!paused) { stopAuto(); } });
-                container.addEventListener('focusout', (event) => {
-                    if (!container.contains(event.relatedTarget)) {
-                        startAuto();
-                    }
-                });
-                document.addEventListener('visibilitychange', () => {
-                    if (document.hidden) {
-                        stopAuto();
-                    } else {
-                        startAuto();
-                    }
-                });
-
-                showSlide(0);
-                setPaused((window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
-                    || document.documentElement.classList.contains('a11y-no-motion'));
-            })();
-        </script>
-    @endif
 </x-layouts.public>
 

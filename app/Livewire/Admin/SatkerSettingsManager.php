@@ -131,13 +131,13 @@ class SatkerSettingsManager extends Component
         $oldLogoPath = $setting->logo_path;
         $logoPath = $oldLogoPath;
         if ($this->logo !== null) {
-            $logoPath = $optimizer->storeOptimized($this->logo, 'satker', 512, 88);
+            $logoPath = $optimizer->storeOptimized($this->logo, 'satker', 512, 88, 'public', [128]);
         }
 
         $oldFotoPath = $setting->foto_gedung_path;
         $fotoPath = $oldFotoPath;
         if ($this->foto_gedung !== null) {
-            $fotoPath = $optimizer->storeOptimized($this->foto_gedung, 'satker', 1280, 82);
+            $fotoPath = $optimizer->storeOptimized($this->foto_gedung, 'satker', 1280, 82, 'public', [480, 800]);
         }
 
         $setting->fill([

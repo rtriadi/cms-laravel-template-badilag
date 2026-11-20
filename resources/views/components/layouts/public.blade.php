@@ -2,8 +2,15 @@
     'title' => null,
     'description' => null,
     'canonical' => null,
+    'prevUrl' => null,
+    'nextUrl' => null,
     'ogType' => 'website',
     'ogImage' => null,
+    'ogImagePath' => null,
+    'ogImageAlt' => null,
+    'preloadImage' => null,
+    'preloadImageSrcset' => null,
+    'preloadImageSizes' => null,
     'robots' => 'index, follow',
     'publishedAt' => null,
     'modifiedAt' => null,
@@ -19,19 +26,31 @@
     $headerMenus = $cachedMenus['header'];
     $footerMenus = $cachedMenus['footer'];
 
-    $pageTitle = $title ? $title . ' - ' . $satkerName : $satkerName;
+    $pageTitle = \App\Support\SeoText::pageTitle($title, $satkerName);
     $rawDescription = trim((string) preg_replace('/\s+/', ' ', strip_tags((string) ($description ?? ''))));
     $metaDescription = $rawDescription !== ''
-        ? \Illuminate\Support\Str::limit($rawDescription, 160)
-        : "Portal Informasi Resmi {$satkerName}. Layanan penelusuran perkara SIPP, jadwal sidang harian, e-Court, Prodeo & Posbakum, serta transparansi peradilan.";
+        ? \App\Support\SeoText::excerpt($rawDescription, 155)
+        : \App\Support\SeoText::excerpt("Portal Informasi Resmi {$satkerName}. Layanan perkara SIPP, jadwal sidang harian, e-Court, Prodeo & Posbakum, serta transparansi peradilan.", 155);
     $canonicalUrl = $canonical ?: url()->current();
 
     $logoUrl = $satker?->logo_path ? asset('storage/' . $satker->logo_path) : null;
+    $logoImgAttrs = $satker?->logo_path
+        ? \App\Services\ImageOptimizerService::responsiveAttributes($satker->logo_path, [128], '52px', 128, 512)
+        : null;
     $faviconUrl = $satker?->favicon_path
         ? asset('storage/' . $satker->favicon_path)
         : $logoUrl;
+
+    $resolvedOgImagePath = $ogImagePath
+        ?: ($ogImage === null ? ($satker?->foto_gedung_path ?: $satker?->logo_path) : null);
     $resolvedOgImage = $ogImage
         ?: ($satker?->foto_gedung_path ? asset('storage/' . $satker->foto_gedung_path) : $logoUrl);
+    $resolvedOgImageDims = $resolvedOgImagePath
+        ? \App\Services\ImageOptimizerService::imageDimensions($resolvedOgImagePath)
+        : null;
+    $resolvedOgImageAlt = trim((string) ($ogImageAlt ?? '')) !== ''
+        ? trim((string) $ogImageAlt)
+        : $pageTitle;
 
     $homeUrl = route('home');
     $orgId = $homeUrl . '#organization';
@@ -46,6 +65,11 @@
         'image' => $satker?->foto_gedung_path ? asset('storage/' . $satker->foto_gedung_path) : $logoUrl,
         'telephone' => $satker?->telepon ?: null,
         'email' => $satker?->email ?: null,
+        'parentOrganization' => [
+            '@type' => 'GovernmentOrganization',
+            'name' => 'Direktorat Jenderal Badan Peradilan Agama Mahkamah Agung RI',
+            'url' => 'https://badilag.mahkamahagung.go.id',
+        ],
         'address' => $satker ? array_filter([
             '@type' => 'PostalAddress',
             'streetAddress' => $satker->alamat_jalan ?: null,
@@ -114,8 +138,26 @@
     <meta name="theme-color" content="#056e4f">
     <title>{{ $pageTitle }}</title>
     <link rel="canonical" href="{{ $canonicalUrl }}">
+    @if ($prevUrl)
+        <link rel="prev" href="{{ $prevUrl }}">
+    @endif
+    @if ($nextUrl)
+        <link rel="next" href="{{ $nextUrl }}">
+    @endif
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     @if ($faviconUrl)
         <link rel="icon" href="{{ $faviconUrl }}">
+        <link rel="apple-touch-icon" href="{{ $faviconUrl }}">
+    @endif
+    @if ($preloadImage)
+        <link
+            rel="preload"
+            as="image"
+            href="{{ $preloadImage }}"
+            @if ($preloadImageSrcset) imagesrcset="{{ $preloadImageSrcset }}" @endif
+            @if ($preloadImageSizes) imagesizes="{{ $preloadImageSizes }}" @endif
+            fetchpriority="high"
+        >
     @endif
 
     <!-- Open Graph / WhatsApp / Social Preview -->
@@ -127,6 +169,11 @@
     <meta property="og:url" content="{{ $canonicalUrl }}">
     @if ($resolvedOgImage)
         <meta property="og:image" content="{{ $resolvedOgImage }}">
+        <meta property="og:image:alt" content="{{ $resolvedOgImageAlt }}">
+        @if ($resolvedOgImageDims)
+            <meta property="og:image:width" content="{{ $resolvedOgImageDims['width'] }}">
+            <meta property="og:image:height" content="{{ $resolvedOgImageDims['height'] }}">
+        @endif
     @endif
     @if ($ogType === 'article' && $publishedAt)
         <meta property="article:published_time" content="{{ $publishedAt }}">
@@ -141,29 +188,20 @@
     <meta name="twitter:description" content="{{ $metaDescription }}">
     @if ($resolvedOgImage)
         <meta name="twitter:image" content="{{ $resolvedOgImage }}">
+        <meta name="twitter:image:alt" content="{{ $resolvedOgImageAlt }}">
     @endif
 
     @if (is_string($structuredDataJson))
         <script type="application/ld+json">{!! $structuredDataJson !!}</script>
     @endif
 
-    <script>
-        try {
-            const rawA11y = localStorage.getItem('satkercms_a11y_v1');
-            if (rawA11y) {
-                const s = JSON.parse(rawA11y);
-                const scale = Math.min(200, Math.max(100, Number(s.scale) || 100));
-                document.documentElement.style.fontSize = scale + '%';
-                if (s.hc) document.documentElement.classList.add('a11y-hc');
-                if (s.dyslexia) document.documentElement.classList.add('a11y-dyslexia');
-                if (s.links) document.documentElement.classList.add('a11y-highlight-links');
-                if (s.motion) document.documentElement.classList.add('a11y-no-motion');
-            }
-        } catch (e) {}
-    </script>
-    @vite(['resources/css/public.css', 'resources/js/app.js'])
+    <script>try{const r=localStorage.getItem('satkercms_a11y_v1');if(r){const s=JSON.parse(r),d=document.documentElement;d.style.fontSize=Math.min(200,Math.max(100,Number(s.scale)||100))+'%';if(s.hc)d.classList.add('a11y-hc');if(s.dyslexia)d.classList.add('a11y-dyslexia');if(s.links)d.classList.add('a11y-highlight-links');if(s.motion)d.classList.add('a11y-no-motion')}}catch(e){}</script>
+    @if (is_file(public_path('build/fonts-manifest.json')) || \Illuminate\Support\Facades\Vite::isRunningHot())
+        {{ \Illuminate\Support\Facades\Vite::fonts() }}
+    @endif
+    @vite(['resources/css/public.css', 'resources/js/public.js'])
 </head>
-<body class="flex min-h-screen flex-col bg-mist font-sans text-ink antialiased">
+<body class="flex min-h-screen flex-col bg-mist font-sans text-ink antialiased" @auth data-admin-prefix="{{ '/'.trim((string) config('satker.admin_path', 'panel-admin'), '/') }}" @endauth>
     <a href="#konten-utama" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">
         Lewati ke konten utama
     </a>
@@ -211,12 +249,14 @@
     <header class="sticky top-0 z-30 border-b border-hairline bg-white shadow-2xs lg:static">
         <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
             <a href="{{ route('home') }}" class="flex min-w-0 items-center gap-3.5">
-                @if ($satker?->logo_path)
+                @if ($satker?->logo_path && $logoImgAttrs)
                     <img
-                        src="{{ asset('storage/' . $satker->logo_path) }}"
+                        src="{{ $logoImgAttrs['src'] }}"
+                        @if ($logoImgAttrs['srcset']) srcset="{{ $logoImgAttrs['srcset'] }}" sizes="{{ $logoImgAttrs['sizes'] }}" @endif
                         alt="Logo Resmi {{ $satkerName }}"
                         width="52"
                         height="52"
+                        decoding="async"
                         class="h-13 w-13 shrink-0 rounded-lg border border-hairline bg-white object-contain p-1 shadow-2xs"
                     />
                 @else
@@ -508,243 +548,5 @@
     </footer>
 
     <x-accessibility-widget />
-
-    <script>
-        (() => {
-            const navGroups = document.querySelectorAll('[data-nav-group]');
-            const closeAllSubmenus = () => {
-                navGroups.forEach((group) => {
-                    const btn = group.querySelector('[data-nav-trigger]');
-                    const submenu = group.querySelector('[data-nav-submenu]');
-                    if (btn && submenu) {
-                        btn.setAttribute('aria-expanded', 'false');
-                        submenu.hidden = true;
-                    }
-                });
-            };
-
-            navGroups.forEach((group) => {
-                const btn = group.querySelector('[data-nav-trigger]');
-                const submenu = group.querySelector('[data-nav-submenu]');
-                if (!btn || !submenu) {
-                    return;
-                }
-
-                btn.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    const isCurrentlyOpen = !submenu.hidden;
-                    closeAllSubmenus();
-                    if (!isCurrentlyOpen) {
-                        submenu.hidden = false;
-                        btn.setAttribute('aria-expanded', 'true');
-                    }
-                });
-            });
-
-            document.addEventListener('click', (event) => {
-                if (!event.target.closest('[data-nav-group]')) {
-                    closeAllSubmenus();
-                }
-            });
-
-            const mobileOpen = document.getElementById('mobile-menu-open');
-            const mobileClose = document.getElementById('mobile-menu-close');
-            const mobileDrawer = document.getElementById('mobile-nav-drawer');
-            const mobileNavContent = document.getElementById('mobile-nav-content');
-            const desktopNav = document.getElementById('desktop-primary-nav');
-            let drawerRelease = null;
-
-            const copyLinkAttributes = (source, target) => {
-                const href = source.getAttribute('href') || '#';
-                target.setAttribute('href', href);
-                const tgt = source.getAttribute('target');
-                const rel = source.getAttribute('rel');
-                if (tgt) target.setAttribute('target', tgt);
-                if (rel) target.setAttribute('rel', rel);
-                target.textContent = (source.textContent || '').trim();
-            };
-
-            const hydrateMobileNav = () => {
-                if (!mobileNavContent || mobileNavContent.dataset.hydrated || !desktopNav) {
-                    return;
-                }
-                const frag = document.createDocumentFragment();
-                desktopNav.querySelectorAll('[data-nav-group]').forEach((group) => {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'border-b border-hairline pb-3';
-
-                    const trigger = group.querySelector('[data-nav-trigger]');
-                    const submenu = group.querySelector('[data-nav-submenu]');
-
-                    if (trigger && submenu) {
-                        const titleEl = document.createElement('p');
-                        titleEl.className = 'font-serif text-sm font-bold text-primary-deep';
-                        const labelSpan = trigger.querySelector('span');
-                        titleEl.textContent = ((labelSpan ? labelSpan.textContent : trigger.textContent) || '').trim();
-                        wrapper.appendChild(titleEl);
-
-                        const childList = document.createElement('ul');
-                        childList.className = 'mt-2 space-y-1';
-                        let lastLi = null;
-
-                        Array.from(submenu.children).forEach((el) => {
-                            if (el.tagName === 'P') {
-                                const li = document.createElement('li');
-                                const span = document.createElement('span');
-                                span.className = 'block px-2 py-2 text-xs font-bold text-ink-muted uppercase';
-                                span.textContent = (el.textContent || '').trim();
-                                li.appendChild(span);
-                                childList.appendChild(li);
-                                lastLi = li;
-                            } else if (el.tagName === 'A') {
-                                const li = document.createElement('li');
-                                const link = document.createElement('a');
-                                link.className = 'flex min-h-11 items-center rounded px-2 text-xs font-medium text-ink hover:bg-primary-soft hover:text-primary';
-                                copyLinkAttributes(el, link);
-                                li.appendChild(link);
-                                childList.appendChild(li);
-                                lastLi = li;
-                            } else if (el.tagName === 'UL') {
-                                const grandList = document.createElement('ul');
-                                grandList.className = 'border-s-2 border-hairline ps-3 ml-2 space-y-1';
-                                el.querySelectorAll('a').forEach((gAnchor) => {
-                                    const gLi = document.createElement('li');
-                                    const gLink = document.createElement('a');
-                                    gLink.className = 'flex min-h-11 items-center rounded px-2 text-xs text-ink-body hover:bg-primary-soft hover:text-primary';
-                                    copyLinkAttributes(gAnchor, gLink);
-                                    gLi.appendChild(gLink);
-                                    grandList.appendChild(gLi);
-                                });
-                                (lastLi || childList).appendChild(grandList);
-                            }
-                        });
-
-                        wrapper.appendChild(childList);
-                    } else {
-                        const direct = group.querySelector('a');
-                        if (direct) {
-                            const link = document.createElement('a');
-                            link.className = 'flex min-h-11 items-center font-serif text-sm font-bold text-primary-deep hover:text-primary';
-                            copyLinkAttributes(direct, link);
-                            wrapper.appendChild(link);
-                        }
-                    }
-
-                    frag.appendChild(wrapper);
-                });
-
-                mobileNavContent.appendChild(frag);
-                mobileNavContent.dataset.hydrated = '1';
-            };
-
-            const closeDrawer = (restoreFocus = false) => {
-                if (!mobileDrawer || !mobileOpen) {
-                    return;
-                }
-                if (mobileDrawer.hidden) {
-                    return;
-                }
-                drawerRelease?.();
-                drawerRelease = null;
-                mobileDrawer.hidden = true;
-                mobileOpen.setAttribute('aria-expanded', 'false');
-                if (restoreFocus) {
-                    mobileOpen.focus();
-                }
-            };
-
-            mobileOpen?.addEventListener('click', () => {
-                if (!mobileDrawer) {
-                    return;
-                }
-                hydrateMobileNav();
-                mobileDrawer.hidden = false;
-                mobileOpen.setAttribute('aria-expanded', 'true');
-                drawerRelease = window.createFocusTrap(mobileDrawer, mobileClose);
-            });
-
-            mobileClose?.addEventListener('click', () => closeDrawer(true));
-            mobileDrawer?.addEventListener('click', (event) => {
-                if (event.target === mobileDrawer) {
-                    closeDrawer(true);
-                }
-            });
-
-            document.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape') {
-                    closeAllSubmenus();
-                    if (mobileDrawer && !mobileDrawer.hidden) {
-                        closeDrawer(true);
-                    }
-                }
-            });
-
-            const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            const revealItems = Array.from(document.querySelectorAll('.pub-reveal'));
-
-            if (!prefersReducedMotion && !document.documentElement.classList.contains('a11y-no-motion') && 'IntersectionObserver' in window && revealItems.length > 0) {
-                document.documentElement.classList.add('pub-motion-ready');
-                const observer = new IntersectionObserver((entries) => {
-                    entries.forEach((entry) => {
-                        if (entry.isIntersecting) {
-                            entry.target.classList.add('is-visible');
-                            observer.unobserve(entry.target);
-                        }
-                    });
-                }, { rootMargin: '0px 0px -32px 0px', threshold: 0.05 });
-
-                revealItems.forEach((el) => observer.observe(el));
-            } else {
-                revealItems.forEach((el) => el.classList.add('is-visible'));
-            }
-
-            // Instant Hover & Touch Link Prefetcher for Internal Public Routes
-            const prefetched = new Set();
-            const canPrefetch = (anchor) => {
-                if (!anchor || !anchor.href || anchor.target === '_blank' || anchor.hasAttribute('download')) {
-                    return false;
-                }
-                try {
-                    const u = new URL(anchor.href, window.location.origin);
-                    if (u.origin !== window.location.origin || u.href === window.location.href || u.hash) {
-                        return false;
-                    }
-                    const adminPrefix = @js('/'.trim((string) config('satker.admin_path', 'panel-admin'), '/'));
-                    if (u.pathname === adminPrefix || u.pathname.startsWith(adminPrefix + '/') || u.pathname.startsWith('/setup') || u.pathname.startsWith('/storage')) {
-                        return false;
-                    }
-                    return !prefetched.has(u.href);
-                } catch (e) {
-                    return false;
-                }
-            };
-            const triggerPrefetch = (href) => {
-                if (prefetched.has(href) || prefetched.size > 20) {
-                    return;
-                }
-                prefetched.add(href);
-                const link = document.createElement('link');
-                link.rel = 'prefetch';
-                link.href = href;
-                link.as = 'document';
-                document.head.appendChild(link);
-            };
-            let hoverTimer = null;
-            document.addEventListener('mouseover', (e) => {
-                const a = e.target.closest && e.target.closest('a[href]');
-                if (!canPrefetch(a)) {
-                    return;
-                }
-                clearTimeout(hoverTimer);
-                hoverTimer = setTimeout(() => triggerPrefetch(a.href), 65);
-            }, { passive: true });
-            document.addEventListener('touchstart', (e) => {
-                const a = e.target.closest && e.target.closest('a[href]');
-                if (canPrefetch(a)) {
-                    triggerPrefetch(a.href);
-                }
-            }, { passive: true });
-        })();
-    </script>
 </body>
 </html>

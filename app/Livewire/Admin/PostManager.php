@@ -122,7 +122,7 @@ class PostManager extends Component
         $imagePath = $oldImagePath;
 
         if ($this->featured_image !== null) {
-            $imagePath = app(ImageOptimizerService::class)->storeOptimized($this->featured_image, 'posts', 1000, 82);
+            $imagePath = app(ImageOptimizerService::class)->storeOptimized($this->featured_image, 'posts', 1000, 82, 'public', [400, 720]);
         }
 
         $data = [
@@ -142,7 +142,7 @@ class PostManager extends Component
         if ($existing !== null) {
             $existing->update($data);
             if ($this->featured_image !== null && is_string($oldImagePath) && $oldImagePath !== '' && $oldImagePath !== $imagePath) {
-                Storage::disk('public')->delete($oldImagePath);
+                app(ImageOptimizerService::class)->deleteWithVariants($oldImagePath);
             }
             $this->statusNotice = 'Publikasi berhasil diperbarui.';
         } else {

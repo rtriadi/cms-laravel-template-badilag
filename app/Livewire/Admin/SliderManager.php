@@ -113,7 +113,7 @@ class SliderManager extends Component
         $oldImagePath = $existing?->image_path;
         $imagePath = $oldImagePath;
         if ($this->image !== null) {
-            $imagePath = app(ImageOptimizerService::class)->storeOptimized($this->image, 'sliders', 1280, 82);
+            $imagePath = app(ImageOptimizerService::class)->storeOptimized($this->image, 'sliders', 1280, 82, 'public', [480, 800]);
         }
 
         $data = [
@@ -129,7 +129,7 @@ class SliderManager extends Component
         if ($existing !== null) {
             $existing->update($data);
             if ($this->image !== null && is_string($oldImagePath) && $oldImagePath !== '' && $oldImagePath !== $imagePath) {
-                Storage::disk('public')->delete($oldImagePath);
+                app(ImageOptimizerService::class)->deleteWithVariants($oldImagePath);
             }
             $this->statusNotice = 'Slide beranda berhasil diperbarui.';
         } else {

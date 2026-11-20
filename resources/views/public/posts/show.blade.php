@@ -2,9 +2,15 @@
     $postCanonical = route('public.posts.show', ['slug' => $post->slug]);
     $rawPostDesc = trim((string) preg_replace('/\s+/', ' ', strip_tags((string) ($post->excerpt ?: $post->body))));
     $postDescription = $rawPostDesc !== ''
-        ? \Illuminate\Support\Str::limit($rawPostDesc, 160)
+        ? \App\Support\SeoText::excerpt($rawPostDesc, 155)
         : $post->title;
     $postOgImage = $post->featured_image_path ? asset('storage/' . $post->featured_image_path) : null;
+    $postSchemaImage = $postOgImage
+        ?: ($satker?->foto_gedung_path ? asset('storage/' . $satker->foto_gedung_path) : ($satker?->logo_path ? asset('storage/' . $satker->logo_path) : null));
+    $articleImgSizes = '(max-width: 1024px) calc(100vw - 32px), 896px';
+    $featuredImgAttrs = $post->featured_image_path
+        ? \App\Services\ImageOptimizerService::responsiveAttributes($post->featured_image_path, [400, 480, 720, 800], $articleImgSizes, null, 1000)
+        : null;
     $publishedIso = ($post->published_at ?? $post->created_at)?->toAtomString();
     $modifiedIso = ($post->updated_at ?? $post->published_at ?? $post->created_at)?->toAtomString();
     $categoryLabel = $categories[$post->category] ?? $post->category;
@@ -20,13 +26,14 @@
                 '@type' => 'WebPage',
                 '@id' => $postCanonical,
             ],
-            'image' => $postOgImage ? [$postOgImage] : null,
+            'image' => $postSchemaImage ? [$postSchemaImage] : null,
             'datePublished' => $publishedIso,
             'dateModified' => $modifiedIso,
             'author' => [
                 '@type' => 'Organization',
                 '@id' => route('home') . '#organization',
                 'name' => $satker?->nama_satker ?? 'Portal Resmi Peradilan Agama',
+                'url' => route('home'),
             ],
             'publisher' => [
                 '@id' => route('home') . '#organization',
@@ -63,6 +70,11 @@
     :canonical="$postCanonical"
     og-type="article"
     :og-image="$postOgImage"
+    :og-image-path="$post->featured_image_path"
+    :og-image-alt="$post->featured_image_alt ?: $post->title"
+    :preload-image="$featuredImgAttrs['src'] ?? null"
+    :preload-image-srcset="$featuredImgAttrs['srcset'] ?? null"
+    :preload-image-sizes="$featuredImgAttrs['sizes'] ?? null"
     :published-at="$publishedIso"
     :modified-at="$modifiedIso"
     :json-ld="$postSchemas"
@@ -74,7 +86,7 @@
 
     <div class="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <!-- Institutional Judicial Hero Banner -->
-        <header class="pub-reveal relative overflow-hidden rounded-xl border border-emerald-900 border-b-4 border-b-gold bg-primary-deep p-6 text-white shadow-xs sm:p-8">
+        <header class="relative overflow-hidden rounded-xl border border-emerald-900 border-b-4 border-b-gold bg-primary-deep p-6 text-white shadow-xs sm:p-8">
             <svg aria-hidden="true" class="pub-crest-float pointer-events-none absolute -top-8 -right-8 size-56 text-white/6 sm:size-68" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                 <path d="M12 3v18M5 7h14M8 21h8M5 7l-3 6h6l-3-6zM19 7l-3 6h6l-3-6z" />
             </svg>
@@ -115,13 +127,15 @@
             </div>
         </header>
 
-        <article class="pub-reveal rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-6 shadow-2xs sm:p-8" style="--stagger-delay: 50ms">
-            @if ($post->featured_image_path)
+        <article class="rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-6 shadow-2xs sm:p-8">
+            @if ($post->featured_image_path && $featuredImgAttrs)
                 <img
-                    src="{{ asset('storage/' . $post->featured_image_path) }}"
+                    src="{{ $featuredImgAttrs['src'] }}"
+                    @if ($featuredImgAttrs['srcset']) srcset="{{ $featuredImgAttrs['srcset'] }}" sizes="{{ $featuredImgAttrs['sizes'] }}" @endif
                     alt="{{ $post->featured_image_alt ?: $post->title }}"
                     width="820"
                     height="440"
+                    fetchpriority="high"
                     decoding="async"
                     class="mb-6 max-h-96 w-full rounded-lg object-cover"
                 />
@@ -148,30 +162,5 @@
             </aside>
         @endif
     </div>
-
-    <script>
-        (() => {
-            const bar = document.querySelector('[data-read-progress]');
-            if (!bar) {
-                return;
-            }
-            let ticking = false;
-            const update = () => {
-                ticking = false;
-                const doc = document.documentElement;
-                const max = Math.max(1, doc.scrollHeight - window.innerHeight);
-                const ratio = Math.min(1, Math.max(0, window.scrollY / max));
-                bar.style.setProperty('--read-progress', ratio.toFixed(4));
-            };
-            const onScroll = () => {
-                if (!ticking) {
-                    ticking = true;
-                    window.requestAnimationFrame(update);
-                }
-            };
-            window.addEventListener('scroll', onScroll, { passive: true });
-            update();
-        })();
-    </script>
 </x-layouts.public>
 
