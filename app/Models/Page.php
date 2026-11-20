@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Http\Controllers\PublicComplianceController;
 use App\Http\Controllers\PublicHomeController;
 use Database\Factories\PageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -46,11 +47,13 @@ class Page extends Model
         static::saved(function (): void {
             MenuItem::flushPublicCache();
             PublicHomeController::flushCache();
+            PublicComplianceController::flushCache();
         });
 
         static::deleted(function (): void {
             MenuItem::flushPublicCache();
             PublicHomeController::flushCache();
+            PublicComplianceController::flushCache();
         });
 
         static::updating(function (self $page): void {

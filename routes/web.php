@@ -21,8 +21,14 @@ use App\Livewire\Admin\TwoFactorSetup;
 use App\Livewire\Admin\UserRoleManager;
 use App\Livewire\SetupWizard;
 use App\Services\LocalCaptchaService;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Http\Response;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 Route::get('/', PublicHomeController::class)->name('home');
 
@@ -40,8 +46,21 @@ Route::get('/aksesibilitas', [PublicComplianceController::class, 'accessibility'
 Route::get('/status-sistem', [PublicComplianceController::class, 'systemStatus'])->name('public.system-status');
 Route::get('/statistik-pengunjung', [PublicComplianceController::class, 'visitorStats'])->name('public.visitor-stats');
 Route::get('/peta-situs', [PublicComplianceController::class, 'sitemapHtml'])->name('public.sitemap');
-Route::get('/sitemap.xml', [PublicComplianceController::class, 'sitemapXml'])->name('public.sitemap.xml');
-Route::get('/robots.txt', [PublicComplianceController::class, 'robotsTxt'])->name('public.robots');
+$statelessCrawlerMiddleware = [
+    EncryptCookies::class,
+    AddQueuedCookiesToResponse::class,
+    StartSession::class,
+    ShareErrorsFromSession::class,
+    PreventRequestForgery::class,
+    ValidateCsrfToken::class,
+];
+
+Route::get('/sitemap.xml', [PublicComplianceController::class, 'sitemapXml'])
+    ->withoutMiddleware($statelessCrawlerMiddleware)
+    ->name('public.sitemap.xml');
+Route::get('/robots.txt', [PublicComplianceController::class, 'robotsTxt'])
+    ->withoutMiddleware($statelessCrawlerMiddleware)
+    ->name('public.robots');
 
 Route::get('/setup', SetupWizard::class)->name('setup');
 

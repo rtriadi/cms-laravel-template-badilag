@@ -6,12 +6,12 @@ use App\Models\Document;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\SatkerSetting;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class PublicSearchController extends Controller
 {
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): Response
     {
         $query = mb_substr(trim((string) $request->query('q', '')), 0, 120);
         $satker = SatkerSetting::current();
@@ -71,13 +71,15 @@ class PublicSearchController extends Controller
                 ->get();
         }
 
-        return view('public.search', [
-            'query' => $query,
-            'pages' => $pages,
-            'posts' => $posts,
-            'documents' => $documents,
-            'collections' => Document::collectionTypes(),
-            'categories' => Post::categoryLabels(),
-        ]);
+        return response()
+            ->view('public.search', [
+                'query' => $query,
+                'pages' => $pages,
+                'posts' => $posts,
+                'documents' => $documents,
+                'collections' => Document::collectionTypes(),
+                'categories' => Post::categoryLabels(),
+            ])
+            ->header('X-Robots-Tag', 'noindex, follow');
     }
 }

@@ -41,11 +41,8 @@ class PublicHomeController extends Controller
                     ->all(),
                 'sertaMerta' => Post::query()
                     ->select(['id', 'title', 'slug', 'category', 'is_pinned', 'published_at', 'created_at'])
-                    ->where('is_published', true)
+                    ->publishedActive()
                     ->where('category', 'serta_merta')
-                    ->where(function ($q): void {
-                        $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
-                    })
                     ->orderByDesc('is_pinned')
                     ->orderByDesc('published_at')
                     ->limit(2)
@@ -54,7 +51,7 @@ class PublicHomeController extends Controller
                     ->all(),
                 'latestNews' => Post::query()
                     ->select(['id', 'title', 'slug', 'category', 'excerpt', 'featured_image_path', 'featured_image_alt', 'is_pinned', 'published_at', 'created_at'])
-                    ->where('is_published', true)
+                    ->publishedActive()
                     ->whereIn('category', ['berita', 'layanan_hukum', 'inovasi', 'opini', 'infografis'])
                     ->orderByDesc('is_pinned')
                     ->orderByDesc('published_at')
@@ -65,7 +62,7 @@ class PublicHomeController extends Controller
                     ->all(),
                 'announcements' => Post::query()
                     ->select(['id', 'title', 'slug', 'category', 'is_pinned', 'published_at', 'created_at'])
-                    ->where('is_published', true)
+                    ->publishedActive()
                     ->where('category', 'pengumuman')
                     ->orderByDesc('is_pinned')
                     ->orderByDesc('published_at')

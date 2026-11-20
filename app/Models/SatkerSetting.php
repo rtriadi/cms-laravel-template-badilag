@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Http\Controllers\PublicComplianceController;
 use App\Http\Controllers\PublicHomeController;
 use App\Support\SafeHtml;
 use Database\Factories\SatkerSettingFactory;
@@ -96,11 +97,13 @@ class SatkerSetting extends Model
         static::saved(function (): void {
             Cache::forget(self::CACHE_KEY);
             PublicHomeController::flushCache();
+            PublicComplianceController::flushCache();
         });
 
         static::deleted(function (): void {
             Cache::forget(self::CACHE_KEY);
             PublicHomeController::flushCache();
+            PublicComplianceController::flushCache();
         });
     }
 

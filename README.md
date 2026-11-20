@@ -224,26 +224,8 @@ php artisan optimize
      ```
 3. Pastikan izin folder `storage/` dan `bootstrap/cache/` bernilai `775` (atau `755` sesuai konfigurasi suPHP/LiteSpeed hosting).
 
-### Langkah 7: Optimasi `.htaccess` (Kompresi Gzip & Cache Aset Statis)
-Tambahkan blok berikut di bagian paling bawah file `public/.htaccess` (atau `public_html/.htaccess`) agar skor performa seluler maksimal:
-
-```apache
-# Kompresi Gzip untuk HTML, CSS, JS, JSON, SVG
-<IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript application/json image/svg+xml
-</IfModule>
-
-# Cache jangka panjang untuk aset Vite & gambar WebP
-<IfModule mod_expires.c>
-    ExpiresActive On
-    ExpiresByType text/css "access plus 1 year"
-    ExpiresByType application/javascript "access plus 1 year"
-    ExpiresByType image/webp "access plus 1 year"
-    ExpiresByType image/png "access plus 1 year"
-    ExpiresByType image/jpeg "access plus 1 year"
-    ExpiresByType font/woff2 "access plus 1 year"
-</IfModule>
-```
+### Langkah 7: Verifikasi `.htaccess` (Kompresi Gzip & Cache Aset Statis)
+File `public/.htaccess` bawaan repositori sudah menyertakan aturan kompresi Gzip (`mod_deflate`), cache aset jangka panjang (`mod_expires`), dan header `Cache-Control: public, max-age=31536000, immutable` untuk aset statis, serta pemblokiran eksekusi PHP di dalam `storage/`. Pastikan file `public/.htaccess` (atau `public_html/.htaccess`) ikut terunggah utuh tanpa tertimpa bawaan hosting.
 
 Buka `https://pa-contoh.go.id` di browser dan lanjutkan ke bagian [7. Setup Awal Aplikasi](#7-setup-awal-aplikasi--login-admin).
 

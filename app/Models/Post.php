@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Http\Controllers\PublicComplianceController;
 use App\Http\Controllers\PublicHomeController;
 use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -48,10 +49,12 @@ class Post extends Model
     {
         static::saved(function (): void {
             PublicHomeController::flushCache();
+            PublicComplianceController::flushCache();
         });
 
         static::deleted(function (): void {
             PublicHomeController::flushCache();
+            PublicComplianceController::flushCache();
         });
     }
 
