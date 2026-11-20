@@ -25,7 +25,19 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
-/graphify-out/.graphify_*
-/graphify-out/.needs_update
-/graphify-out/cache/
-/graphify-out/20??-??-??/
+
+# AI Assistants, Agents, Skills, MCP & Graphify
+/.agents/
+/.ai/
+/.antigravity/
+/.claude/
+/.gemini/
+/.windsurf/
+/.mcp.json
+/.graphifyignore
+/graphify-out/
+/skills/
+/AGENTS.md
+/CLAUDE.md
+/GEMINI.md
+/boost.json
