@@ -8,6 +8,7 @@ use App\Support\SafeHtml;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 #[Layout('components.layouts.admin')]
@@ -15,6 +16,7 @@ class MenuManager extends Component
 {
     public string $locationFilter = 'header';
 
+    #[Locked]
     public ?int $editingId = null;
 
     public ?int $parent_id = null;
@@ -267,6 +269,8 @@ class MenuManager extends Component
 
     public function render(): View
     {
+        $this->authorizeAccess();
+
         $rootMenus = MenuItem::query()
             ->with(['page', 'children.page', 'children.children.page'])
             ->where('location', $this->locationFilter)

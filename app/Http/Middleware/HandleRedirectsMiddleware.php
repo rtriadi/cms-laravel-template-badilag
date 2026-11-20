@@ -16,7 +16,7 @@ class HandleRedirectsMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->isMethod('GET')) {
+        if ($request->isMethod('GET') && ! $this->isReservedPath($request)) {
             $path = '/'.ltrim($request->path(), '/');
 
             if ($path !== '/') {
@@ -32,5 +32,26 @@ class HandleRedirectsMiddleware
         }
 
         return $next($request);
+    }
+
+    private function isReservedPath(Request $request): bool
+    {
+        $adminPath = trim((string) config('satker.admin_path', 'panel-admin'), '/');
+
+        return $request->is(
+            $adminPath,
+            $adminPath.'/*',
+            'setup',
+            'setup/*',
+            'livewire/*',
+            'livewire-*/*',
+            'flux/*',
+            'up',
+            'captcha-image',
+            'captcha-text',
+            'robots.txt',
+            'sitemap.xml',
+            'storage/*',
+        );
     }
 }

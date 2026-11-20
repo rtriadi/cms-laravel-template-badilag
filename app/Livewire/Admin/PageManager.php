@@ -12,6 +12,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 #[Layout('components.layouts.admin')]
@@ -23,6 +24,7 @@ class PageManager extends Component
 
     public bool $editorOpen = false;
 
+    #[Locked]
     public ?int $editingId = null;
 
     public string $title = '';
@@ -231,6 +233,8 @@ class PageManager extends Component
 
     public function render(): View
     {
+        $this->authorizeAccess();
+
         $pages = Page::query()
             ->when($this->sectionFilter !== '', function ($query): void {
                 $query->where('slug', 'like', $this->sectionFilter.'/%');

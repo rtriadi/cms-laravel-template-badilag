@@ -19,11 +19,7 @@ class Dashboard extends Component
 
     public function mount(): void
     {
-        $user = auth()->user();
-        abort_unless(
-            $user !== null && ($user->can('view-compliance-dashboard') || $user->hasRole('super_admin')),
-            403
-        );
+        $this->authorizeView();
     }
 
     public function runQuickAudit(SinovaHealthCheckService $healthCheck): void
@@ -38,8 +34,19 @@ class Dashboard extends Component
         $this->auditMessage = "Pemeriksaan selesai: {$counts['healthy']} siap, {$counts['warning']} perlu perbaikan, {$counts['broken']} bermasalah, {$counts['empty']} kosong.";
     }
 
+    private function authorizeView(): void
+    {
+        $user = auth()->user();
+        abort_unless(
+            $user !== null && ($user->can('view-compliance-dashboard') || $user->hasRole('super_admin')),
+            403
+        );
+    }
+
     public function render(SinovaHealthCheckService $healthCheck): View
     {
+        $this->authorizeView();
+
         $satker = SatkerSetting::current();
         $activeTingkat = $satker?->tingkat ?? 'pertama';
         $summary = $healthCheck->scoreSummary($activeTingkat);

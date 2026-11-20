@@ -55,6 +55,16 @@ class TwoFactorSetup extends Component
 
     public function regenerateRecoveryCodes(GenerateNewRecoveryCodes $generator): void
     {
+        $confirmedAt = (int) session('auth.password_confirmed_at', 0);
+        $timeout = (int) config('auth.password_timeout', 10800);
+
+        if ($confirmedAt <= 0 || (time() - $confirmedAt) > $timeout) {
+            session()->put('url.intended', route('admin.two-factor.setup'));
+            $this->redirectRoute('password.confirm');
+
+            return;
+        }
+
         /** @var User $user */
         $user = Auth::user();
         $generator($user);

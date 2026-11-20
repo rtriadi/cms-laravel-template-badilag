@@ -8,6 +8,8 @@ class LocalCaptchaService
 {
     public const string SESSION_KEY = 'local_captcha_hash';
 
+    private const string HMAC_PREFIX = 'hmac:';
+
     public function generateCode(): string
     {
         $alphabet = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -17,20 +19,25 @@ class LocalCaptchaService
             $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
         }
 
-        session([self::SESSION_KEY => Hash::make($code)]);
+        session([self::SESSION_KEY => $this->signCode($code)]);
 
         return $code;
     }
 
     public function verify(string $input): bool
     {
-        $hash = session()->pull(self::SESSION_KEY);
+        $stored = session()->pull(self::SESSION_KEY);
+        $normalized = strtoupper(trim($input));
 
-        if (! is_string($hash) || $hash === '' || trim($input) === '') {
+        if (! is_string($stored) || $stored === '' || $normalized === '') {
             return false;
         }
 
-        return Hash::check(strtoupper(trim($input)), $hash);
+        if (str_starts_with($stored, self::HMAC_PREFIX)) {
+            return hash_equals($stored, $this->signCode($normalized));
+        }
+
+        return Hash::check($normalized, $stored);
     }
 
     public function generateSvg(?string $code = null): string
@@ -59,5 +66,12 @@ class LocalCaptchaService
         $svgParts[] = '</svg>';
 
         return implode('', $svgParts);
+    }
+
+    private function signCode(string $code): string
+    {
+        $key = (string) config('app.key', 'satkercms-local-captcha');
+
+        return self::HMAC_PREFIX.hash_hmac('sha256', strtoupper($code), $key);
     }
 }

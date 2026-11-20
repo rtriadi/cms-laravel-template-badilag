@@ -54,11 +54,27 @@ class AuditAndBackupManager extends Component
             'to_path.required' => 'Tujuan pengalihan wajib diisi.',
         ]);
 
+        if ($this->isReservedRedirectSource($normalizedFrom)) {
+            $this->addError('from_path', 'Path asal tidak boleh menimpa rute sistem, setup, autentikasi, atau panel admin.');
+
+            return;
+        }
+
         $cleanTo = SafeHtml::cleanUrl($this->to_path);
         if ($cleanTo === null) {
             $this->addError('to_path', 'Tujuan pengalihan harus berupa path internal (/...) atau URL http(s) yang valid.');
 
             return;
+        }
+
+        if (! str_starts_with($cleanTo, '/') && ! auth()->user()?->hasRole('super_admin')) {
+            $targetHost = strtolower((string) parse_url($cleanTo, PHP_URL_HOST));
+            $appHost = strtolower((string) parse_url((string) config('app.url'), PHP_URL_HOST));
+            if ($targetHost === '' || $targetHost !== $appHost) {
+                $this->addError('to_path', 'Hanya Super Admin yang dapat membuat pengalihan ke domain eksternal.');
+
+                return;
+            }
         }
 
         if ($cleanTo === $normalizedFrom) {
@@ -67,7 +83,7 @@ class AuditAndBackupManager extends Component
             return;
         }
 
-        if (Redirect::query()->where('from_path', $cleanTo)->where('to_path', $normalizedFrom)->exists()) {
+        if ($this->wouldCreateRedirectLoop($normalizedFrom, $cleanTo)) {
             $this->addError('to_path', 'Aturan ini akan menciptakan loop pengalihan berbalik dengan aturan yang sudah ada.');
 
             return;
@@ -91,6 +107,76 @@ class AuditAndBackupManager extends Component
         $this->statusNotice = 'Aturan pengalihan berhasil dihapus.';
     }
 
+    private function isReservedRedirectSource(string $normalizedPath): bool
+    {
+        $lower = strtolower($normalizedPath);
+        $adminPath = strtolower(trim((string) config('satker.admin_path', 'panel-admin'), '/'));
+
+        $reservedExact = [
+            '/',
+            '/'.$adminPath,
+            '/setup',
+            '/up',
+            '/captcha-image',
+            '/captcha-text',
+            '/robots.txt',
+            '/sitemap.xml',
+            '/login',
+            '/two-factor-challenge',
+        ];
+
+        if (in_array($lower, $reservedExact, true)) {
+            return true;
+        }
+
+        $reservedPrefixes = [
+            '/'.$adminPath.'/',
+            '/setup/',
+            '/livewire/',
+            '/livewire-',
+            '/flux/',
+            '/storage/',
+        ];
+
+        foreach ($reservedPrefixes as $prefix) {
+            if (str_starts_with($lower, $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function wouldCreateRedirectLoop(string $fromPath, string $toPath): bool
+    {
+        if (! str_starts_with($toPath, '/')) {
+            return false;
+        }
+
+        $map = Redirect::query()->pluck('to_path', 'from_path')->all();
+        $cursor = $toPath;
+        $visited = [$fromPath => true];
+
+        for ($hop = 0; $hop < 20; $hop++) {
+            if (isset($visited[$cursor])) {
+                return true;
+            }
+
+            if (! isset($map[$cursor])) {
+                return false;
+            }
+
+            $visited[$cursor] = true;
+            $cursor = (string) $map[$cursor];
+
+            if (! str_starts_with($cursor, '/')) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private function authorizeView(): void
     {
         $user = auth()->user();
@@ -111,6 +197,8 @@ class AuditAndBackupManager extends Component
 
     public function render(): View
     {
+        $this->authorizeView();
+
         return view('livewire.admin.audit-and-backup-manager', [
             'linkLogs' => LinkCheckLog::query()->orderByDesc('is_broken')->orderByDesc('checked_at')->limit(50)->get(),
             'redirects' => Redirect::query()->orderByDesc('id')->get(),

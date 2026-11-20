@@ -54,11 +54,22 @@ class FortifyServiceProvider extends ServiceProvider
                 $request->attributes->set('captcha_verified', true);
             }
 
+            $password = (string) $request->input('password');
             $user = User::query()
                 ->where('email', Str::lower((string) $request->input(Fortify::username())))
                 ->first();
 
-            if ($user !== null && Hash::check((string) $request->input('password'), $user->password)) {
+            if ($user === null) {
+                Hash::check($password, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
+
+                return null;
+            }
+
+            if (Hash::check($password, $user->password)) {
+                if (Hash::needsRehash($user->password)) {
+                    $user->forceFill(['password' => Hash::make($password)])->save();
+                }
+
                 return $user;
             }
 

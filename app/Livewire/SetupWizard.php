@@ -120,7 +120,12 @@ class SetupWizard extends Component
         ));
 
         $admin = DB::transaction(function (): User {
-            $setting = SatkerSetting::query()->firstOrNew();
+            $setting = SatkerSetting::query()->lockForUpdate()->first();
+            if ($setting !== null && $setting->is_setup_completed) {
+                abort(403, 'Setup awal sudah selesai dijalankan.');
+            }
+
+            $setting ??= new SatkerSetting;
             $setting->fill([
                 'nama_satker' => $this->nama_satker,
                 'jenis_badan' => $this->jenis_badan,
@@ -163,6 +168,9 @@ class SetupWizard extends Component
         });
 
         Auth::login($admin);
+        if (request()->hasSession()) {
+            request()->session()->regenerate();
+        }
 
         $this->redirectRoute('admin.two-factor.setup');
     }
@@ -189,17 +197,17 @@ class SetupWizard extends Component
                 'kode_pos' => ['nullable', 'string', 'max:10'],
                 'telepon' => ['required', 'string', 'max:50'],
                 'email' => ['required', 'email', 'max:255'],
-                'website_url' => ['nullable', 'url', 'max:255'],
+                'website_url' => ['nullable', 'url:http,https', 'max:255'],
             ],
             3 => [
-                'sipp_url' => ['nullable', 'url', 'max:255'],
-                'ecourt_url' => ['nullable', 'url', 'max:255'],
-                'direktori_putusan_url' => ['nullable', 'url', 'max:255'],
-                'siwas_url' => ['nullable', 'url', 'max:255'],
-                'simtepa_pegawai_url' => ['nullable', 'url', 'max:255'],
-                'simtepa_struktur_url' => ['nullable', 'url', 'max:255'],
-                'skm_url' => ['nullable', 'url', 'max:255'],
-                'spak_url' => ['nullable', 'url', 'max:255'],
+                'sipp_url' => ['nullable', 'url:http,https', 'max:255'],
+                'ecourt_url' => ['nullable', 'url:http,https', 'max:255'],
+                'direktori_putusan_url' => ['nullable', 'url:http,https', 'max:255'],
+                'siwas_url' => ['nullable', 'url:http,https', 'max:255'],
+                'simtepa_pegawai_url' => ['nullable', 'url:http,https', 'max:255'],
+                'simtepa_struktur_url' => ['nullable', 'url:http,https', 'max:255'],
+                'skm_url' => ['nullable', 'url:http,https', 'max:255'],
+                'spak_url' => ['nullable', 'url:http,https', 'max:255'],
             ],
             4 => [
                 'admin_name' => ['required', 'string', 'max:255'],

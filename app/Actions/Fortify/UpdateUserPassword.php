@@ -2,6 +2,7 @@
 
 namespace App\Actions\Fortify;
 
+use App\Actions\Security\InvalidateUserSessions;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -31,5 +32,8 @@ class UpdateUserPassword implements UpdatesUserPasswords
         $user->forceFill([
             'password' => Hash::make($input['password']),
         ])->save();
+
+        $currentSessionId = request()->hasSession() ? request()->session()->getId() : null;
+        app(InvalidateUserSessions::class)->execute($user, $currentSessionId);
     }
 }

@@ -65,7 +65,7 @@ class KepaniteraanManager extends Component
 
     public function saveSchedule(): void
     {
-        $this->authorizeAccess();
+        $this->authorizeKepaniteraanOnly();
 
         $this->validate([
             'tanggal_sidang' => ['required', 'date'],
@@ -89,13 +89,13 @@ class KepaniteraanManager extends Component
 
     public function deleteSchedule(int $id): void
     {
-        $this->authorizeAccess();
+        $this->authorizeKepaniteraanOnly();
         CourtSchedule::query()->findOrFail($id)->delete();
     }
 
     public function saveStatistic(): void
     {
-        $this->authorizeAccess();
+        $this->authorizeKepaniteraanOnly();
 
         $this->validate([
             'stat_year' => ['required', 'integer', 'min:2000', 'max:2100'],
@@ -119,7 +119,7 @@ class KepaniteraanManager extends Component
 
     public function deleteStatistic(int $id): void
     {
-        $this->authorizeAccess();
+        $this->authorizeKepaniteraanOnly();
         CaseStatistic::query()->findOrFail($id)->delete();
     }
 
@@ -161,6 +161,15 @@ class KepaniteraanManager extends Component
         Official::query()->findOrFail($id)->delete();
     }
 
+    private function authorizeKepaniteraanOnly(): void
+    {
+        $user = auth()->user();
+        abort_unless(
+            $user !== null && ($user->can('manage-kepaniteraan') || $user->hasAnyRole(['super_admin', 'admin_konten'])),
+            403
+        );
+    }
+
     private function authorizeAccess(): void
     {
         $user = auth()->user();
@@ -172,6 +181,8 @@ class KepaniteraanManager extends Component
 
     public function render(): View
     {
+        $this->authorizeAccess();
+
         return view('livewire.admin.kepaniteraan-manager', [
             'schedules' => CourtSchedule::query()->orderByDesc('tanggal_sidang')->limit(50)->get(),
             'statistics' => CaseStatistic::query()->orderByDesc('year')->orderByDesc('month')->get(),

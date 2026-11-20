@@ -32,7 +32,9 @@ Route::get('/halaman/{slug}', [PublicPageController::class, 'show'])
 
 Route::get('/publikasi', [PublicPostController::class, 'index'])->name('public.posts');
 Route::get('/publikasi/{slug}', [PublicPostController::class, 'show'])->name('public.posts.show');
-Route::get('/cari', PublicSearchController::class)->name('public.search');
+Route::get('/cari', PublicSearchController::class)
+    ->middleware('throttle:60,1')
+    ->name('public.search');
 
 Route::get('/aksesibilitas', [PublicComplianceController::class, 'accessibility'])->name('public.accessibility');
 Route::get('/status-sistem', [PublicComplianceController::class, 'systemStatus'])->name('public.system-status');
@@ -48,16 +50,14 @@ Route::get('/captcha-image', function (LocalCaptchaService $captcha): Response {
         'Content-Type' => 'image/svg+xml',
         'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
     ]);
-})->name('captcha.image');
+})->middleware('throttle:30,1')->name('captcha.image');
 
-// shortcut: kode teks bisa dibaca mesin; pembatas nyata adalah throttle login 5/menit.
-// Ganti ke tantangan audio bila penyalahgunaan bot terdeteksi.
 Route::get('/captcha-text', function (LocalCaptchaService $captcha): Response {
     return response($captcha->generateCode(), 200, [
         'Content-Type' => 'text/plain; charset=UTF-8',
         'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
     ]);
-})->name('captcha.text');
+})->middleware('throttle:15,1')->name('captcha.text');
 
 $adminPath = trim((string) config('satker.admin_path', 'panel-admin'), '/');
 
