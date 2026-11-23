@@ -5,8 +5,9 @@
     robots="noindex, follow"
 >
     <div class="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-        <header class="rounded-xl border border-hairline bg-white p-6">
-            <h1 class="font-serif text-2xl font-bold text-ink">Pencarian Informasi &amp; Dokumen</h1>
+        <header class="rounded-xl border border-emerald-900 border-b-4 border-b-gold bg-obsidian p-6 text-white shadow-xs sm:p-8">
+            <span class="inline-block rounded bg-gold px-2.5 py-0.5 font-mono text-2xs font-bold text-ink uppercase">Direktori Pencarian Portal</span>
+            <h1 class="mt-2 font-serif text-2xl font-bold text-white sm:text-3xl">Pencarian Informasi &amp; Dokumen</h1>
             <form action="{{ route('public.search') }}" method="GET" role="search" class="mt-4 flex flex-wrap gap-2">
                 <label for="page-search-q" class="sr-only">Kata kunci pencarian</label>
                 <input
@@ -17,9 +18,9 @@
                     minlength="2"
                     required
                     placeholder="Ketik kata kunci (minimal 2 karakter), misalnya: LKJIP, DIPA, sidang..."
-                    class="min-h-11 flex-1 rounded-md border border-hairline bg-mist px-4 text-sm text-ink"
+                    class="min-h-11 flex-1 rounded-lg border border-white/20 bg-white px-4 text-sm text-ink placeholder:text-ink-muted focus:border-gold focus:outline-none"
                 />
-                <button type="submit" class="min-h-11 cursor-pointer rounded-md bg-primary px-6 text-sm font-semibold text-white hover:bg-primary-hover">
+                <button type="submit" class="pub-btn min-h-11 cursor-pointer rounded-lg bg-gold px-6 text-xs font-bold text-ink hover:opacity-95">
                     Cari Informasi
                 </button>
             </form>
@@ -31,7 +32,7 @@
                     Hasil pencarian untuk kata kunci: <strong class="text-ink">{{ $query }}</strong>
                 </p>
 
-                <section class="rounded-xl border border-hairline bg-white p-6">
+                <section class="rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-6 shadow-2xs">
                     <h2 class="border-b border-hairline pb-3 font-serif text-lg font-bold text-ink">Halaman Informasi ({{ $pages->count() }})</h2>
                     @if ($pages->isEmpty())
                         <p class="py-4 text-xs text-ink-muted">Tidak ditemukan halaman yang cocok.</p>
@@ -49,7 +50,7 @@
                     @endif
                 </section>
 
-                <section class="rounded-xl border border-hairline bg-white p-6">
+                <section class="rounded-xl border border-hairline border-t-4 border-t-gold bg-white p-6 shadow-2xs">
                     <h2 class="border-b border-hairline pb-3 font-serif text-lg font-bold text-ink">Berita &amp; Pengumuman ({{ $posts->count() }})</h2>
                     @if ($posts->isEmpty())
                         <p class="py-4 text-xs text-ink-muted">Tidak ditemukan publikasi yang cocok.</p>
@@ -67,7 +68,7 @@
                     @endif
                 </section>
 
-                <section class="rounded-xl border border-hairline bg-white p-6">
+                <section class="rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-6 shadow-2xs">
                     <h2 class="border-b border-hairline pb-3 font-serif text-lg font-bold text-ink">Dokumen Publik ({{ $documents->count() }})</h2>
                     @if ($documents->isEmpty())
                         <p class="py-4 text-xs text-ink-muted">Tidak ditemukan dokumen yang cocok.</p>
@@ -81,12 +82,12 @@
                                         <p class="mt-0.5 font-mono text-2xs text-ink-muted">
                                             Diunggah: {{ \App\Support\Tanggal::format($doc->created_at, 'd M Y, H:i') }}
                                             @if ($doc->updated_at && $doc->created_at && $doc->updated_at->gt($doc->created_at))
-                                                · Diperbarui: {{ \App\Support\Tanggal::format($doc->updated_at, 'd M Y, H:i') }}
+                                                &middot; Diperbarui: {{ \App\Support\Tanggal::format($doc->updated_at, 'd M Y, H:i') }}
                                             @endif
                                         </p>
                                     </div>
                                     @if ($doc->file_path)
-                                        <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-11 items-center rounded bg-primary px-3 font-semibold text-white">Unduh PDF</a>
+                                        <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" rel="noopener noreferrer" class="pub-btn inline-flex min-h-11 items-center rounded bg-primary px-3 font-semibold text-white hover:bg-primary-hover">Unduh PDF</a>
                                     @endif
                                 </li>
                             @endforeach
@@ -97,4 +98,3 @@
         @endif
     </div>
 </x-layouts.public>
-

@@ -6,11 +6,16 @@
     @endif
 
     <div @class([
-        'rounded-lg border px-4 py-3 text-xs font-medium',
+        'flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3 text-xs font-medium',
         'border-emerald-200 bg-emerald-50 text-emerald-900' => $activeCount >= \App\Models\HomeSlider::MIN_ACTIVE_SLIDES && $activeCount <= \App\Models\HomeSlider::MAX_ACTIVE_SLIDES,
         'border-amber-300 bg-amber-50 text-ink' => $activeCount < \App\Models\HomeSlider::MIN_ACTIVE_SLIDES || $activeCount > \App\Models\HomeSlider::MAX_ACTIVE_SLIDES,
     ])>
-        Status Slide Aktif: <strong>{{ $activeCount }} / {{ \App\Models\HomeSlider::MAX_ACTIVE_SLIDES }}</strong> (Wajib 3 sampai 5 slide gambar statis sesuai SK Dirjen Badilag Bab III.C.3, tanpa video atau live streaming di beranda).
+        <span>
+            Status Slide Aktif: <strong>{{ $activeCount }} / {{ \App\Models\HomeSlider::MAX_ACTIVE_SLIDES }}</strong> (Wajib 3 sampai 5 slide gambar statis sesuai SK Dirjen Badilag Bab III.C.3, tanpa video atau live streaming di beranda).
+        </span>
+        <a href="{{ route('admin.menus') }}" class="inline-flex min-h-10 shrink-0 items-center rounded border border-primary/40 bg-white px-3 text-xs font-semibold text-primary hover:bg-primary-soft">
+            &larr; Kembali ke Menu Navigasi
+        </a>
     </div>
 
     @error('slider_limit')

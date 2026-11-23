@@ -69,7 +69,7 @@
 
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <!-- Institutional Judicial Page Hero Banner -->
-        <header class="relative overflow-hidden rounded-xl border border-emerald-900 border-b-4 border-b-gold bg-primary-deep p-6 text-white shadow-xs sm:p-8">
+        <header class="relative overflow-hidden rounded-xl border border-emerald-900 border-b-4 border-b-gold bg-obsidian p-6 text-white shadow-xs sm:p-8">
             <svg aria-hidden="true" class="pub-crest-float pointer-events-none absolute -top-8 -right-8 size-60 text-white/6 sm:size-72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                 <path d="M12 3v18M5 7h14M8 21h8M5 7l-3 6h6l-3-6zM19 7l-3 6h6l-3-6z" />
             </svg>
@@ -79,7 +79,7 @@
                     <span aria-hidden="true" class="text-emerald-300">/</span>
                     <span class="text-emerald-200">{{ $sectionLabel ?? 'Informasi & Layanan' }}</span>
                     <span aria-hidden="true" class="text-emerald-300">/</span>
-                    <span class="font-medium text-gold">{{ $resolvedTitle }}</span>
+                    <span class="font-medium text-amber-300">{{ $resolvedTitle }}</span>
                 </nav>
 
                 <div class="flex flex-wrap items-start justify-between gap-4">

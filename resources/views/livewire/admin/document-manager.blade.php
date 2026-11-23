@@ -58,8 +58,15 @@
 
                 <flux:field>
                     <flux:label for="doc_pdf">Berkas PDF (Maks 10 MB)</flux:label>
-                    <input id="doc_pdf" type="file" wire:model="pdf_file" accept="application/pdf,.pdf" class="block w-full cursor-pointer text-xs text-ink file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-hairline file:bg-mist file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-primary" />
-                    <div wire:loading wire:target="pdf_file" class="mt-1 text-xs text-primary">Mengunggah berkas PDF...</div>
+                    <label for="doc_pdf" class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-primary/35 bg-mist px-4 py-5 text-center hover:border-primary hover:bg-primary-soft/50">
+                        <span class="font-mono text-2xs font-bold text-primary uppercase">Klik atau Lepas Berkas PDF di Sini</span>
+                        <span class="mt-1 text-xs text-ink-muted">Format PDF standar arsip peradilan (Maks. 10 MB)</span>
+                        <input id="doc_pdf" type="file" wire:model="pdf_file" accept="application/pdf,.pdf" class="sr-only" />
+                    </label>
+                    <div wire:loading wire:target="pdf_file" class="mt-1.5 text-xs font-semibold text-primary">Mengunggah berkas PDF...</div>
+                    @if ($pdf_file)
+                        <p class="mt-1 font-mono text-2xs font-semibold text-emerald-800">Berkas siap diunggah: {{ method_exists($pdf_file, 'getClientOriginalName') ? $pdf_file->getClientOriginalName() : 'PDF terpilih' }}</p>
+                    @endif
                     <flux:error name="pdf_file" />
                 </flux:field>
 

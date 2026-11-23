@@ -15,11 +15,14 @@
     --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
     --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
 
+    --color-obsidian: #022c20;
     --color-primary: #056e4f;
     --color-primary-deep: #033d2c;
     --color-primary-hover: #04543c;
     --color-primary-soft: #f0f7f4;
+    --color-emerald-glow: #0a946b;
     --color-gold: #ff9900;
+    --color-ivory: #f7f8f5;
     --color-mist: #f8faf9;
     --color-hairline: #d8e2dd;
     --color-ink: #111827;
@@ -30,6 +33,7 @@
     --color-accent-content: #056e4f;
     --color-accent-foreground: #ffffff;
 
+    --ease-judicial: cubic-bezier(0.22, 1, 0.36, 1);
     --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
     --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
     --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
@@ -252,4 +256,43 @@
         opacity: 0;
         transform: translateY(6px) scale(0.96);
     }
+}
+
+/* SatkerCMS Backend Studio v2 Obsidian Emerald Sidebar Theme (Flux UI Free) */
+.studio-sidebar {
+    background-color: #022c20 !important;
+    color: #ecfdf5 !important;
+    border-color: #064e3b !important;
+}
+
+.studio-sidebar [data-flux-sidebar-group] > div:first-child {
+    color: #6ee7b7 !important;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.studio-sidebar [data-flux-sidebar-item] {
+    color: #d1fae5 !important;
+    border-color: transparent !important;
+}
+
+.studio-sidebar [data-flux-sidebar-item]:hover {
+    background-color: rgba(5, 110, 79, 0.45) !important;
+    color: #ffffff !important;
+}
+
+.studio-sidebar [data-flux-sidebar-item][data-current] {
+    background-color: #056e4f !important;
+    color: #ffffff !important;
+    border-inline-start: 4px solid #ff9900 !important;
+    font-weight: 600 !important;
+}
+
+.studio-sidebar [data-flux-navlist-badge] {
+    background-color: #ff9900 !important;
+    color: #111827 !important;
+    font-family: var(--font-mono);
+    font-weight: 700;
 }

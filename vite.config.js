@@ -28,6 +28,20 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (/node_modules[\\/]three[\\/]/.test(id)) {
+                        return 'three-hero';
+                    }
+                    if (/node_modules[\\/]gsap[\\/]/.test(id)) {
+                        return 'motion-gsap';
+                    }
+                },
+            },
+        },
+    },
     server: {
         watch: {
             ignored: ['**/storage/framework/views/**'],

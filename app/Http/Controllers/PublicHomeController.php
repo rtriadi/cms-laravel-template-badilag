@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CourtSchedule;
 use App\Models\HomeSlider;
 use App\Models\MenuItem;
 use App\Models\Page;
@@ -29,8 +30,26 @@ class PublicHomeController extends Controller
 
         if (
             ! is_array($cached)
-            || ! isset($cached['sliders'], $cached['sertaMerta'], $cached['latestNews'], $cached['announcements'], $cached['transparencyPages'], $cached['servicePages'])
+            || ! isset($cached['sliders'], $cached['sertaMerta'], $cached['latestNews'], $cached['announcements'], $cached['transparencyPages'], $cached['servicePages'], $cached['todaySchedules'], $cached['hasUpcomingSchedules'])
         ) {
+            $upcomingSchedules = CourtSchedule::query()
+                ->select(['id', 'tanggal_sidang', 'nomor_perkara', 'ruang_sidang', 'agenda'])
+                ->whereDate('tanggal_sidang', '>=', now()->toDateString())
+                ->orderBy('tanggal_sidang')
+                ->orderBy('id')
+                ->limit(4)
+                ->get();
+
+            $hasUpcomingSchedules = $upcomingSchedules->isNotEmpty();
+            $scheduleRows = $hasUpcomingSchedules
+                ? $upcomingSchedules
+                : CourtSchedule::query()
+                    ->select(['id', 'tanggal_sidang', 'nomor_perkara', 'ruang_sidang', 'agenda'])
+                    ->orderByDesc('tanggal_sidang')
+                    ->orderByDesc('id')
+                    ->limit(4)
+                    ->get();
+
             $cached = [
                 'sliders' => HomeSlider::query()
                     ->where('is_active', true)
@@ -50,7 +69,8 @@ class PublicHomeController extends Controller
                     ->map(fn (Post $post): array => $post->getAttributes())
                     ->all(),
                 'latestNews' => Post::query()
-                    ->select(['id', 'title', 'slug', 'category', 'excerpt', 'featured_image_path', 'featured_image_alt', 'is_pinned', 'published_at', 'created_at'])
+                    ->select(['id', 'title', 'slug', 'category', 'excerpt', 'featured_image_path', 'featured_image_alt', 'is_pinned', 'views_count', 'published_at', 'created_at'])
+                    ->withCount('approvedComments')
                     ->publishedActive()
                     ->whereIn('category', ['berita', 'layanan_hukum', 'inovasi', 'opini', 'infografis'])
                     ->orderByDesc('is_pinned')
@@ -61,7 +81,8 @@ class PublicHomeController extends Controller
                     ->map(fn (Post $post): array => $post->getAttributes())
                     ->all(),
                 'announcements' => Post::query()
-                    ->select(['id', 'title', 'slug', 'category', 'is_pinned', 'published_at', 'created_at'])
+                    ->select(['id', 'title', 'slug', 'category', 'views_count', 'published_at', 'created_at'])
+                    ->withCount('approvedComments')
                     ->publishedActive()
                     ->where('category', 'pengumuman')
                     ->orderByDesc('is_pinned')
@@ -91,6 +112,10 @@ class PublicHomeController extends Controller
                     ->get()
                     ->map(fn (Page $page): array => $page->getAttributes())
                     ->all(),
+                'todaySchedules' => $scheduleRows
+                    ->map(fn (CourtSchedule $schedule): array => $schedule->getAttributes())
+                    ->all(),
+                'hasUpcomingSchedules' => $hasUpcomingSchedules,
             ];
 
             Cache::put($cacheKey, $cached, 300);
@@ -128,6 +153,11 @@ class PublicHomeController extends Controller
         $announcements = new Collection(array_map(
             fn (array $attrs): Post => (new Post)->newFromBuilder($attrs),
             $cached['announcements']
+        ));
+
+        $todaySchedules = new Collection(array_map(
+            fn (array $attrs): CourtSchedule => (new CourtSchedule)->newFromBuilder($attrs),
+            $cached['todaySchedules']
         ));
 
         $transparencyPages = (new Collection(array_map(
@@ -206,6 +236,8 @@ class PublicHomeController extends Controller
             'announcements' => $announcements,
             'transparencyPages' => $transparencyPages,
             'servicePages' => $servicePages,
+            'todaySchedules' => $todaySchedules,
+            'hasUpcomingSchedules' => (bool) $cached['hasUpcomingSchedules'],
             'shortcuts' => $shortcuts,
         ]);
     }

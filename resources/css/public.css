@@ -13,17 +13,21 @@
     --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
     --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
 
+    --color-obsidian: #022c20;
     --color-primary: #056e4f;
     --color-primary-deep: #033d2c;
     --color-primary-hover: #04543c;
     --color-primary-soft: #f0f7f4;
+    --color-emerald-glow: #0a946b;
     --color-gold: #ff9900;
+    --color-ivory: #f7f8f5;
     --color-mist: #f8faf9;
     --color-hairline: #d8e2dd;
     --color-ink: #111827;
     --color-ink-body: #374151;
-    --color-ink-muted: #52525b;
+    --color-ink-muted: #475569;
 
+    --ease-judicial: cubic-bezier(0.22, 1, 0.36, 1);
     --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
     --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
     --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
@@ -132,11 +136,11 @@
 
 .pub-btn {
     transition:
-        transform 150ms var(--ease-out-strong),
-        background-color 160ms ease,
-        border-color 160ms ease,
-        color 160ms ease,
-        box-shadow 160ms var(--ease-out-strong);
+        transform 160ms var(--ease-judicial),
+        background-color 180ms ease,
+        border-color 180ms ease,
+        color 180ms ease,
+        box-shadow 180ms var(--ease-judicial);
 }
 
 .pub-btn:active:not(:disabled) {
@@ -145,18 +149,18 @@
 
 .pub-card {
     transition:
-        transform 220ms var(--ease-out-strong),
-        box-shadow 220ms var(--ease-out-strong),
-        border-color 180ms ease;
+        transform 240ms var(--ease-judicial),
+        box-shadow 240ms var(--ease-judicial),
+        border-color 200ms ease;
 }
 
 .pub-link-card {
     transition:
-        transform 180ms var(--ease-out-strong),
-        background-color 160ms ease,
-        border-color 160ms ease,
-        color 160ms ease,
-        box-shadow 180ms var(--ease-out-strong);
+        transform 200ms var(--ease-judicial),
+        background-color 180ms ease,
+        border-color 180ms ease,
+        color 180ms ease,
+        box-shadow 200ms var(--ease-judicial);
 }
 
 .pub-link-card:active {
@@ -164,16 +168,16 @@
 }
 
 .pub-chevron {
-    transition: transform 180ms var(--ease-out-strong);
+    transition: transform 200ms var(--ease-judicial);
 }
 
 .pub-img-zoom {
-    transition: transform 380ms var(--ease-out-strong);
+    transition: transform 420ms var(--ease-judicial);
 }
 
 .pub-icon-tile {
     transition:
-        transform 200ms var(--ease-out-strong),
+        transform 220ms var(--ease-judicial),
         background-color 180ms ease,
         color 180ms ease,
         border-color 180ms ease;
@@ -182,8 +186,8 @@
 .pub-nav-link {
     position: relative;
     transition:
-        background-color 160ms ease,
-        color 160ms ease;
+        background-color 180ms ease,
+        color 180ms ease;
 }
 
 .pub-nav-link::after {
@@ -197,7 +201,7 @@
     background-color: var(--color-gold);
     transform: scaleX(0);
     transform-origin: center;
-    transition: transform 200ms var(--ease-out-strong);
+    transition: transform 220ms var(--ease-judicial);
 }
 
 .pub-nav-link:hover::after,
@@ -207,7 +211,7 @@
 }
 
 .pub-nav-chevron {
-    transition: transform 180ms var(--ease-out-strong);
+    transition: transform 200ms var(--ease-judicial);
 }
 
 [data-nav-trigger][aria-expanded='true'] .pub-nav-chevron {
@@ -218,6 +222,13 @@
     transform-origin: left center;
     transform: scaleX(var(--read-progress, 0));
     will-change: transform;
+}
+
+.pub-hero-grid-pattern {
+    background-image:
+        linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 32px 32px;
 }
 
 @keyframes pubCrestFloat {
@@ -237,8 +248,8 @@
 @media (hover: hover) and (pointer: fine) {
     .pub-card:hover {
         transform: translateY(-3px);
-        box-shadow: 0 10px 24px -10px rgba(3, 61, 44, 0.14), 0 4px 10px -4px rgba(3, 61, 44, 0.06);
-        border-color: rgba(5, 110, 79, 0.35);
+        box-shadow: 0 12px 28px -12px rgba(2, 44, 32, 0.16), 0 4px 12px -4px rgba(2, 44, 32, 0.08);
+        border-color: rgba(5, 110, 79, 0.38);
     }
 
     .pub-link-card:hover {
@@ -260,7 +271,8 @@
     }
 }
 
-#mobile-nav-drawer:not([hidden]) {
+#mobile-nav-drawer:not([hidden]),
+#public-search-modal:not([hidden]) {
     opacity: 1;
     transition: opacity 200ms ease;
 
@@ -271,10 +283,23 @@
 
 #mobile-nav-drawer:not([hidden]) [data-mobile-drawer-panel] {
     transform: translateX(0);
-    transition: transform 220ms var(--ease-drawer);
+    transition: transform 240ms var(--ease-drawer);
 
     @starting-style {
         transform: translateX(100%);
+    }
+}
+
+#public-search-modal:not([hidden]) [data-search-modal-panel] {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition:
+        opacity 200ms var(--ease-judicial),
+        transform 200ms var(--ease-judicial);
+
+    @starting-style {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98);
     }
 }
 
@@ -283,8 +308,8 @@
     opacity: 1;
     transform: translateY(0) scale(1);
     transition:
-        opacity 180ms var(--ease-out-strong),
-        transform 180ms var(--ease-out-strong);
+        opacity 180ms var(--ease-judicial),
+        transform 180ms var(--ease-judicial);
 
     @starting-style {
         opacity: 0;
@@ -296,8 +321,8 @@
     opacity: 1;
     transform: scale(1);
     transition:
-        opacity 320ms var(--ease-out-strong),
-        transform 320ms var(--ease-out-strong);
+        opacity 320ms var(--ease-judicial),
+        transform 320ms var(--ease-judicial);
 
     @starting-style {
         opacity: 0;
@@ -310,8 +335,8 @@
     opacity: 1;
     transform: translateY(0) scale(1);
     transition:
-        opacity 180ms var(--ease-out-strong),
-        transform 180ms var(--ease-out-strong);
+        opacity 180ms var(--ease-judicial),
+        transform 180ms var(--ease-judicial);
 
     @starting-style {
         opacity: 0;

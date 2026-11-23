@@ -1,12 +1,12 @@
-<div class="fixed right-4 bottom-4 z-40 sm:right-6 sm:bottom-6" data-a11y-widget>
+<div class="fixed right-4 bottom-20 z-40 sm:right-6 lg:bottom-6" data-a11y-widget>
     <button
         id="a11y-toggle-btn"
         type="button"
         aria-expanded="false"
         aria-controls="a11y-panel"
-        class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border-2 border-white bg-primary px-4 py-2.5 text-xs font-bold text-white shadow-lg transition-colors hover:bg-primary-hover"
+        class="pub-btn inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border-2 border-white bg-obsidian px-4 py-2.5 text-xs font-bold text-white shadow-lg hover:bg-primary"
     >
-        <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <svg class="size-4 shrink-0 text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="12" cy="4.5" r="2"></circle>
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 8.5h14M12 8.5v5.5m0 0-3 6m3-6 3 6"></path>
         </svg>
@@ -19,12 +19,15 @@
         aria-modal="false"
         aria-labelledby="a11y-panel-title"
         hidden
-        class="mt-3 max-h-[calc(100vh-2rem)] w-80 max-w-[calc(100vw-2rem)] overflow-y-auto overscroll-contain rounded-xl border border-hairline bg-white p-4 text-ink shadow-2xl"
+        class="mt-3 max-h-[calc(100vh-7rem)] w-80 max-w-[calc(100vw-2rem)] overflow-y-auto overscroll-contain rounded-xl border border-hairline bg-white p-4 text-ink shadow-2xl"
     >
         <div class="flex items-center justify-between border-b border-hairline pb-2.5">
-            <h2 id="a11y-panel-title" class="font-serif text-base font-bold text-ink">
-                Menu Aksesibilitas
-            </h2>
+            <div>
+                <span class="font-mono text-2xs font-bold text-primary uppercase">WCAG 2.2 AA/AAA</span>
+                <h2 id="a11y-panel-title" class="font-serif text-base font-bold text-ink">
+                    Menu Aksesibilitas
+                </h2>
+            </div>
             <button
                 id="a11y-close-btn"
                 type="button"
@@ -36,7 +39,7 @@
 
         <div class="mt-3 space-y-3 text-xs">
             <!-- Pembaca Suara Bahasa Indonesia (TTS) -->
-            <div class="rounded-lg border border-hairline bg-mist p-3">
+            <div class="rounded-lg border border-hairline bg-ivory p-3">
                 <p class="font-bold text-ink">Pembaca Halaman (Suara id-ID)</p>
                 <p id="a11y-tts-status" class="mt-0.5 text-xs text-ink-muted">Siap membacakan teks halaman.</p>
                 <div class="mt-2 grid grid-cols-2 gap-2">
@@ -74,14 +77,14 @@
                     <button
                         id="a11y-scale-down"
                         type="button"
-                        class="min-h-11 cursor-pointer rounded-md border border-hairline bg-mist px-3 font-semibold text-ink hover:bg-hairline/40"
+                        class="min-h-11 cursor-pointer rounded-md border border-hairline bg-ivory px-3 font-semibold text-ink hover:bg-hairline/40"
                     >
                         Perkecil Teks
                     </button>
                     <button
                         id="a11y-scale-up"
                         type="button"
-                        class="min-h-11 cursor-pointer rounded-md border border-hairline bg-mist px-3 font-semibold text-ink hover:bg-hairline/40"
+                        class="min-h-11 cursor-pointer rounded-md border border-hairline bg-ivory px-3 font-semibold text-ink hover:bg-hairline/40"
                     >
                         Perbesar Teks (Max 200%)
                     </button>
@@ -143,4 +146,3 @@
         </div>
     </div>
 </div>
-

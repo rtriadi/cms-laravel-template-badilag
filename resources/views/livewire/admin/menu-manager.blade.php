@@ -116,8 +116,16 @@
         <!-- Menu Tree -->
         <div class="rounded-lg border border-hairline bg-white p-5 lg:col-span-7">
             <div class="flex flex-wrap items-center justify-between gap-3 border-b border-hairline pb-3">
-                <h2 class="font-serif text-lg font-bold text-ink">Struktur Menu Aktif</h2>
-                <div class="flex gap-1.5">
+                <div>
+                    <h2 class="font-serif text-lg font-bold text-ink">Struktur Menu Aktif</h2>
+                    @if ($locationFilter === 'header')
+                        @php $visibleRoots = $rootMenus->where('is_visible', true)->count(); @endphp
+                        <p class="mt-0.5 font-mono text-2xs {{ $visibleRoots > 6 ? 'font-bold text-red-700' : 'text-ink-muted' }}">
+                            Menu Utama Header: {{ $visibleRoots }} / 6 slot SINOVA (maksimal 6 grup teratas, kedalaman 3 tingkat).
+                        </p>
+                    @endif
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5">
                     @foreach (['header' => 'Header', 'footer' => 'Footer', 'shortcut' => 'Shortcut'] as $loc => $lbl)
                         <button
                             type="button"
@@ -132,6 +140,9 @@
                             {{ $lbl }}
                         </button>
                     @endforeach
+                    <a href="{{ route('admin.sliders') }}" class="inline-flex min-h-11 items-center rounded border border-primary/40 bg-primary-soft px-3 text-xs font-semibold text-primary hover:bg-primary hover:text-white">
+                        Slider Beranda &rarr;
+                    </a>
                 </div>
             </div>
 

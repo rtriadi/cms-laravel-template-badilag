@@ -20,6 +20,8 @@ class SinovaLinks extends Component
     /** @var array<int, bool> */
     public array $expandedGroups = [];
 
+    public string $healthFilter = '';
+
     #[Locked]
     public ?int $editingItemId = null;
 
@@ -195,36 +197,61 @@ class SinovaLinks extends Component
         $satker = SatkerSetting::current();
         $activeTingkat = $satker?->tingkat ?? 'pertama';
 
+        $allApplicableItems = collect();
+
         $groups = CriteriaGroup::query()
             ->with(['items.linkedPage', 'items.linkedMenu'])
             ->orderBy('sort_order')
             ->get()
-            ->map(function (CriteriaGroup $group) use ($activeTingkat, $satker): array {
-                $items = $group->items
-                    ->filter(fn (CriteriaItem $item): bool => $item->isApplicableFor($activeTingkat))
+            ->map(function (CriteriaGroup $group) use ($activeTingkat, $satker, &$allApplicableItems): array {
+                $applicable = $group->items
+                    ->filter(fn (CriteriaItem $item): bool => $item->isApplicableFor($activeTingkat));
+
+                $allApplicableItems = $allApplicableItems->concat($applicable);
+
+                $filteredItems = $applicable
+                    ->filter(function (CriteriaItem $item): bool {
+                        if ($this->healthFilter === '') {
+                            return true;
+                        }
+                        if ($this->healthFilter === 'attention') {
+                            return in_array($item->health_status, ['broken', 'empty'], true);
+                        }
+
+                        return $item->health_status === $this->healthFilter;
+                    })
                     ->map(fn (CriteriaItem $item): array => [
                         'model' => $item,
                         'url' => $item->resolvedUrl($satker),
                     ])
                     ->values();
 
-                $filled = $items->filter(fn (array $row): bool => filled($row['url']))->count();
+                $filled = $applicable->filter(fn (CriteriaItem $item): bool => filled($item->resolvedUrl($satker)))->count();
 
                 return [
                     'group' => $group,
-                    'items' => $items,
-                    'total' => $items->count(),
+                    'items' => $filteredItems,
+                    'total' => $applicable->count(),
+                    'filtered_total' => $filteredItems->count(),
                     'filled' => $filled,
-                    'all_urls_text' => $items->pluck('url')->filter()->implode("\n"),
+                    'all_urls_text' => $filteredItems->pluck('url')->filter()->implode("\n"),
                 ];
             })
-            ->filter(fn (array $entry): bool => $entry['total'] > 0)
+            ->filter(fn (array $entry): bool => $entry['total'] > 0 && ($this->healthFilter === '' || $entry['filtered_total'] > 0))
             ->values();
+
+        $healthCounts = [
+            'all' => $allApplicableItems->count(),
+            'healthy' => $allApplicableItems->where('health_status', 'healthy')->count(),
+            'warning' => $allApplicableItems->where('health_status', 'warning')->count(),
+            'attention' => $allApplicableItems->whereIn('health_status', ['broken', 'empty'])->count(),
+        ];
 
         $summary = $healthCheck->scoreSummary($activeTingkat);
 
         return view('livewire.admin.sinova-links', [
             'groups' => $groups,
+            'healthCounts' => $healthCounts,
             'summary' => $summary,
             'pages' => Page::query()->orderBy('title')->get(['id', 'title', 'slug']),
             'canEdit' => auth()->user()?->can('manage-sinova-links') || auth()->user()?->hasRole('super_admin'),

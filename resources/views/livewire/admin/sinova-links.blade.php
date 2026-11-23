@@ -88,6 +88,28 @@
                 @endif
             </div>
         </div>
+
+        <!-- Health Status Filter Chips -->
+        <div class="mt-4 flex flex-wrap gap-2 border-t border-hairline pt-3">
+            @foreach ([
+                '' => 'Semua (' . $healthCounts['all'] . ')',
+                'healthy' => 'Siap (' . $healthCounts['healthy'] . ')',
+                'warning' => 'Perlu Revisi (' . $healthCounts['warning'] . ')',
+                'attention' => 'Bermasalah / Kosong (' . $healthCounts['attention'] . ')',
+            ] as $hKey => $hLabel)
+                <button
+                    type="button"
+                    wire:click="$set('healthFilter', '{{ $hKey }}')"
+                    @class([
+                        'min-h-10 cursor-pointer rounded-md px-3 text-xs font-semibold',
+                        'bg-primary text-white' => $healthFilter === $hKey,
+                        'border border-hairline bg-mist text-ink hover:bg-primary-soft' => $healthFilter !== $hKey,
+                    ])
+                >
+                    {{ $hLabel }}
+                </button>
+            @endforeach
+        </div>
     </div>
 
     <!-- Criteria Accordions -->

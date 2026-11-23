@@ -17,7 +17,10 @@ use Throwable;
 
 class SinovaHealthCheckService
 {
-    public function checkItem(CriteriaItem $item, ?SatkerSetting $satker = null, bool $probeExternal = false): CriteriaItem
+    /**
+     * @param  array{doc_counts?: array<string, int>, has_case_stats?: bool, has_schedules?: bool, has_active_officials?: bool, has_active_org_officials?: bool}  $precomputed
+     */
+    public function checkItem(CriteriaItem $item, ?SatkerSetting $satker = null, bool $probeExternal = false, array $precomputed = []): CriteriaItem
     {
         $satker ??= SatkerSetting::current();
         $item->loadMissing(['linkedPage', 'linkedMenu', 'group']);
@@ -41,7 +44,7 @@ class SinovaHealthCheckService
         }
 
         if ($item->linkedPage !== null) {
-            return $this->evaluateLinkedPage($item, $item->linkedPage, $satker, $probeExternal);
+            return $this->evaluateLinkedPage($item, $item->linkedPage, $satker, $probeExternal, $precomputed);
         }
 
         if (filled($item->default_route)) {
@@ -72,6 +75,21 @@ class SinovaHealthCheckService
             ->get()
             ->filter(fn (CriteriaItem $item): bool => $item->isApplicableFor($activeTingkat));
 
+        // Precompute block readiness aggregates once to avoid N+1 queries per criteria item.
+        $precomputed = [
+            'doc_counts' => Document::query()
+                ->where('is_published', true)
+                ->selectRaw('collection_type, COUNT(*) as aggregate')
+                ->groupBy('collection_type')
+                ->pluck('aggregate', 'collection_type')
+                ->map(static fn (mixed $v): int => (int) $v)
+                ->all(),
+            'has_case_stats' => CaseStatistic::query()->exists(),
+            'has_schedules' => CourtSchedule::query()->exists(),
+            'has_active_officials' => Official::query()->where('is_active', true)->exists(),
+            'has_active_org_officials' => Official::query()->where('is_active', true)->whereIn('kategori', ['pimpinan', 'pejabat', 'hakim'])->exists(),
+        ];
+
         $counts = [
             'checked' => 0,
             'healthy' => 0,
@@ -81,7 +99,7 @@ class SinovaHealthCheckService
         ];
 
         foreach ($items as $item) {
-            $updated = $this->checkItem($item, $satker, $probeExternal);
+            $updated = $this->checkItem($item, $satker, $probeExternal, $precomputed);
             $counts['checked']++;
             $status = $updated->health_status;
 
@@ -207,7 +225,10 @@ class SinovaHealthCheckService
         ];
     }
 
-    private function evaluateLinkedPage(CriteriaItem $item, Page $page, ?SatkerSetting $satker, bool $probeExternal): CriteriaItem
+    /**
+     * @param  array{doc_counts?: array<string, int>, has_case_stats?: bool, has_schedules?: bool, has_active_officials?: bool, has_active_org_officials?: bool}  $precomputed
+     */
+    private function evaluateLinkedPage(CriteriaItem $item, Page $page, ?SatkerSetting $satker, bool $probeExternal, array $precomputed = []): CriteriaItem
     {
         if (! $page->is_published) {
             $item->forceFill([
@@ -228,25 +249,33 @@ class SinovaHealthCheckService
             $type = $block['type'] ?? '';
 
             if ($type === 'document_list' && ! empty($block['collection_type'])) {
-                $docCount = Document::query()
-                    ->where('collection_type', (string) $block['collection_type'])
-                    ->where('is_published', true)
-                    ->count();
+                $col = (string) $block['collection_type'];
+                $docCount = isset($precomputed['doc_counts'])
+                    ? (int) ($precomputed['doc_counts'][$col] ?? 0)
+                    : Document::query()
+                        ->where('collection_type', $col)
+                        ->where('is_published', true)
+                        ->count();
 
                 if ($docCount === 0) {
-                    $warningReasons[] = 'Belum ada dokumen pada koleksi '.$block['collection_type'];
+                    $warningReasons[] = 'Belum ada dokumen pada koleksi '.$col;
                 }
             }
 
             if ($type === 'embed_fallback') {
                 $fallbackMode = $block['fallback_mode'] ?? '';
-                if ($fallbackMode === 'case_statistics' && ! CaseStatistic::query()->exists() && blank($satker?->sipp_url)) {
+                $hasStats = $precomputed['has_case_stats'] ?? CaseStatistic::query()->exists();
+                $hasSchedules = $precomputed['has_schedules'] ?? CourtSchedule::query()->exists();
+                $hasOfficials = $precomputed['has_active_officials'] ?? Official::query()->where('is_active', true)->exists();
+                $hasOrgOfficials = $precomputed['has_active_org_officials'] ?? Official::query()->where('is_active', true)->whereIn('kategori', ['pimpinan', 'pejabat', 'hakim'])->exists();
+
+                if ($fallbackMode === 'case_statistics' && ! $hasStats && blank($satker?->sipp_url)) {
                     $warningReasons[] = 'Data statistik perkara cadangan dan URL SIPP masih kosong';
-                } elseif ($fallbackMode === 'court_schedule' && ! CourtSchedule::query()->exists() && blank($satker?->sipp_url)) {
+                } elseif ($fallbackMode === 'court_schedule' && ! $hasSchedules && blank($satker?->sipp_url)) {
                     $warningReasons[] = 'Jadwal sidang cadangan dan URL SIPP masih kosong';
-                } elseif ($fallbackMode === 'officials_table' && ! Official::query()->where('is_active', true)->exists() && blank($satker?->simtepa_pegawai_url)) {
+                } elseif ($fallbackMode === 'officials_table' && ! $hasOfficials && blank($satker?->simtepa_pegawai_url)) {
                     $warningReasons[] = 'Data pejabat cadangan dan embed SIMTEPA pegawai masih kosong';
-                } elseif ($fallbackMode === 'org_chart' && ! Official::query()->where('is_active', true)->whereIn('kategori', ['pimpinan', 'pejabat', 'hakim'])->exists() && blank($satker?->simtepa_struktur_url)) {
+                } elseif ($fallbackMode === 'org_chart' && ! $hasOrgOfficials && blank($satker?->simtepa_struktur_url)) {
                     $warningReasons[] = 'Struktur organisasi cadangan dan embed SIMTEPA masih kosong';
                 }
             }

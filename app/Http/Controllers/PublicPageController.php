@@ -70,6 +70,8 @@ class PublicPageController extends Controller
                 $cat = (string) ($block['post_category'] ?? 'layanan_hukum');
                 if (! array_key_exists($cat, $postsByCategory)) {
                     $postsByCategory[$cat] = Post::query()
+                        ->select(['id', 'title', 'slug', 'category', 'excerpt', 'featured_image_path', 'featured_image_alt', 'is_pinned', 'views_count', 'published_at', 'created_at'])
+                        ->withCount('approvedComments')
                         ->publishedActive()
                         ->when($cat !== 'semua', fn ($q) => $q->where('category', $cat))
                         ->orderByDesc('is_pinned')

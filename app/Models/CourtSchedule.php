@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Http\Controllers\PublicHomeController;
 use Database\Factories\CourtScheduleFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,5 +29,16 @@ class CourtSchedule extends Model
         return [
             'tanggal_sidang' => 'date',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function (): void {
+            PublicHomeController::flushCache();
+        });
+
+        static::deleted(function (): void {
+            PublicHomeController::flushCache();
+        });
     }
 }

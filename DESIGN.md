@@ -1,9 +1,9 @@
-# SatkerCMS Design System (`DESIGN.md`)
+# SatkerCMS Design System (`DESIGN.md`) v3
 
 **Acuan Regulasi:** SK Dirjen Badilag No. 2722/DJA/SK.TI1/X/2026 (Evaluasi Website Satker Peradilan Agama melalui Aplikasi SINOVA).
 
 **Design Read:**
-`Reading this as: civic public-service portal and SINOVA compliance CMS for Indonesian Religious Court citizens and staff, in a dignified Indonesian civic-editorial visual language, dial ENERGY 1 / RHYTHM 2 / MOTION 1.`
+`Reading this as: civic public-service portal (Public Portal v3) and WordPress/Joomla-grade editorial compliance studio (Backend CMS Studio v2) for Indonesian Religious Court citizens and staff, in a dignified Indonesian civic-editorial visual language, dial ENERGY 2 / RHYTHM 3 / MOTION 2.`
 
 ---
 
@@ -11,42 +11,45 @@
 
 | Dial | Level | Implementasi Nyata |
 |---|---|---|
-| **ENERGY** | `1` (Calm & Authoritative) | Tampilan bersih, berwibawa, mudah dipindai pencari keadilan di berbagai tingkat literasi digital |
-| **RHYTHM** | `2` (Consistent with deliberate breaks) | Variasi komposisi antar bagian: split asimetris hero 8/4, berita 7/5, direktori transparansi terstruktur, tabel akuntabilitas, serta footer 3 kolom |
-| **MOTION** | `1` (Hover & subtle focus states only) | Transisi hover 150ms, indikator fokus jelas, tanpa loop animasi, tanpa parallax, tunduk penuh pada `prefers-reduced-motion: reduce` |
+| **ENERGY** | `2` (Dignified Authority + Interactive Clarity) | Hirarki editorial berwibawa untuk publik dengan panggung hero Three.js progresif dan alur layanan cepat 2-klik, dipadukan studio admin gelap-terang yang produktif |
+| **RHYTHM** | `3` (Deliberate Asymmetric Cadence) | Variasi terencana: obsidian top bar + header terpadu, hero split 7/5, 3-channel citizen strip, hub operasional asimetris 5/7, timeline majalah 7/5, showcase SAKIP gelap, dan spotlight aksesibilitas ivory |
+| **MOTION** | `2` (GSAP Scroll Choreography + Three.js Progressive Hero + Motion Transitions) | Animasi terukur berbasis `--ease-judicial` (`cubic-bezier(0.22, 1, 0.36, 1)`), dinamika GSAP ScrollTrigger untuk band di bawah fold, WebGL Three.js progresif khusus desktop idle, dan kepatuhan penuh pada `prefers-reduced-motion` serta toggle `.a11y-no-motion` |
 
-**Identity Motif:** Pita garis emas kelembagaan 3px (`#FF9900`) yang menempel tepat di bawah bilah utilitas hijau zamrud gelap (`#033D2C`), dipadukan dengan direktori layanan publik bergaya tabel/indeks yang rapi.
+**Identity Motif:** Pita garis emas kelembagaan 3px (`#FF9900`) yang menempel tepat di bawah bilah utilitas Obsidian Emerald (`#022C20`), membingkai emblem Timbangan Keadilan 3D/SVG serta indeks layanan bernomor (`01-06`).
 
 ---
 
-## 2. Color Palette & Verified WCAG AA Contrast
+## 2. Color Palette & Verified WCAG AA/AAA Contrast
 
-Sesuai SK Dirjen Badilag Bab III.B.1, warna utama (`#056E4F`) dan sekunder (`#FF9900`) dikunci. Setiap pasangan teks telah diverifikasi menggunakan `contrast-check.py`:
+Sesuai SK Dirjen Badilag Bab III.B.1, warna utama (`#056E4F`) dan sekunder (`#FF9900`) dikunci. Setiap pasangan teks telah diverifikasi:
 
 | Token | Nilai Light | Nilai High Contrast | Peran | Rasio Terukur |
 |---|---|---|---|---|
+| `brand/obsidian` | `#022C20` | `#000000` | Bilah utilitas publik, latar hero panggung utama, sidebar Studio Admin v2, showcase SAKIP | `#FFFFFF` di `#022C20`: **15.18:1** (PASS AAA) |
 | `brand/primary` | `#056E4F` | `#000000` | Warna utama merek, CTA utama, aksen fokus aktif | `#FFFFFF` di `#056E4F`: **6.27:1** (PASS AA) |
-| `brand/primary-deep` | `#033D2C` | `#000000` | Bilah utilitas atas, footer kelembagaan, scrim hero | `#F9FAFB` di `#033D2C`: **11.77:1** (PASS AAA) |
+| `brand/primary-deep` | `#033D2C` | `#000000` | Footer kelembagaan, gradasi hero, sub-panel gelap | `#FFFFFF` di `#033D2C`: **12.30:1** (PASS AAA) |
+| `brand/emerald-glow` | `#0A946B` | `#00FF00` | Aksen grafis terang di atas latar obsidian atau grafik wireframe 3D | Dekoratif / batas highlight |
 | `brand/primary-hover` | `#04543C` | `#1F2937` | Status hover tombol utama | `#FFFFFF` di `#04543C`: **8.98:1** (PASS AAA) |
-| `brand/primary-soft` | `#F0F7F4` | `#111827` | Latar item aktif sidebar, sorotan halus | `#056E4F` di `#F0F7F4`: **5.77:1** (PASS AA) |
-| `brand/accent` | `#FF9900` | `#FFFF00` | Aksen emas terukur: garis identitas 3px, badge penting, tombol aksen gelap | `#111827` di `#FF9900`: **8.29:1** (PASS AAA). **LARANGAN:** Teks putih di `#FF9900` hanya **2.14:1** (FAIL) |
-| `surface/canvas` | `#FFFFFF` | `#000000` | Latar utama halaman dan kartu | `#111827` di `#FFFFFF`: **17.74:1** (PASS AAA) |
-| `surface/mist` | `#F8FAF9` | `#000000` | Pemisah band konten beranda dan latar workspace admin | `#111827` di `#F8FAF9`: **16.92:1** (PASS AAA) |
+| `brand/primary-soft` | `#F0F7F4` | `#111827` | Latar item aktif, sorotan halus, kartu PTSP | `#056E4F` di `#F0F7F4`: **5.77:1** (PASS AA) |
+| `brand/accent` | `#FF9900` | `#FFFF00` | Aksen emas terukur: garis identitas 3px, badge penting, CTA hero dengan tinta gelap | `#111827` di `#FF9900`: **8.29:1** (PASS AAA) / `#022C20` di `#FF9900`: **7.09:1** (PASS AAA). **LARANGAN:** Teks putih di `#FF9900` hanya **2.14:1** (FAIL) |
+| `surface/canvas` | `#FFFFFF` | `#000000` | Latar kartu konten dan panel utama | `#111827` di `#FFFFFF`: **17.74:1** (PASS AAA) |
+| `surface/ivory` | `#F7F8F5` | `#000000` | Kanvas hangat portal publik v3 agar kartu putih memiliki separasi tenang | `#111827` di `#F7F8F5`: **16.64:1** (PASS AAA) |
+| `surface/mist` | `#F8FAF9` | `#000000` | Latar workspace admin dan sel tabel sekunder | `#111827` di `#F8FAF9`: **16.92:1** (PASS AAA) |
 | `surface/border` | `#D8E2DD` | `#FFFF00` | Garis tepi 1px pada kartu, tabel, input, dan sidebar | Memenuhi pemisahan visual jelas |
 | `ink/primary` | `#111827` | `#FFFFFF` | Judul utama, label penting, teks di atas aksen `#FF9900` | 17.74:1 (Light) / 21.00:1 (HC) |
 | `ink/body` | `#374151` | `#FFFFFF` | Paragraf isi, deskripsi layanan, sel tabel | `#374151` di `#FFFFFF`: **10.31:1** (PASS AAA) |
-| `ink/muted` | `#52525B` | `#FFFF00` | Metadata tanggal, keterangan breadcrumb, sublabel | `#52525B` di `#FFFFFF`: **7.73:1** (PASS AAA) |
-| `status/complete` | `#047857` | `#00FF00` | Status "Lengkap / Siap" (selalu disertai ikon + label teks) | Latar soft `#ECFDF5` dengan teks `#047857` |
-| `status/warning` | `#B45309` | `#FFFF00` | Status "Perlu Perbaikan" & banner Informasi Serta Merta | Latar `#FFFBEB` dengan teks `#92400E` |
-| `status/danger` | `#B91C1C` | `#FF6B6B` | Status "Kosong / Tautan Rusak" & error validasi | Latar `#FEF2F2` dengan teks `#B91C1C` |
+| `ink/muted` | `#475569` / `#52525B` | `#FFFF00` | Metadata tanggal, jumlah dilihat/komentar, breadcrumb | `#475569` di `#F7F8F5`: **7.11:1** (PASS AAA) |
+| `status/complete` | `#047857` | `#00FF00` | Status "Siap / Disetujui" | Latar `#ECFDF5` dengan teks `#047857` |
+| `status/warning` | `#B45309` | `#FFFF00` | Status "Menunggu Moderasi / Revisi" & banner Serta Merta | Latar `#FFFBEB` dengan teks `#92400E` (**6.84:1**) |
+| `status/danger` | `#B91C1C` | `#FF6B6B` | Status "Kosong / Rusak / Ditolak" & error validasi | Latar `#FEF2F2` dengan teks `#B91C1C` |
 
 ---
 
 ## 3. Typography & Alasan Pemilihan
 
-- **Display & Headings (`Source Serif 4`):** Memberi wibawa institusi peradilan dan keterbacaan editorial yang resmi pada judul halaman, H1, dan H2 publik.
-- **Body, UI, Form & Tabel (`Plus Jakarta Sans`):** Dirancang dengan metrik huruf yang jelas untuk teks Bahasa Indonesia panjang, kontrol formulir, navigasi, dan angka tabular pada statistik perkara maupun anggaran.
-- **Technical Identifiers (`IBM Plex Mono`):** Khusus untuk kode kriteria SINOVA (`1.a.2`), URL target, serta informasi versi sistem (`PHP 8.5`, `Laravel 13.x`) agar mudah dipindai dan disalin tanpa salah baca karakter.
+- **Display & Headings (`Source Serif 4`):** Memberi wibawa institusi peradilan dan keterbacaan editorial pada H1/H2 publik serta judul Studio CMS.
+- **Body, UI, Form & Tabel (`Plus Jakarta Sans`):** Huruf bersih dengan angka tabular yang jelas untuk formulir layanan, direktori perkara, dan tabel manajemen admin.
+- **Technical Identifiers (`IBM Plex Mono`):** Untuk kode kriteria SINOVA (`1.a.2`), URL target, jumlah kunjungan/komentar (`1.240 dilihat`), serta status sistem (`PHP 8.5`, `Laravel 13.x`).
 
 | Token Skala | Font Family | Ukuran (Desktop / Mobile) | Weight | Line Height |
 |---|---|---|---|---|
@@ -60,48 +63,31 @@ Sesuai SK Dirjen Badilag Bab III.B.1, warna utama (`#056E4F`) dan sekunder (`#FF
 
 ---
 
-## 4. Spacing, Radius & Elevation Hierarchy
+## 4. Motion, GSAP, Three.js & Performance Budget
 
-- **Spacing Scale:** `4px`, `8px` (`xs`), `12px` (`sm`), `16px` (`md`), `24px` (`lg`), `32px`, `40px` (`xl`), `64px` (antar bagian beranda desktop, turun ke `32px` di mobile).
-- **Border Radius Hierarchy (dilarang membuat semua elemen berbentuk kapsul):**
-  - Status Badges: `4px`
-  - Buttons, Inputs & Select: `6px`
-  - Content Cards, Table Containers & Panels: `8px`
-  - Modals, Drawers & Floating Accessibility Widget: `12px`
-- **Elevation Rules:**
-  - Permukaan standar menggunakan latar solid (`#FFFFFF` atau `#F8FAF9`) dengan border `1px solid #D8E2DD` (flat, tanpa bayangan mengambang massal).
-  - Shadow terukur (`0 4px 16px rgba(3, 61, 44, 0.08)`) hanya dipakai pada: Floating Accessibility Widget, dropdown menu aktif, dan modal konfirmasi.
+Untuk menjaga waktu muat beranda **jauh di bawah 5 detik** (pedoman SINOVA) dan melindungi Core Web Vitals (`LCP`, `CLS`, `INP`):
 
----
-
-## 5. Written Design Decisions (R-31)
-
-1. **Warna:** Hijau `#056E4F` dan emas `#FF9900` mengikuti standar wajib SK Badilag, sementara hijau gelap `#033D2C` dipakai pada header/footer agar teks terang mendapat kontras > 11:1 dan emas dikunci berpasangan dengan teks gelap `#111827`.
-2. **Tipografi:** Kombinasi `Source Serif 4` (judul resmi) dan `Plus Jakarta Sans` (antarmuka publik dan admin) menyeimbangkan wibawa lembaga hukum dengan keterbacaan layar modern.
-3. **Layout Rhythm:** Halaman beranda membagi fokus melalui grid asimetris 8/4 di hero (slider + direktori 2-klik) dan 7/5 di berita/pengumuman agar tidak terjebak deretan kartu seragam.
-4. **Spacing:** Kontainer publik maksimal `1280px` dengan pemisah band `#FFFFFF` dan `#F8FAF9` serta jarak vertikal `40px-64px` di desktop dan `24px-32px` di mobile.
-5. **Kartu & Border:** Komponen duduk di atas garis tepi 1px `#D8E2DD` yang tenang sehingga perhatian pengguna langsung mengarah ke tombol aksi utama dan tautan perkara.
-6. **Ikonografi:** Hanya memakai ikon fungsional yang relevan dengan tindakan pengguna (pencarian, tautan eksternal, unduh dokumen, aksesibilitas, status kesehatan link) tanpa ikon dekoratif AI dan tanpa emoji pada judul atau tombol.
-7. **Motion:** Hanya transisi hover/focus 150ms dan perpindahan slide dengan tombol jeda eksplisit agar tetap ramah perangkat lambat dan mematuhi `prefers-reduced-motion`.
+1. **Zero Render-Blocking Bundle:** `three` dan `gsap` dipecah ke Vite dynamic chunks terpisah (`three-hero` dan `motion-gsap`). Entry `public.js` tidak mengimpor Three.js maupun GSAP secara statis.
+2. **Progressive Three.js Stage (Khusus Desktop Idle di `/`):**
+   - Fallback **inline SVG Timbangan Keadilan** langsung tampil pada `0ms` pertama.
+   - `hero-3d.js` hanya dimuat lewat `dynamic import()` setelah `requestIdleCallback` pada viewport `>= 1024px`, `prefers-reduced-motion: no-preference`, dan mode `.a11y-no-motion` tidak aktif.
+   - WebGLRenderer dibatasi `DPR <= 1.5`, `powerPreference: 'low-power'`, geometri low-poly (`<= 32` segmen), `InstancedMesh` untuk partikel debu emas, pause otomatis saat tab tersembunyi atau hero keluar viewport via `IntersectionObserver`, dan `dispose()` penuh saat animasi dimatikan.
+3. **GSAP + ScrollTrigger Terjaga:**
+   - Unsur hero above-the-fold tidak pernah disembunyikan (`opacity: 0`) sebelum JS dimuat agar LCP tetap instan.
+   - Koreografi `gsap.matchMedia()` hanya menganimasikan kemunculan halus band di bawah fold (`ScrollTrigger.batch(..., { once: true })`) dan transisi teks slide beranda; langsung melakukan `revert()` jika pengguna mengaktifkan "Hentikan Animasi".
 
 ---
 
-## 6. Responsive Breakpoints & Touch Standards
+## 5. Arsitektur Layar (Public Portal v3 & Backend CMS Studio v2)
 
-- **Mobile (`< 640px`, referensi 390px):** Reflow 1 kolom penuh; header ringkas 56px dengan tombol berlabel `Menu` (>= 44x44px) dan tombol `Cari` (>= 44x44px); grid pintasan layanan 2 kolom dengan sel minimal tinggi 48px dan jarak antar target >= 12px; nol horizontal overflow.
-- **Tablet / Small Laptop (`640px - 1024px`):** Grid transisi 2 kolom untuk berita dan kartu direktori transparansi; sidebar admin menutup otomatis menjadi drawer dengan tombol pemicu dan dukungan tombol `Escape`.
-- **Desktop (`> 1024px`, referensi 1440px):** Kontainer publik `1280px`; sidebar admin tetap `260px` dengan opsi collapse.
+### A. Public Portal v3
+1. **Header Terpadu & Pencarian Cepat (`Ctrl+K`):** Bilah utilitas Obsidian (`#022C20`), pita emas 3px (`#FF9900`), identitas satker, 6 menu utama konsolidasi (maksimal 3 level), modal pencarian cepat terpusat `#public-search-modal`, serta bilah aksi cepat bawah 4 tombol di mobile (`Beranda`, `Sidang`, `SIPP`, `Akses`).
+2. **Beranda Publik v3:** Pita Informasi Serta Merta -> Hero Obsidian-Emerald 7/5 (dengan slide foto `fetchpriority="high"` atau panggung 3D/SVG) -> Strip 3-Channel Citizen Pathway & Pintasan Cepat -> Hub Operasional 5/7 (Agenda Sidang & Jam PTSP | Service Ledger `01-06`) -> Berita & Pengumuman Timeline (lengkap dengan jumlah dilihat & komentar) -> Showcase SAKIP Gelap -> Spotlight Aksesibilitas -> Footer 3 Kolom -> Widget Aksesibilitas Mengambang.
+3. **Halaman Publikasi, Penghitung View & Komentar Termoderasi:** Setiap berita, pengumuman, dan artikel layanan hukum mencatat jumlah dilihat (`views_count`, terdeduplikasi per pengunjung per 30 menit agar tidak menggerus cache) serta menampilkan komentar disetujui berikut tanggapan resmi satker dengan formulir kirim komentar bercaptcha lokal, honeypot anti-spam, dan antrean moderasi.
 
----
-
-## 7. Arsitektur Layar (Figma & Implementasi)
-
-1. **Halaman `01 · Design System & Tokens`:** Koleksi token Light & High Contrast, spesimen warna, skala tipografi, tombol, badge status berbasis teks, breadcrumb, banner Informasi Serta Merta, dan panel Widget Aksesibilitas.
-2. **Halaman `02 · Website Publik (Desktop & Mobile)`:**
-   - **Beranda Desktop (1440px):** Bilah utilitas atas, pita emas 3px, header 6 menu konsolidasi, banner Informasi Serta Merta, hero slider 3-5 slide + direktori layanan <= 2 klik, berita & pengumuman asimetris, indeks transparansi & layanan hukum, footer 3 kolom, serta preview Widget Aksesibilitas.
-   - **Halaman Transparansi & Embed Fallback (1440px):** Breadcrumb, daftar dokumen 5 tahun per kategori, serta pola **Embed Eksternal (SIPP/SIMTEPA) + Cadangan Manual** saat sumber eksternal tidak terjangkau.
-   - **Beranda Mobile (390px):** Reflow khusus mobile yang ringkas dan nyaman disentuh.
-3. **Halaman `03 · Admin Panel (Flux UI)`:**
-   - **Admin Shell & Link SINOVA (1440px):** Sidebar terkelompok dengan penanda aktif jelas, ringkasan kesiapan tautan nyata (bukan kartu metrik palsu), akordion seluruh kode kriteria SINOVA (`1.a.1` hingga `3.c`), dan baris tabel berisi URL auto/override, status kesehatan, tombol Salin URL, dan tombol Buka.
-   - **Login Admin 2FA & Setup Wizard (1440px):** Alur masuk wajib captcha lokal + verifikasi TOTP 6 digit, serta wizard 4 langkah pengaturan awal satker termasuk penguncian Tingkat Pertama vs Tingkat Banding.
-
+### B. Backend CMS Studio v2 (Flux UI Free + Livewire 4)
+1. **Obsidian Emerald Studio Shell:** Sidebar terkelompok gelap (`#022C20`) dengan status indikator aktif emas, header 64px (`+ Buat Konten`, `Ctrl+K` Command Palette, `Lihat Website`).
+2. **Dashboard Studio & Kesiapan SINOVA:** Skor kesiapan 3 aspek, antrean perbaikan prioritas, **Widget Draf Cepat Publikasi** ala WordPress, konten terbaru beserta statistik baca/komentar, antrean komentar menunggu moderasi, dan status infrastruktur non-EOL.
+3. **Page Builder 3-Pane (Gutenberg Style):** Panel kiri daftar blok + outline halaman, kanvas tengah editor blok dengan urutan Naik/Turun/Duplikat/Hapus, dan panel kanan Inspector + **Pratinjau Cuplikan Google SEO** live.
+4. **Manajer Publikasi & Moderasi Komentar:** Filter tab status + pencarian, seleksi massal (*Bulk Actions*: Tayangkan, Draf, Sematkan, Hapus), jumlah dilihat/komentar per artikel, serta halaman khusus **Komentar & Moderasi** (`approve`, `reject`, `spam`, `delete`, dan **Balas Resmi sebagai Satker**).
+5. **Pustaka Dokumen, Menu Builder Visual, Kokpit SINOVA & RBAC 6-Peran:** Zona unggah PDF interaktif, penjaga 6 menu utama SINOVA, filter kesehatan tautan SINOVA, dan ringkasan matriks 6 peran + status 2FA TOTP.

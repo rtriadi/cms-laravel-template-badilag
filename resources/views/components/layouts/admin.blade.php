@@ -2,16 +2,19 @@
     $satker = \App\Models\SatkerSetting::current();
     $user = auth()->user();
     $tingkatLabel = $satker?->tingkat === 'banding' ? 'Tingkat Banding' : 'Tingkat Pertama';
+    $canModerateComments = $user !== null && $user->can('viewAny', \App\Models\PostComment::class);
+    $pendingCommentsBadge = $canModerateComments ? \App\Models\PostComment::cachedPendingCount() : 0;
 
     $commands = collect([
-        ['label' => 'Dashboard Kepatuhan', 'url' => route('admin.dashboard'), 'show' => true],
+        ['label' => 'Dashboard Studio & Kepatuhan', 'url' => route('admin.dashboard'), 'show' => true],
         ['label' => 'Link Kriteria SINOVA', 'url' => route('admin.sinova-links'), 'show' => $user?->can('manage-sinova-links') || $user?->hasRole('super_admin')],
         ['label' => 'Menu Navigasi', 'url' => route('admin.menus'), 'show' => $user?->can('manage-menus') || $user?->hasRole('super_admin')],
-        ['label' => 'Halaman & Blok', 'url' => route('admin.pages'), 'show' => $user?->can('manage-pages') || $user?->hasRole('super_admin')],
-        ['label' => 'Berita & Publikasi', 'url' => route('admin.posts'), 'show' => $user?->can('manage-ppid-humas') || $user?->hasRole('super_admin') || $user?->hasRole('admin_konten')],
-        ['label' => 'Dokumen SAKIP & Keuangan', 'url' => route('admin.documents'), 'show' => $user?->can('manage-kesekretariatan') || $user?->can('manage-kepaniteraan') || $user?->can('manage-ppid-humas') || $user?->hasRole('super_admin')],
-        ['label' => 'Kepaniteraan & Pegawai', 'url' => route('admin.kepaniteraan'), 'show' => $user?->can('manage-kepaniteraan') || $user?->can('manage-kesekretariatan') || $user?->hasRole('super_admin')],
-        ['label' => 'Slider Beranda', 'url' => route('admin.sliders'), 'show' => $user?->can('manage-pages') || $user?->hasRole('super_admin')],
+        ['label' => 'Halaman & Page Builder', 'url' => route('admin.pages'), 'show' => $user?->can('manage-pages') || $user?->hasRole('super_admin')],
+        ['label' => 'Berita, Artikel & Pengumuman', 'url' => route('admin.posts'), 'show' => $user?->can('manage-ppid-humas') || $user?->hasAnyRole(['super_admin', 'admin_konten'])],
+        ['label' => 'Moderasi Komentar Masyarakat', 'url' => route('admin.comments'), 'show' => $canModerateComments],
+        ['label' => 'Arsip Dokumen PDF & SAKIP', 'url' => route('admin.documents'), 'show' => $user?->can('manage-kesekretariatan') || $user?->can('manage-kepaniteraan') || $user?->can('manage-ppid-humas') || $user?->hasAnyRole(['super_admin', 'admin_konten'])],
+        ['label' => 'Pegawai, Sidang & Statistik', 'url' => route('admin.kepaniteraan'), 'show' => $user?->can('manage-kepaniteraan') || $user?->can('manage-kesekretariatan') || $user?->hasAnyRole(['super_admin', 'admin_konten'])],
+        ['label' => 'Slider Beranda', 'url' => route('admin.sliders'), 'show' => $user?->can('manage-pages') || $user?->hasAnyRole(['super_admin', 'admin_konten'])],
         ['label' => 'Pengaturan Satker', 'url' => route('admin.settings'), 'show' => $user?->can('manage-satker-settings') || $user?->hasRole('super_admin')],
         ['label' => 'Manajemen Kriteria', 'url' => route('admin.criteria'), 'show' => $user?->can('manage-criteria') || $user?->hasRole('super_admin')],
         ['label' => 'Pengguna & Peran (RBAC)', 'url' => route('admin.users'), 'show' => $user?->can('manage-users') || $user?->hasRole('super_admin')],
@@ -25,7 +28,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? 'Panel Admin' }} - {{ $satker?->nama_satker ?? 'SatkerCMS' }}</title>
+    <title>{{ $title ?? 'Panel Studio Admin' }} - {{ $satker?->nama_satker ?? 'SatkerCMS' }}</title>
     @if (is_file(public_path('build/fonts-manifest.json')) || \Illuminate\Support\Facades\Vite::isRunningHot())
         {{ \Illuminate\Support\Facades\Vite::fonts() }}
     @endif
@@ -242,6 +245,7 @@
     class="min-h-screen bg-mist font-sans text-ink antialiased"
     x-data="{
         cmdOpen: false,
+        createOpen: false,
         cmdQuery: '',
         cmdActive: 0,
         cmdTrap: null,
@@ -280,24 +284,29 @@
             }
         }
     }"
-    x-on:keydown.window="if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); openCmd(); } else if (event.key === 'Escape' && cmdOpen) { closeCmd(); }"
+    x-on:keydown.window="if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); openCmd(); } else if (event.key === 'Escape') { if (cmdOpen) closeCmd(); createOpen = false; }"
 >
     <div class="min-h-screen lg:flex">
-        <flux:sidebar sticky collapsible="mobile" class="border-e border-hairline bg-white lg:w-64">
-            <flux:sidebar.header class="flex flex-col items-stretch gap-2 border-b border-hairline pb-3">
+        <flux:sidebar sticky collapsible="mobile" class="studio-sidebar border-e border-emerald-900 bg-obsidian text-emerald-50 lg:w-64">
+            <flux:sidebar.header class="flex flex-col items-stretch gap-2 border-b border-emerald-900 pb-3">
                 <div class="flex items-center justify-between gap-2">
-                    <a href="{{ route('admin.dashboard') }}" class="font-serif text-lg font-bold text-primary-deep">
-                        SatkerCMS
+                    <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2 font-serif text-lg font-bold text-white">
+                        <span class="flex size-7 items-center justify-center rounded-md border border-gold bg-primary-deep text-gold">
+                            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M12 3v18M5 7h14M8 21h8M5 7l-3 6h6l-3-6zM19 7l-3 6h6l-3-6z" />
+                            </svg>
+                        </span>
+                        <span>SatkerCMS</span>
                     </a>
-                    <flux:sidebar.collapse class="hidden lg:inline-flex" />
-                    <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
+                    <flux:sidebar.collapse class="hidden text-emerald-200 hover:bg-primary-deep hover:text-white lg:inline-flex" />
+                    <flux:sidebar.toggle class="text-emerald-200 hover:bg-primary-deep hover:text-white lg:hidden" icon="x-mark" />
                 </div>
                 <div class="space-y-1 in-data-flux-sidebar-collapsed-desktop:hidden">
-                    <p class="truncate text-xs font-semibold text-ink">
+                    <p class="truncate text-xs font-semibold text-white">
                         {{ $satker?->nama_satker ?? 'Satuan Kerja' }}
                     </p>
-                    <span class="inline-flex items-center rounded border border-emerald-200 bg-primary-soft px-2 py-0.5 font-mono text-2xs font-medium text-primary">
-                        {{ $tingkatLabel }}
+                    <span class="inline-flex items-center rounded border border-gold/50 bg-primary-deep px-2 py-0.5 font-mono text-2xs font-medium text-amber-300">
+                        {{ $tingkatLabel }} &middot; Studio v2
                     </span>
                 </div>
             </flux:sidebar.header>
@@ -308,7 +317,7 @@
                         icon="squares-2x2"
                         href="{{ route('admin.dashboard') }}"
                         :current="request()->routeIs('admin.dashboard')"
-                        class="min-h-11 data-current:border-s-4 data-current:border-primary data-current:bg-primary-soft data-current:font-semibold data-current:text-primary"
+                        class="min-h-11"
                     >
                         Dashboard Kepatuhan
                     </flux:sidebar.item>
@@ -318,42 +327,22 @@
                             icon="link"
                             href="{{ route('admin.sinova-links') }}"
                             :current="request()->routeIs('admin.sinova-links')"
-                            class="min-h-11 data-current:border-s-4 data-current:border-primary data-current:bg-primary-soft data-current:font-semibold data-current:text-primary"
+                            class="min-h-11"
                         >
                             Link Kriteria SINOVA
                         </flux:sidebar.item>
                     @endif
                 </flux:sidebar.group>
 
-                <flux:sidebar.group heading="Konten Website">
-                    @if ($user?->can('manage-menus') || $user?->hasRole('super_admin'))
-                        <flux:sidebar.item
-                            icon="bars-3-bottom-left"
-                            href="{{ route('admin.menus') }}"
-                            :current="request()->routeIs('admin.menus')"
-                            class="min-h-11 data-current:border-s-4 data-current:border-primary data-current:bg-primary-soft data-current:font-semibold data-current:text-primary"
-                        >
-                            Menu Navigasi
-                        </flux:sidebar.item>
-                    @endif
-
+                <flux:sidebar.group heading="Editorial & Konten">
                     @if ($user?->can('manage-pages') || $user?->hasRole('super_admin'))
                         <flux:sidebar.item
                             icon="document-duplicate"
                             href="{{ route('admin.pages') }}"
                             :current="request()->routeIs('admin.pages')"
-                            class="min-h-11 data-current:border-s-4 data-current:border-primary data-current:bg-primary-soft data-current:font-semibold data-current:text-primary"
+                            class="min-h-11"
                         >
-                            Halaman Website
-                        </flux:sidebar.item>
-
-                        <flux:sidebar.item
-                            icon="photo"
-                            href="{{ route('admin.sliders') }}"
-                            :current="request()->routeIs('admin.sliders')"
-                            class="min-h-11 data-current:border-s-4 data-current:border-primary data-current:bg-primary-soft data-current:font-semibold data-current:text-primary"
-                        >
-                            Slider Beranda
+                            Halaman &amp; Page Builder
                         </flux:sidebar.item>
                     @endif
 
@@ -362,42 +351,78 @@
                             icon="newspaper"
                             href="{{ route('admin.posts') }}"
                             :current="request()->routeIs('admin.posts')"
-                            class="min-h-11 data-current:border-s-4 data-current:border-primary data-current:bg-primary-soft data-current:font-semibold data-current:text-primary"
+                            class="min-h-11"
                         >
                             Berita, Artikel &amp; Pengumuman
                         </flux:sidebar.item>
                     @endif
 
-                    @if ($user?->can('manage-kesekretariatan') || $user?->can('manage-kepaniteraan') || $user?->can('manage-ppid-humas') || $user?->hasRole('super_admin'))
+                    @if ($canModerateComments)
+                        <flux:sidebar.item
+                            icon="chat-bubble-left-right"
+                            href="{{ route('admin.comments') }}"
+                            :current="request()->routeIs('admin.comments')"
+                            :badge="$pendingCommentsBadge > 0 ? $pendingCommentsBadge : null"
+                            class="min-h-11"
+                        >
+                            Komentar &amp; Moderasi
+                        </flux:sidebar.item>
+                    @endif
+
+                    @if ($user?->can('manage-kesekretariatan') || $user?->can('manage-kepaniteraan') || $user?->can('manage-ppid-humas') || $user?->hasAnyRole(['super_admin', 'admin_konten']))
                         <flux:sidebar.item
                             icon="folder-open"
                             href="{{ route('admin.documents') }}"
                             :current="request()->routeIs('admin.documents')"
-                            class="min-h-11 data-current:border-s-4 data-current:border-primary data-current:bg-primary-soft data-current:font-semibold data-current:text-primary"
+                            class="min-h-11"
                         >
                             Arsip Dokumen PDF
                         </flux:sidebar.item>
                     @endif
+                </flux:sidebar.group>
 
-                    @if ($user?->can('manage-kepaniteraan') || $user?->can('manage-kesekretariatan') || $user?->hasRole('super_admin'))
+                <flux:sidebar.group heading="Struktur & Layanan">
+                    @if ($user?->can('manage-menus') || $user?->hasRole('super_admin'))
+                        <flux:sidebar.item
+                            icon="bars-3-bottom-left"
+                            href="{{ route('admin.menus') }}"
+                            :current="request()->routeIs('admin.menus')"
+                            class="min-h-11"
+                        >
+                            Menu Navigasi
+                        </flux:sidebar.item>
+                    @endif
+
+                    @if ($user?->can('manage-pages') || $user?->hasAnyRole(['super_admin', 'admin_konten']))
+                        <flux:sidebar.item
+                            icon="photo"
+                            href="{{ route('admin.sliders') }}"
+                            :current="request()->routeIs('admin.sliders')"
+                            class="min-h-11"
+                        >
+                            Slider Beranda
+                        </flux:sidebar.item>
+                    @endif
+
+                    @if ($user?->can('manage-kepaniteraan') || $user?->can('manage-kesekretariatan') || $user?->hasAnyRole(['super_admin', 'admin_konten']))
                         <flux:sidebar.item
                             icon="scale"
                             href="{{ route('admin.kepaniteraan') }}"
                             :current="request()->routeIs('admin.kepaniteraan')"
-                            class="min-h-11 data-current:border-s-4 data-current:border-primary data-current:bg-primary-soft data-current:font-semibold data-current:text-primary"
+                            class="min-h-11"
                         >
                             Pegawai, Sidang &amp; Statistik
                         </flux:sidebar.item>
                     @endif
                 </flux:sidebar.group>
 
-                <flux:sidebar.group heading="Sistem &amp; Keamanan">
+                <flux:sidebar.group heading="Tata Kelola & Keamanan">
                     @if ($user?->can('manage-satker-settings') || $user?->hasRole('super_admin'))
                         <flux:sidebar.item
                             icon="building-library"
                             href="{{ route('admin.settings') }}"
                             :current="request()->routeIs('admin.settings')"
-                            class="min-h-11 data-current:border-s-4 data-current:border-primary data-current:bg-primary-soft data-current:font-semibold data-current:text-primary"
+                            class="min-h-11"
                         >
                             Pengaturan Satker
                         </flux:sidebar.item>
@@ -408,7 +433,7 @@
                             icon="clipboard-document-check"
                             href="{{ route('admin.criteria') }}"
                             :current="request()->routeIs('admin.criteria')"
-                            class="min-h-11 data-current:border-s-4 data-current:border-primary data-current:bg-primary-soft data-current:font-semibold data-current:text-primary"
+                            class="min-h-11"
                         >
                             Manajemen Kriteria
                         </flux:sidebar.item>
@@ -419,7 +444,7 @@
                             icon="users"
                             href="{{ route('admin.users') }}"
                             :current="request()->routeIs('admin.users')"
-                            class="min-h-11 data-current:border-s-4 data-current:border-primary data-current:bg-primary-soft data-current:font-semibold data-current:text-primary"
+                            class="min-h-11"
                         >
                             Pengguna &amp; Peran
                         </flux:sidebar.item>
@@ -430,7 +455,7 @@
                             icon="shield-check"
                             href="{{ route('admin.audit') }}"
                             :current="request()->routeIs('admin.audit')"
-                            class="min-h-11 data-current:border-s-4 data-current:border-primary data-current:bg-primary-soft data-current:font-semibold data-current:text-primary"
+                            class="min-h-11"
                         >
                             Audit &amp; Redirect 301
                         </flux:sidebar.item>
@@ -440,26 +465,26 @@
                         icon="key"
                         href="{{ route('admin.two-factor.setup') }}"
                         :current="request()->routeIs('admin.two-factor.setup')"
-                        class="min-h-11 data-current:border-s-4 data-current:border-primary data-current:bg-primary-soft data-current:font-semibold data-current:text-primary"
+                        class="min-h-11"
                     >
                         Keamanan 2FA
                     </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 
-            <div class="mt-auto border-t border-hairline pt-3 in-data-flux-sidebar-collapsed-desktop:hidden">
-                <div class="rounded-md border border-hairline bg-mist p-3">
-                    <p class="truncate text-xs font-semibold text-ink">{{ $user?->name }}</p>
+            <div class="mt-auto border-t border-emerald-900 pt-3 in-data-flux-sidebar-collapsed-desktop:hidden">
+                <div class="rounded-lg border border-emerald-800 bg-primary-deep p-3">
+                    <p class="truncate text-xs font-semibold text-white">{{ $user?->name }}</p>
                     <p @class([
                         'mt-0.5 font-mono text-2xs',
-                        'text-emerald-700' => $user?->two_factor_confirmed_at !== null,
-                        'text-amber-700' => $user?->two_factor_confirmed_at === null,
+                        'text-emerald-200' => $user?->two_factor_confirmed_at !== null,
+                        'text-amber-300' => $user?->two_factor_confirmed_at === null,
                     ])>
                         {{ $user?->two_factor_confirmed_at !== null ? '2FA TOTP Aktif' : '2FA Belum Aktif' }}
                     </p>
-                    <form method="POST" action="{{ route('logout') }}" class="mt-2">
+                    <form method="POST" action="{{ route('logout') }}" class="mt-2.5">
                         @csrf
-                        <button type="submit" class="inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded border border-hairline bg-white px-2 text-xs font-semibold text-ink hover:bg-mist">
+                        <button type="submit" class="inline-flex min-h-10 w-full cursor-pointer items-center justify-center rounded border border-emerald-700 bg-obsidian px-2 text-xs font-semibold text-white hover:bg-primary">
                             Keluar
                         </button>
                     </form>
@@ -468,7 +493,7 @@
         </flux:sidebar>
 
         <div class="flex min-w-0 flex-1 flex-col">
-            <header class="sticky top-0 z-10 flex min-h-16 items-center justify-between gap-3 border-b border-hairline bg-white px-4 sm:px-6 lg:px-8">
+            <header class="sticky top-0 z-10 flex min-h-16 items-center justify-between gap-3 border-b border-hairline bg-white px-4 shadow-2xs sm:px-6 lg:px-8">
                 <div class="flex items-center gap-3">
                     <button
                         type="button"
@@ -480,11 +505,39 @@
                         <span>Menu</span>
                     </button>
                     <h1 class="font-serif text-lg font-bold text-ink sm:text-xl">
-                        {{ $title ?? 'Dashboard Kepatuhan' }}
+                        {{ $title ?? 'Dashboard Studio & Kepatuhan' }}
                     </h1>
                 </div>
 
                 <div class="flex items-center gap-2">
+                    <!-- Quick + Buat Konten Studio Dropdown -->
+                    <div class="relative hidden sm:block" x-on:click.outside="createOpen = false">
+                        <button
+                            type="button"
+                            x-on:click="createOpen = !createOpen"
+                            aria-expanded="false"
+                            x-bind:aria-expanded="createOpen ? 'true' : 'false'"
+                            class="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-md bg-primary px-3.5 text-xs font-bold text-white hover:bg-primary-hover"
+                        >
+                            <span>+ Buat Konten</span>
+                        </button>
+                        <div
+                            x-cloak
+                            x-show="createOpen"
+                            class="absolute right-0 mt-1.5 w-60 rounded-xl border border-hairline bg-white p-1.5 shadow-xl"
+                        >
+                            @if ($user?->can('manage-ppid-humas') || $user?->hasAnyRole(['super_admin', 'admin_konten']))
+                                <a href="{{ route('admin.posts', ['kategori' => 'berita']) }}" class="flex min-h-10 items-center rounded-md px-3 text-xs font-semibold text-ink hover:bg-primary-soft hover:text-primary">Tulis Berita / Pengumuman</a>
+                            @endif
+                            @if ($user?->can('manage-pages') || $user?->hasRole('super_admin'))
+                                <a href="{{ route('admin.pages') }}" class="flex min-h-10 items-center rounded-md px-3 text-xs font-semibold text-ink hover:bg-primary-soft hover:text-primary">Buka Page Builder</a>
+                            @endif
+                            @if ($user?->can('manage-kesekretariatan') || $user?->can('manage-kepaniteraan') || $user?->can('manage-ppid-humas') || $user?->hasAnyRole(['super_admin', 'admin_konten']))
+                                <a href="{{ route('admin.documents') }}" class="flex min-h-10 items-center rounded-md px-3 text-xs font-semibold text-ink hover:bg-primary-soft hover:text-primary">Unggah Dokumen PDF</a>
+                            @endif
+                        </div>
+                    </div>
+
                     <button
                         type="button"
                         x-on:click="openCmd()"

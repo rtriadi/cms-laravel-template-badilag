@@ -69,7 +69,7 @@
 >
     <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <!-- Institutional Judicial Hero Banner -->
-        <header class="relative overflow-hidden rounded-xl border border-emerald-900 border-b-4 border-b-gold bg-primary-deep p-6 text-white shadow-xs sm:p-8">
+        <header class="relative overflow-hidden rounded-xl border border-emerald-900 border-b-4 border-b-gold bg-obsidian p-6 text-white shadow-xs sm:p-8">
             <svg aria-hidden="true" class="pub-crest-float pointer-events-none absolute -top-8 -right-8 size-56 text-white/6 sm:size-68" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                 <path d="M12 3v18M5 7h14M8 21h8M5 7l-3 6h6l-3-6zM19 7l-3 6h6l-3-6z" />
             </svg>
@@ -80,9 +80,9 @@
                     @if ($activeCategoryLabel)
                         <a href="{{ route('public.posts') }}" class="font-semibold text-white hover:underline">Publikasi Resmi</a>
                         <span aria-hidden="true" class="text-emerald-300">/</span>
-                        <span class="font-medium text-gold">{{ $activeCategoryLabel }}</span>
+                        <span class="font-medium text-amber-300">{{ $activeCategoryLabel }}</span>
                     @else
-                        <span class="font-medium text-gold">Berita &amp; Publikasi Resmi</span>
+                        <span class="font-medium text-amber-300">Berita &amp; Publikasi Resmi</span>
                     @endif
                 </nav>
 
@@ -161,9 +161,9 @@
                                 />
                             </div>
                         @else
-                            <div aria-hidden="true" class="mb-4 flex h-28 items-center justify-between overflow-hidden rounded-lg border border-emerald-900/15 bg-gradient-to-r from-primary-deep to-primary px-4 text-white">
+                            <div aria-hidden="true" class="mb-4 flex h-28 items-center justify-between overflow-hidden rounded-lg border border-emerald-900/15 bg-gradient-to-r from-obsidian to-primary px-4 text-white">
                                 <div>
-                                    <span class="block font-mono text-2xs font-bold text-gold uppercase">Publikasi Resmi</span>
+                                    <span class="block font-mono text-2xs font-bold text-amber-300 uppercase">Publikasi Resmi</span>
                                     <span class="font-serif text-xs font-semibold text-emerald-50">{{ $satker?->nama_satker ?? 'Peradilan Agama' }}</span>
                                 </div>
                                 <svg class="size-10 text-white/20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -182,9 +182,13 @@
                         @if ($post->excerpt && trim(strip_tags($post->excerpt)) !== '')
                             <p class="mt-2 text-xs leading-relaxed text-ink-body">{{ \Illuminate\Support\Str::limit(trim(strip_tags($post->excerpt)), 140) }}</p>
                         @endif
-                        <p class="mt-auto pt-4 font-mono text-2xs text-ink-muted">
-                            Diunggah: {{ \App\Support\Tanggal::format($post->published_at ?? $post->created_at, 'd M Y') }}
-                        </p>
+                        <div class="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-hairline/70 pt-3 font-mono text-2xs text-ink-muted">
+                            <span>{{ \App\Support\Tanggal::format($post->published_at ?? $post->created_at, 'd M Y') }}</span>
+                            <span class="flex items-center gap-2.5">
+                                <span>{{ number_format((int) ($post->views_count ?? 0)) }} dilihat</span>
+                                <span>{{ number_format((int) ($post->approved_comments_count ?? 0)) }} komentar</span>
+                            </span>
+                        </div>
                     </article>
                 @endforeach
             </div>
@@ -195,4 +199,3 @@
         @endif
     </div>
 </x-layouts.public>
-

@@ -11,8 +11,8 @@ html.pub-motion-ready:not(.a11y-no-motion) .pub-reveal {
     opacity: 0;
     transform: translateY(10px);
     transition:
-        opacity 340ms var(--ease-out-strong),
-        transform 340ms var(--ease-out-strong);
+        opacity 340ms var(--ease-judicial, var(--ease-out-strong)),
+        transform 340ms var(--ease-judicial, var(--ease-out-strong));
     transition-delay: var(--stagger-delay, 0ms);
 }
 
@@ -21,7 +21,7 @@ html.pub-motion-ready:not(.a11y-no-motion) .pub-reveal.is-visible {
     transform: translateY(0);
 }
 
-/* High contrast mode: keep images and overlays readable instead of blacking out every div. */
+/* High contrast mode: WCAG AAA monochrome + yellow interactive affordance */
 html.a11y-hc,
 html.a11y-hc body {
     background-color: #000000 !important;
@@ -49,10 +49,25 @@ html.a11y-hc select,
 html.a11y-hc textarea,
 html.a11y-hc .bg-white,
 html.a11y-hc .bg-mist,
-html.a11y-hc .bg-primary-soft {
+html.a11y-hc .bg-ivory,
+html.a11y-hc .bg-obsidian,
+html.a11y-hc .bg-primary-deep,
+html.a11y-hc .bg-primary-soft,
+html.a11y-hc #public-search-modal [role='dialog'] > div,
+html.a11y-hc [data-mobile-bottom-bar] {
     background-color: #000000 !important;
+    background-image: none !important;
     color: #ffffff !important;
     border-color: #ffff00 !important;
+}
+
+html.a11y-hc [data-hero-3d-canvas] {
+    display: none !important;
+}
+
+html.a11y-hc [data-hero-3d-fallback] {
+    opacity: 1 !important;
+    color: #ffff00 !important;
 }
 
 html.a11y-hc a,

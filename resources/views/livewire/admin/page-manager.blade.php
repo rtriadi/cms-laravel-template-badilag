@@ -57,7 +57,7 @@
         </div>
     </div>
 
-    <!-- Full-Width CMS Page Builder Studio Workspace (8/4 Inspector Layout) -->
+    <!-- 3-Pane Gutenberg-Style Studio Editor Workspace (2 Outline/Inserter | 6 Block Canvas | 4 Inspector + Google SEO Preview) -->
     <div
         id="workspace-editor-halaman"
         x-show="$wire.editorOpen"
@@ -73,7 +73,7 @@
                     {{ $editingId ? 'Edit Isi Halaman: ' . $title : 'Buat Halaman Website Baru' }}
                 </h2>
                 <p class="text-xs text-ink-muted">
-                    Susun isi artikel halaman, unggah gambar/PDF di dalam editor, atau tambahkan blok daftar dokumen dan artikel terkait.
+                    Susun blok konten secara modular, atur urutan naik/turun atau duplikasi blok, dan pantau pratinjau hasil pencarian Google di panel kanan.
                 </p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
@@ -97,9 +97,47 @@
             </div>
         </div>
 
-        <form wire:submit="save" class="mt-5 grid gap-6 xl:grid-cols-12">
-            <!-- Left 8 Columns: Wide Content & Block Builder Canvas -->
-            <div class="space-y-4 xl:col-span-8">
+        <form wire:submit="save" class="mt-5 grid gap-5 xl:grid-cols-12">
+            <!-- Left 2 Columns: Block Inserter & Document Outline -->
+            <aside class="space-y-4 rounded-xl border border-hairline bg-mist p-3.5 xl:col-span-2">
+                <div>
+                    <p class="font-mono text-2xs font-bold text-primary uppercase">Sisipkan Blok</p>
+                    <div class="mt-2 grid gap-1.5 sm:grid-cols-2 xl:grid-cols-1">
+                        @foreach ([
+                            'richtext' => '+ Teks / Artikel',
+                            'document_list' => '+ Daftar Dokumen',
+                            'article_list' => '+ Daftar Artikel',
+                            'embed_fallback' => '+ Embed / Cadangan',
+                            'external_portal' => '+ Portal Eksternal',
+                            'map_yurisdiksi' => '+ Peta Yurisdiksi',
+                            'satker_contact' => '+ Kontak Satker',
+                        ] as $bType => $bLabel)
+                            <button
+                                type="button"
+                                wire:click="addBlock('{{ $bType }}')"
+                                class="min-h-10 cursor-pointer rounded-md border border-hairline bg-white px-2.5 text-left text-xs font-semibold text-primary shadow-2xs hover:border-primary hover:bg-primary hover:text-white"
+                            >
+                                {{ $bLabel }}
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="border-t border-hairline pt-3">
+                    <p class="font-mono text-2xs font-bold text-ink-muted uppercase">Struktur Blok ({{ count($blocks) }})</p>
+                    <ol class="mt-2 space-y-1 text-xs">
+                        @foreach ($blocks as $outIdx => $outBlk)
+                            <li class="truncate rounded border border-hairline/70 bg-white px-2 py-1 text-2xs text-ink-body">
+                                <span class="font-mono font-bold text-primary">{{ $outIdx + 1 }}.</span>
+                                {{ trim((string) ($outBlk['heading'] ?? '')) ?: strtoupper((string) ($outBlk['type'] ?? 'richtext')) }}
+                            </li>
+                        @endforeach
+                    </ol>
+                </div>
+            </aside>
+
+            <!-- Center 6 Columns: Page Title + Block Canvas -->
+            <div class="space-y-4 xl:col-span-6">
                 <div class="grid gap-4 sm:grid-cols-2">
                     <flux:field>
                         <flux:label for="page_title">Judul Halaman *</flux:label>
@@ -113,39 +151,50 @@
                     </flux:field>
                 </div>
 
-                <!-- Dynamic Blocks Canvas -->
                 <div class="space-y-4 rounded-xl border border-hairline bg-mist p-4">
-                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-hairline pb-3">
-                        <div>
-                            <span class="text-sm font-bold text-ink">Kanvas Blok Konten Halaman ({{ count($blocks) }} Blok)</span>
-                            <p class="text-2xs text-ink-muted">Satu halaman dapat berisi gabungan artikel teks lengkap, daftar dokumen PDF, maupun daftar artikel berita.</p>
-                        </div>
-                        <div class="flex flex-wrap gap-1.5">
-                            @foreach (['richtext' => '+ Teks / Artikel', 'document_list' => '+ Daftar Dokumen PDF', 'article_list' => '+ Daftar Artikel', 'embed_fallback' => '+ Embed/Cadangan', 'external_portal' => '+ Portal', 'map_yurisdiksi' => '+ Peta', 'satker_contact' => '+ Kontak'] as $bType => $bLabel)
-                                <button
-                                    type="button"
-                                    wire:click="addBlock('{{ $bType }}')"
-                                    class="min-h-9 cursor-pointer rounded-md border border-primary/30 bg-white px-2.5 py-1.5 text-xs font-semibold text-primary shadow-2xs hover:bg-primary hover:text-white"
-                                >
-                                    {{ $bLabel }}
-                                </button>
-                            @endforeach
-                        </div>
+                    <div class="flex items-center justify-between border-b border-hairline pb-2.5">
+                        <span class="text-sm font-bold text-ink">Kanvas Blok Konten Halaman ({{ count($blocks) }} Blok)</span>
+                        <span class="font-mono text-2xs text-ink-muted">Gunakan tombol Naik / Turun untuk menyusun urutan</span>
                     </div>
 
                     @foreach ($blocks as $index => $block)
                         <div wire:key="blk-{{ $editingId ?? 'new' }}-{{ $index }}-{{ $block['type'] ?? 'richtext' }}" class="space-y-3 rounded-lg border border-hairline bg-white p-4 shadow-2xs">
-                            <div class="flex items-center justify-between border-b border-hairline pb-2">
+                            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-hairline pb-2">
                                 <span class="rounded bg-primary-soft px-2.5 py-0.5 font-mono text-xs font-bold text-primary">
-                                    Blok #{{ $index + 1 }} · {{ strtoupper((string) ($block['type'] ?? 'richtext')) }}
+                                    Blok #{{ $index + 1 }} &middot; {{ strtoupper((string) ($block['type'] ?? 'richtext')) }}
                                 </span>
-                                <button
-                                    type="button"
-                                    wire:click="removeBlock({{ $index }})"
-                                    class="cursor-pointer rounded border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
-                                >
-                                    Hapus Blok
-                                </button>
+                                <div class="flex flex-wrap items-center gap-1">
+                                    <button
+                                        type="button"
+                                        wire:click="moveBlockUp({{ $index }})"
+                                        @disabled($index === 0)
+                                        class="cursor-pointer rounded border border-hairline bg-mist px-2 py-1 text-2xs font-semibold text-ink hover:bg-primary-soft disabled:cursor-not-allowed disabled:opacity-40"
+                                    >
+                                        Naik
+                                    </button>
+                                    <button
+                                        type="button"
+                                        wire:click="moveBlockDown({{ $index }})"
+                                        @disabled($index >= count($blocks) - 1)
+                                        class="cursor-pointer rounded border border-hairline bg-mist px-2 py-1 text-2xs font-semibold text-ink hover:bg-primary-soft disabled:cursor-not-allowed disabled:opacity-40"
+                                    >
+                                        Turun
+                                    </button>
+                                    <button
+                                        type="button"
+                                        wire:click="duplicateBlock({{ $index }})"
+                                        class="cursor-pointer rounded border border-hairline bg-mist px-2 py-1 text-2xs font-semibold text-primary hover:bg-primary-soft"
+                                    >
+                                        Duplikat
+                                    </button>
+                                    <button
+                                        type="button"
+                                        wire:click="removeBlock({{ $index }})"
+                                        class="cursor-pointer rounded border border-red-200 px-2.5 py-1 text-2xs font-semibold text-red-700 hover:bg-red-50"
+                                    >
+                                        Hapus
+                                    </button>
+                                </div>
                             </div>
 
                             <flux:field>
@@ -158,7 +207,7 @@
                                     model="blocks.{{ $index }}.content"
                                     label="Konten blok teks #{{ $index + 1 }}"
                                     placeholder="Tulis isi konten halaman, sisipkan tabel, gambar, atau lampiran PDF..."
-                                    :min-height="300"
+                                    :min-height="280"
                                 />
                             @elseif (($block['type'] ?? '') === 'document_list')
                                 <flux:field>
@@ -226,7 +275,7 @@
                                     <p class="font-semibold text-primary-deep">Sumber URL Embed Aktif:</p>
                                     @if (! empty($previewResolved['tabs']))
                                         <p class="mt-0.5 text-2xs text-ink-body">
-                                            Otomatis menampilkan <strong>{{ count($previewResolved['tabs']) }} Tab Kategori SIMTEPA</strong> dari token <code>{{ $satker?->extractSimtepaToken() }}</code> (Ketua, Wakil, Hakim, Kepaniteraan, Kesekretariatan, Fungsional{{ count($previewResolved['tabs']) === 7 ? ', Pelaksana' : '' }}).
+                                            Otomatis menampilkan <strong>{{ count($previewResolved['tabs']) }} Tab Kategori SIMTEPA</strong> dari token <code>{{ $satker?->extractSimtepaToken() }}</code>.
                                         </p>
                                     @elseif (! empty($previewResolved['embed_url']))
                                         <p class="mt-0.5 break-all font-mono text-2xs text-primary">{{ $previewResolved['embed_url'] }}</p>
@@ -282,22 +331,41 @@
                 </div>
             </div>
 
-            <!-- Right 4 Columns: Inspector Sidebar (Slug, Metadata, Save CTA) -->
+            <!-- Right 4 Columns: Inspector Sidebar (Slug, Live SEO Preview, SINOVA & Publish) -->
             <aside class="space-y-4 rounded-xl border border-hairline bg-mist p-4 xl:col-span-4">
                 <h3 class="border-b border-hairline pb-2.5 font-serif text-base font-bold text-ink">
-                    Pengaturan &amp; Publikasi Halaman
+                    Pengaturan, SEO &amp; Publikasi Halaman
                 </h3>
+
+                <!-- Live Google SEO Snippet Preview -->
+                <div class="rounded-lg border border-hairline bg-white p-3.5 text-xs">
+                    <p class="font-mono text-2xs font-bold text-primary uppercase">Pratinjau Hasil Google</p>
+                    <p class="mt-1.5 truncate font-medium text-emerald-800">
+                        {{ url('/halaman/' . ($slug ?: 'slug-halaman')) }}
+                    </p>
+                    <p class="mt-0.5 truncate text-sm font-bold text-blue-800">
+                        {{ $title ?: 'Judul Halaman Resmi Satuan Kerja' }} - {{ $satker?->nama_satker ?? 'SatkerCMS' }}
+                    </p>
+                    <p class="mt-1 line-clamp-2 text-2xs leading-relaxed text-ink-body">
+                        {{ trim($meta_description) !== '' ? $meta_description : (trim($summary) !== '' ? $summary : 'Deskripsi SEO Google otomatis akan diambil dari ringkasan atau isi blok pertama halaman.') }}
+                    </p>
+                </div>
 
                 <flux:field>
                     <flux:label for="page_slug">Slug URL (/halaman/...)</flux:label>
-                    <flux:input id="page_slug" wire:model="slug" required placeholder="layanan-hukum/hak-pencari-keadilan" />
+                    <flux:input id="page_slug" wire:model.live="slug" required placeholder="layanan-hukum/hak-pencari-keadilan" />
                     <p class="mt-1 text-2xs text-ink-muted">Gunakan awalan <code>profil/</code>, <code>layanan-hukum/</code>, <code>transparansi/</code>, atau <code>layanan-publik/</code>. Mengubah slug otomatis membuat Redirect 301.</p>
                     <flux:error name="slug" />
                 </flux:field>
 
                 <flux:field>
-                    <flux:label for="page_meta_desc">Deskripsi SEO Google (Maks 160 Karakter)</flux:label>
-                    <flux:textarea id="page_meta_desc" wire:model="meta_description" rows="2" maxlength="160" placeholder="Opsional: ringkasan singkat untuk tampil di hasil pencarian Google dan pratinjau WhatsApp..." />
+                    <div class="flex items-center justify-between gap-2">
+                        <flux:label for="page_meta_desc">Deskripsi SEO Google (Maks 160 Karakter)</flux:label>
+                        <span class="font-mono text-2xs {{ mb_strlen($meta_description) > 155 ? 'font-bold text-amber-700' : 'text-ink-muted' }}">
+                            {{ mb_strlen($meta_description) }}/160
+                        </span>
+                    </div>
+                    <flux:textarea id="page_meta_desc" wire:model.live="meta_description" rows="2" maxlength="160" placeholder="Opsional: ringkasan singkat untuk tampil di hasil pencarian Google dan pratinjau WhatsApp..." />
                     <flux:error name="meta_description" />
                 </flux:field>
 

@@ -19,13 +19,13 @@
     @endauth
 
     @if ($posts->isEmpty())
-        <div class="rounded-lg border border-hairline bg-mist p-6 text-center text-sm text-ink-muted">
+        <div class="rounded-lg border border-hairline bg-ivory p-6 text-center text-sm text-ink-muted">
             Belum ada artikel tambahan yang diterbitkan pada bagian ini.
         </div>
     @else
         <div class="grid gap-4 sm:grid-cols-2">
             @foreach ($posts as $article)
-                <article class="pub-card flex flex-col rounded-lg border border-hairline bg-mist p-4">
+                <article class="pub-card flex flex-col rounded-lg border border-hairline bg-ivory p-4">
                     @if ($article->featured_image_path)
                         @php
                             $articleImg = \App\Services\ImageOptimizerService::responsiveAttributes($article->featured_image_path, [400, 480, 720], '(max-width: 640px) calc(100vw - 64px), 340px', null, 1000);
@@ -64,19 +64,24 @@
                             {{ \Illuminate\Support\Str::limit($cleanSummary, 140) }}
                         </p>
                     @endif
-                    <div class="mt-auto flex items-center justify-between pt-3 text-xs">
-                        <a href="{{ route('public.posts.show', ['slug' => $article->slug]) }}" class="font-semibold text-primary hover:underline">
-                            Baca Artikel Lengkap
-                        </a>
-                        @auth
-                            <a href="{{ route('admin.posts', ['edit' => $article->id]) }}" class="font-semibold text-ink-muted hover:text-primary hover:underline">
-                                Edit Artikel
+                    <div class="mt-auto space-y-2 border-t border-hairline/70 pt-3 text-xs">
+                        <div class="flex flex-wrap items-center gap-3 font-mono text-2xs text-ink-muted">
+                            <span>{{ number_format((int) ($article->views_count ?? 0)) }} dilihat</span>
+                            <span>{{ number_format((int) ($article->approved_comments_count ?? 0)) }} komentar</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <a href="{{ route('public.posts.show', ['slug' => $article->slug]) }}" class="font-semibold text-primary hover:underline">
+                                Baca Artikel Lengkap
                             </a>
-                        @endauth
+                            @auth
+                                <a href="{{ route('admin.posts', ['edit' => $article->id]) }}" class="font-semibold text-ink-muted hover:text-primary hover:underline">
+                                    Edit Artikel
+                                </a>
+                            @endauth
+                        </div>
                     </div>
                 </article>
             @endforeach
         </div>
     @endif
 </div>
-

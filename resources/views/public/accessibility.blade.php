@@ -3,17 +3,20 @@
 @endphp
 <x-layouts.public title="Pernyataan & Panduan Aksesibilitas" :description="$a11yDesc" :canonical="route('public.accessibility')">
     <div class="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-        <article class="rounded-xl border border-hairline bg-white p-6 sm:p-8">
-            <h1 class="font-serif text-2xl font-bold text-ink sm:text-3xl">
+        <header class="rounded-xl border border-emerald-900 border-b-4 border-b-gold bg-obsidian p-6 text-white shadow-xs sm:p-8">
+            <span class="inline-block rounded bg-gold px-2.5 py-0.5 font-mono text-2xs font-bold text-ink uppercase">Standar WCAG 2.2 AA/AAA</span>
+            <h1 class="mt-2 font-serif text-2xl font-bold text-white sm:text-3xl">
                 Pernyataan &amp; Panduan Aksesibilitas Portal
             </h1>
-            <p class="mt-3 text-sm leading-relaxed text-ink-body">
+            <p class="mt-2 text-sm leading-relaxed text-emerald-100">
                 {{ $satker?->nama_satker ?: 'Satuan Kerja Peradilan Agama' }} berkomitmen menyediakan layanan informasi digital yang ramah bagi penyandang disabilitas dan seluruh pencari keadilan.
             </p>
+        </header>
 
-            <section class="mt-6 space-y-3 border-t border-hairline pt-6">
+        <article class="rounded-xl border border-hairline bg-white p-6 shadow-2xs sm:p-8">
+            <section class="space-y-3">
                 <h2 class="font-serif text-xl font-bold text-primary-deep">Fitur Bantuan pada Widget Aksesibilitas</h2>
-                <ul class="list-disc space-y-2 pl-5 text-sm text-ink-body">
+                <ul class="list-disc space-y-2.5 pl-5 text-sm text-ink-body">
                     <li><strong>Pembaca Halaman (Text-to-Speech Bahasa Indonesia):</strong> Membacakan isi utama halaman atau teks yang dipilih menggunakan Web Speech API suara bahasa Indonesia (<code>id-ID</code>).</li>
                     <li><strong>Perbesar Teks hingga 200%:</strong> Memperbesar ukuran seluruh huruf secara proporsional tanpa merusak tata letak.</li>
                     <li><strong>Mode Kontras Tinggi:</strong> Mengaktifkan latar hitam pekat dengan teks putih serta sorotan tautan kuning demi kejelasan baca.</li>
@@ -24,4 +27,3 @@
         </article>
     </div>
 </x-layouts.public>
-

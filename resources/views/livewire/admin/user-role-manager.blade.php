@@ -11,6 +11,20 @@
         </div>
     @enderror
 
+    <!-- 6-Role RBAC Matrix Overview Cards -->
+    <section aria-label="Ringkasan Matriks 6 Peran RBAC" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        @foreach ($roleLabels as $rKey => $rLabel)
+            @php
+                $roleCount = $users->filter(fn ($u) => $u->roles->contains('name', $rKey))->count();
+            @endphp
+            <div class="rounded-lg border border-hairline border-t-4 border-t-primary bg-white p-3.5 shadow-2xs">
+                <p class="font-mono text-2xs font-bold text-primary">{{ $rKey }}</p>
+                <p class="mt-0.5 text-xs font-bold text-ink">{{ $rLabel }}</p>
+                <p class="mt-1.5 font-mono text-xs text-ink-muted">{{ $roleCount }} pengguna</p>
+            </div>
+        @endforeach
+    </section>
+
     <div class="grid gap-6 lg:grid-cols-12">
         <!-- Form Pengguna -->
         <div class="rounded-lg border border-hairline bg-white p-5 lg:col-span-5">

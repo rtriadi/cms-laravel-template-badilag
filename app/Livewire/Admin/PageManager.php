@@ -129,6 +129,44 @@ class PageManager extends Component
         $this->blocks = array_values($this->blocks);
     }
 
+    public function moveBlockUp(int $index): void
+    {
+        $this->authorizeAccess();
+        if ($index <= 0 || ! isset($this->blocks[$index], $this->blocks[$index - 1])) {
+            return;
+        }
+
+        [$this->blocks[$index - 1], $this->blocks[$index]] = [$this->blocks[$index], $this->blocks[$index - 1]];
+        $this->blocks = array_values($this->blocks);
+    }
+
+    public function moveBlockDown(int $index): void
+    {
+        $this->authorizeAccess();
+        if (! isset($this->blocks[$index], $this->blocks[$index + 1])) {
+            return;
+        }
+
+        [$this->blocks[$index], $this->blocks[$index + 1]] = [$this->blocks[$index + 1], $this->blocks[$index]];
+        $this->blocks = array_values($this->blocks);
+    }
+
+    public function duplicateBlock(int $index): void
+    {
+        $this->authorizeAccess();
+        if (! isset($this->blocks[$index])) {
+            return;
+        }
+
+        $copy = $this->blocks[$index];
+        if (isset($copy['heading']) && is_string($copy['heading']) && trim($copy['heading']) !== '') {
+            $copy['heading'] = trim($copy['heading']).' (Salinan)';
+        }
+
+        array_splice($this->blocks, $index + 1, 0, [$copy]);
+        $this->blocks = array_values($this->blocks);
+    }
+
     public function save(): void
     {
         $this->authorizeAccess();
