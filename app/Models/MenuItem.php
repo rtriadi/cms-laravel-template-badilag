@@ -74,18 +74,23 @@ class MenuItem extends Model
         $raw = Cache::get($cacheKey);
 
         if (! is_array($raw) || ! isset($raw['header'], $raw['footer'], $raw['shortcut'])) {
+            $pageScope = static fn ($pq) => $pq
+                ->select(['id', 'slug', 'is_published', 'tingkat_scope'])
+                ->where('is_published', true)
+                ->whereIn('tingkat_scope', ['all', $activeTingkat]);
+
             $header = static::query()
                 ->with([
-                    'page:id,slug',
+                    'page' => $pageScope,
                     'children' => fn ($q) => $q
                         ->where('is_visible', true)
                         ->whereIn('tingkat_scope', ['all', $activeTingkat])
                         ->with([
-                            'page:id,slug',
+                            'page' => $pageScope,
                             'children' => fn ($gq) => $gq
                                 ->where('is_visible', true)
                                 ->whereIn('tingkat_scope', ['all', $activeTingkat])
-                                ->with('page:id,slug')
+                                ->with(['page' => $pageScope])
                                 ->orderBy('sort_order'),
                         ])
                         ->orderBy('sort_order'),
@@ -99,7 +104,7 @@ class MenuItem extends Model
                 ->get();
 
             $footer = static::query()
-                ->with('page:id,slug')
+                ->with(['page' => $pageScope])
                 ->where('location', 'footer')
                 ->whereNull('parent_id')
                 ->where('is_visible', true)
@@ -108,7 +113,7 @@ class MenuItem extends Model
                 ->get();
 
             $shortcut = static::query()
-                ->with('page:id,slug')
+                ->with(['page' => $pageScope])
                 ->where('location', 'shortcut')
                 ->whereNull('parent_id')
                 ->where('is_visible', true)
@@ -117,10 +122,14 @@ class MenuItem extends Model
                 ->limit(8)
                 ->get();
 
+            $headerFiltered = self::filterAccessibleMenus($header);
+            $footerFiltered = self::filterAccessibleMenus($footer);
+            $shortcutFiltered = self::filterAccessibleMenus($shortcut);
+
             $raw = [
-                'header' => $header->map(fn (self $m): array => self::dehydrateMenuNode($m))->all(),
-                'footer' => $footer->map(fn (self $m): array => self::dehydrateMenuNode($m))->all(),
-                'shortcut' => $shortcut->map(fn (self $m): array => self::dehydrateMenuNode($m))->all(),
+                'header' => $headerFiltered->map(fn (self $m): array => self::dehydrateMenuNode($m))->all(),
+                'footer' => $footerFiltered->map(fn (self $m): array => self::dehydrateMenuNode($m))->all(),
+                'shortcut' => $shortcutFiltered->map(fn (self $m): array => self::dehydrateMenuNode($m))->all(),
             ];
 
             Cache::forever($cacheKey, $raw);
@@ -131,6 +140,32 @@ class MenuItem extends Model
             'footer' => new Collection(array_map([self::class, 'hydrateMenuNode'], $raw['footer'])),
             'shortcut' => new Collection(array_map([self::class, 'hydrateMenuNode'], $raw['shortcut'])),
         ];
+    }
+
+    /**
+     * Filter out menu items targeting unpublished or out-of-scope pages so draft titles and slugs never leak publicly.
+     *
+     * @param  Collection<int, self>  $items
+     * @return Collection<int, self>
+     */
+    private static function filterAccessibleMenus(Collection $items): Collection
+    {
+        return $items
+            ->filter(function (self $item): bool {
+                if ($item->type === 'page') {
+                    return $item->relationLoaded('page') && $item->page !== null;
+                }
+
+                return true;
+            })
+            ->map(function (self $item): self {
+                if ($item->relationLoaded('children')) {
+                    $item->setRelation('children', self::filterAccessibleMenus($item->children));
+                }
+
+                return $item;
+            })
+            ->values();
     }
 
     /**
@@ -207,7 +242,9 @@ class MenuItem extends Model
     public function resolvedUrl(): string
     {
         $raw = match ($this->type) {
-            'page' => $this->page ? route('public.page', ['slug' => $this->page->slug], false) : ($this->url ?: '#'),
+            'page' => ($this->page !== null && ($this->page->is_published ?? true))
+                ? route('public.page', ['slug' => $this->page->slug], false)
+                : ($this->url ?: '#'),
             'collection' => $this->collection_slug ? '/'.ltrim($this->collection_slug, '/') : ($this->url ?: '#'),
             'category' => $this->collection_slug ? route('public.posts', ['kategori' => $this->collection_slug], false) : '/publikasi',
             'group' => '#',

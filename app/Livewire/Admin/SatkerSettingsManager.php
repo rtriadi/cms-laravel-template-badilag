@@ -7,7 +7,7 @@ use App\Models\User;
 use App\Services\ImageOptimizerService;
 use Database\Seeders\SatkerDefaultContentSeeder;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -126,6 +126,18 @@ class SatkerSettingsManager extends Component
 
         $setting = SatkerSetting::current() ?? new SatkerSetting;
 
+        if ($this->logo !== null && ImageOptimizerService::exceedsPixelLimit($this->logo)) {
+            $this->addError('logo', 'Total piksel logo melebihi batas aman 25 megapiksel.');
+
+            return;
+        }
+
+        if ($this->foto_gedung !== null && ImageOptimizerService::exceedsPixelLimit($this->foto_gedung)) {
+            $this->addError('foto_gedung', 'Total piksel foto gedung melebihi batas aman 25 megapiksel.');
+
+            return;
+        }
+
         $optimizer = app(ImageOptimizerService::class);
 
         $oldLogoPath = $setting->logo_path;
@@ -175,11 +187,11 @@ class SatkerSettingsManager extends Component
         $setting->save();
 
         if ($this->logo !== null && is_string($oldLogoPath) && $oldLogoPath !== '' && $oldLogoPath !== $logoPath) {
-            Storage::disk('public')->delete($oldLogoPath);
+            $optimizer->deleteWithVariants($oldLogoPath, [128]);
         }
 
         if ($this->foto_gedung !== null && is_string($oldFotoPath) && $oldFotoPath !== '' && $oldFotoPath !== $fotoPath) {
-            Storage::disk('public')->delete($oldFotoPath);
+            $optimizer->deleteWithVariants($oldFotoPath, [480, 800]);
         }
 
         $this->logo = null;
@@ -230,8 +242,10 @@ class SatkerSettingsManager extends Component
             return;
         }
 
-        $setting->changeTingkat($this->pendingTingkat, $user);
-        app(SatkerDefaultContentSeeder::class)->run($this->pendingTingkat);
+        DB::transaction(function () use ($setting, $user): void {
+            $setting->changeTingkat($this->pendingTingkat, $user);
+            app(SatkerDefaultContentSeeder::class)->run($this->pendingTingkat);
+        });
 
         $this->tingkat = $this->pendingTingkat;
         $this->showTingkatModal = false;

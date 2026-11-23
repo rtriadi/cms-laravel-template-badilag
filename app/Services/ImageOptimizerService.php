@@ -13,6 +13,43 @@ class ImageOptimizerService
 
     public const int MAX_SOURCE_PIXELS = 25_000_000;
 
+    public static function exceedsPixelLimit(UploadedFile $file): bool
+    {
+        $realPath = $file->getRealPath();
+
+        if (! is_string($realPath) || $realPath === '' || ! is_file($realPath)) {
+            return true;
+        }
+
+        $imageInfo = @getimagesize($realPath);
+
+        if ($imageInfo === false) {
+            return true;
+        }
+
+        [$srcWidth, $srcHeight] = $imageInfo;
+
+        if ($srcWidth <= 0 || $srcHeight <= 0) {
+            return true;
+        }
+
+        return $srcWidth > self::MAX_SOURCE_DIMENSION
+            || $srcHeight > self::MAX_SOURCE_DIMENSION
+            || ($srcWidth * $srcHeight) > self::MAX_SOURCE_PIXELS;
+    }
+
+    /**
+     * In-request memoization cache for responsive image attributes to avoid repeated stat calls.
+     *
+     * @var array<string, array{src: string, srcset: ?string, sizes: ?string}>
+     */
+    private static array $responsiveMemo = [];
+
+    public static function clearMemo(): void
+    {
+        self::$responsiveMemo = [];
+    }
+
     /**
      * Store an uploaded image resized (by max width) and encoded as WebP when supported,
      * optionally generating smaller responsive WebP variants alongside the primary image.
@@ -67,8 +104,7 @@ class ImageOptimizerService
         Storage::disk($disk)->put($targetPath, $webpBytes);
 
         if ($variantWidths !== []) {
-            $primaryWidth = min((int) $srcWidth, $maxWidth);
-            $this->writeVariantsFromSource($realPath, $imageType, (int) $srcWidth, (int) $srcHeight, $targetPath, $primaryWidth, $variantWidths, $quality, $disk);
+            $this->generateVariants($targetPath, $variantWidths, $quality, $disk);
         }
 
         return $targetPath;
@@ -183,10 +219,15 @@ class ImageOptimizerService
         ?int $fallbackPrimaryWidth = null,
     ): array {
         $clean = ltrim($relativePath, '/');
+        $memoKey = $clean.'|'.implode(',', $candidateWidths).'|'.$sizes.'|'.(string) $preferredSrcWidth.'|'.(string) $fallbackPrimaryWidth;
+        if (isset(self::$responsiveMemo[$memoKey])) {
+            return self::$responsiveMemo[$memoKey];
+        }
+
         $defaultSrc = asset('storage/'.$clean);
 
         if ($clean === '' || strtolower((string) pathinfo($clean, PATHINFO_EXTENSION)) !== 'webp') {
-            return ['src' => $defaultSrc, 'srcset' => null, 'sizes' => null];
+            return self::$responsiveMemo[$memoKey] = ['src' => $defaultSrc, 'srcset' => null, 'sizes' => null];
         }
 
         $publicRoot = storage_path('app/public');
@@ -208,7 +249,7 @@ class ImageOptimizerService
         }
 
         if ($entries === []) {
-            return ['src' => $defaultSrc, 'srcset' => null, 'sizes' => null];
+            return self::$responsiveMemo[$memoKey] = ['src' => $defaultSrc, 'srcset' => null, 'sizes' => null];
         }
 
         $dims = self::imageDimensions($clean);
@@ -219,7 +260,7 @@ class ImageOptimizerService
             $entries[] = "{$defaultSrc} 1280w";
         }
 
-        return [
+        return self::$responsiveMemo[$memoKey] = [
             'src' => $chosenSrc,
             'srcset' => implode(', ', $entries),
             'sizes' => $sizes,
@@ -460,10 +501,6 @@ class ImageOptimizerService
             return null;
         }
 
-        if (! imageistruecolor($src)) {
-            imagepalettetotruecolor($src);
-        }
-
         $targetCanvas = $src;
 
         if ($srcWidth > $maxWidth) {
@@ -488,6 +525,10 @@ class ImageOptimizerService
             unset($src);
             $targetCanvas = $dst;
         } else {
+            if (! imageistruecolor($targetCanvas)) {
+                imagepalettetotruecolor($targetCanvas);
+            }
+
             imagealphablending($targetCanvas, false);
             imagesavealpha($targetCanvas, true);
         }

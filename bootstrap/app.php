@@ -17,22 +17,37 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $trustedProxies = trim((string) env('TRUSTED_PROXIES', ''));
-        if ($trustedProxies !== '') {
-            $middleware->trustProxies(
-                at: $trustedProxies === '*'
-                    ? '*'
-                    : array_values(array_filter(array_map('trim', explode(',', $trustedProxies)))),
-            );
-        }
+        $rawProxies = trim((string) (app()->bound('config') ? config('satker.trusted_proxies', '') : env('TRUSTED_PROXIES', '')));
+        $trustedProxies = ($rawProxies === '' || $rawProxies === '*')
+            ? null
+            : (array_values(array_filter(
+                array_map('trim', explode(',', $rawProxies)),
+                static fn (string $ip): bool => $ip !== '' && $ip !== '*',
+            )) ?: null);
 
-        $trustedHosts = trim((string) env('TRUSTED_HOSTS', ''));
-        if ($trustedHosts !== '') {
-            $hostPatterns = array_values(array_filter(array_map('trim', explode(',', $trustedHosts))));
-            if ($hostPatterns !== []) {
-                $middleware->trustHosts(at: fn (): array => $hostPatterns);
-            }
-        }
+        $middleware->trustProxies(at: $trustedProxies);
+
+        $middleware->trustHosts(
+            at: function (): array {
+                $raw = trim((string) (config('satker.trusted_hosts') ?? env('TRUSTED_HOSTS', '')));
+                if ($raw !== '') {
+                    $patterns = array_values(array_filter(array_map('trim', explode(',', $raw))));
+                    if ($patterns !== []) {
+                        return $patterns;
+                    }
+                }
+
+                $appHost = parse_url((string) config('app.url', 'http://localhost'), PHP_URL_HOST);
+                if (is_string($appHost) && $appHost !== '' && app()->environment('production')) {
+                    return [
+                        '^(.+\.)?'.preg_quote($appHost, '/').'$',
+                    ];
+                }
+
+                return [];
+            },
+            subdomains: false,
+        );
 
         $middleware->append(SecurityHeadersMiddleware::class);
         $middleware->web(append: [

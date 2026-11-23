@@ -152,12 +152,14 @@ class PublicComplianceController extends Controller
         ]);
     }
 
-    public function sitemapXml(): Response
+    public function sitemapXml(Request $request): Response
     {
         $satker = SatkerSetting::current();
         $activeTingkat = $satker?->tingkat ?? 'pertama';
         $cacheKey = 'public_sitemap_xml.'.$activeTingkat;
-        $xml = Cache::get($cacheKey);
+        $expectedHost = (string) parse_url((string) config('app.url', 'http://localhost'), PHP_URL_HOST);
+        $isCanonicalHost = $expectedHost === '' || strcasecmp($request->getHost(), $expectedHost) === 0;
+        $xml = $isCanonicalHost ? Cache::get($cacheKey) : null;
 
         if (! is_string($xml) || $xml === '') {
             $pages = Page::query()
@@ -214,12 +216,15 @@ class PublicComplianceController extends Controller
             }
 
             $xml = view('public.sitemap-xml', ['urls' => $urls])->render();
-            Cache::put($cacheKey, $xml, 900);
+            if ($isCanonicalHost) {
+                Cache::put($cacheKey, $xml, 900);
+            }
         }
 
         return response($xml, 200, [
             'Content-Type' => 'application/xml; charset=UTF-8',
             'Cache-Control' => 'public, max-age=900',
+            'Vary' => 'Host',
         ]);
     }
 
@@ -254,6 +259,7 @@ class PublicComplianceController extends Controller
         return response(implode("\n", $lines), 200, [
             'Content-Type' => 'text/plain; charset=UTF-8',
             'Cache-Control' => 'public, max-age=3600',
+            'Vary' => 'Host',
         ]);
     }
 }

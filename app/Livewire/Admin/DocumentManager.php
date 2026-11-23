@@ -120,9 +120,12 @@ class DocumentManager extends Component
 
         $oldFilePath = $existing?->file_path;
         $filePath = $oldFilePath;
+        $targetDisk = $this->is_published ? 'public' : 'local';
 
         if ($this->pdf_file !== null) {
-            $filePath = $this->pdf_file->store('documents/'.$this->collection_type, 'public');
+            $filePath = $this->pdf_file->store('documents/'.$this->collection_type, $targetDisk);
+        } elseif ($existing !== null && is_string($oldFilePath) && $oldFilePath !== '') {
+            $this->syncDocumentStorageVisibility($oldFilePath, $this->is_published);
         }
 
         $cleanMeta = array_filter($this->meta, fn (mixed $v): bool => trim((string) $v) !== '');
@@ -145,6 +148,7 @@ class DocumentManager extends Component
             $existing->touch();
             if ($this->pdf_file !== null && is_string($oldFilePath) && $oldFilePath !== '' && $oldFilePath !== $filePath) {
                 Storage::disk('public')->delete($oldFilePath);
+                Storage::disk('local')->delete($oldFilePath);
             }
             $this->statusNotice = 'Dokumen berhasil diperbarui.';
         } else {
@@ -166,9 +170,34 @@ class DocumentManager extends Component
 
         if (is_string($filePath) && $filePath !== '') {
             Storage::disk('public')->delete($filePath);
+            Storage::disk('local')->delete($filePath);
         }
 
         $this->statusNotice = 'Dokumen berhasil dihapus.';
+    }
+
+    private function syncDocumentStorageVisibility(string $filePath, bool $shouldBePublic): void
+    {
+        $publicDisk = Storage::disk('public');
+        $privateDisk = Storage::disk('local');
+
+        if (! $shouldBePublic && $publicDisk->exists($filePath)) {
+            $bytes = $publicDisk->get($filePath);
+            if (is_string($bytes)) {
+                $privateDisk->put($filePath, $bytes);
+                $publicDisk->delete($filePath);
+            }
+
+            return;
+        }
+
+        if ($shouldBePublic && ! $publicDisk->exists($filePath) && $privateDisk->exists($filePath)) {
+            $bytes = $privateDisk->get($filePath);
+            if (is_string($bytes)) {
+                $publicDisk->put($filePath, $bytes);
+                $privateDisk->delete($filePath);
+            }
+        }
     }
 
     private function resetForm(): void

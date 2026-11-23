@@ -93,9 +93,12 @@ class UserRoleManager extends Component
                 return;
             }
 
+            $previousRoles = $user->roles->pluck('name')->sort()->values()->all();
             $previousRole = $user->roles->first()?->name;
+            $previousEmail = $user->email;
             $passwordChanged = $this->password !== '';
-            $roleChanged = $previousRole !== $this->role;
+            $roleChanged = $previousRoles !== [$this->role];
+            $emailChanged = $previousEmail !== $this->email;
 
             $user->name = trim($this->name);
             $user->email = $this->email;
@@ -105,8 +108,10 @@ class UserRoleManager extends Component
             $user->save();
             $user->syncRoles([$this->role]);
 
-            if ($passwordChanged || $roleChanged) {
-                $exceptSession = $user->id === auth()->id() ? request()->session()->getId() : null;
+            if ($passwordChanged || $roleChanged || $emailChanged) {
+                $exceptSession = ($user->id === auth()->id() && request()->hasSession())
+                    ? request()->session()->getId()
+                    : null;
                 $invalidateSessions->execute($user, $exceptSession);
 
                 activity('user')
@@ -116,8 +121,9 @@ class UserRoleManager extends Component
                         'previous_role' => $previousRole,
                         'new_role' => $this->role,
                         'password_changed' => $passwordChanged,
+                        'email_changed' => $emailChanged,
                     ])
-                    ->log('Memperbarui peran atau kata sandi akun admin');
+                    ->log('Memperbarui peran, surel, atau kata sandi akun admin');
             }
 
             $this->statusNotice = 'Data akun admin dan peran berhasil diperbarui.';

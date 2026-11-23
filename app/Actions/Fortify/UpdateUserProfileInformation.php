@@ -2,6 +2,7 @@
 
 namespace App\Actions\Fortify;
 
+use App\Actions\Security\InvalidateUserSessions;
 use App\Models\User;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Validator;
@@ -32,14 +33,22 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             ],
         ])->validateWithBag('updateProfileInformation');
 
-        if ($input['email'] !== $user->email &&
+        $normalizedEmail = strtolower(trim($input['email']));
+        $emailChanged = $normalizedEmail !== strtolower($user->email);
+
+        if ($emailChanged &&
             $user instanceof MustVerifyEmail) {
-            $this->updateVerifiedUser($user, $input);
+            $this->updateVerifiedUser($user, [...$input, 'email' => $normalizedEmail]);
         } else {
             $user->forceFill([
-                'name' => $input['name'],
-                'email' => $input['email'],
+                'name' => trim($input['name']),
+                'email' => $normalizedEmail,
             ])->save();
+        }
+
+        if ($emailChanged) {
+            $exceptSession = request()->hasSession() ? request()->session()->getId() : null;
+            app(InvalidateUserSessions::class)->execute($user, $exceptSession);
         }
     }
 

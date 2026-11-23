@@ -5,9 +5,13 @@ namespace App\Livewire\Admin;
 use App\Models\CriteriaItem;
 use App\Models\LinkCheckLog;
 use App\Models\PageVisit;
+use App\Models\Post;
+use App\Models\PostComment;
 use App\Models\SatkerSetting;
 use App\Services\SinovaHealthCheckService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Spatie\Activitylog\Models\Activity;
@@ -16,6 +20,14 @@ use Spatie\Activitylog\Models\Activity;
 class Dashboard extends Component
 {
     public ?string $auditMessage = null;
+
+    public string $quickDraftTitle = '';
+
+    public string $quickDraftCategory = 'berita';
+
+    public string $quickDraftBody = '';
+
+    public ?string $quickDraftNotice = null;
 
     public function mount(): void
     {
@@ -32,6 +44,53 @@ class Dashboard extends Component
 
         $counts = $healthCheck->checkAll(probeExternal: false);
         $this->auditMessage = "Pemeriksaan selesai: {$counts['healthy']} siap, {$counts['warning']} perlu perbaikan, {$counts['broken']} bermasalah, {$counts['empty']} kosong.";
+    }
+
+    public function saveQuickDraft(): void
+    {
+        $user = auth()->user();
+        abort_unless(
+            $user !== null && ($user->can('manage-ppid-humas') || $user->hasAnyRole(['super_admin', 'admin_konten'])),
+            403
+        );
+
+        $this->validate([
+            'quickDraftTitle' => ['required', 'string', 'min:3', 'max:255'],
+            'quickDraftCategory' => ['required', Rule::in(array_keys(Post::categoryLabels()))],
+            'quickDraftBody' => ['required', 'string', 'min:10'],
+        ], [
+            'quickDraftTitle.required' => 'Judul draf cepat wajib diisi.',
+            'quickDraftTitle.min' => 'Judul draf minimal 3 karakter.',
+            'quickDraftBody.required' => 'Catatan atau isi draf wajib diisi.',
+            'quickDraftBody.min' => 'Isi draf minimal 10 karakter.',
+        ]);
+
+        $baseSlug = Str::slug($this->quickDraftTitle) ?: 'draf-publikasi';
+        $slug = $baseSlug;
+        $suffix = 2;
+        while (Post::query()->where('slug', $slug)->exists()) {
+            $slug = $baseSlug.'-'.$suffix;
+            $suffix++;
+        }
+
+        $escapedBody = '<p>'.nl2br(e(trim($this->quickDraftBody))).'</p>';
+
+        Post::query()->create([
+            'title' => trim($this->quickDraftTitle),
+            'slug' => $slug,
+            'category' => $this->quickDraftCategory,
+            'excerpt' => Str::limit(trim(preg_replace('/\s+/', ' ', $this->quickDraftBody) ?: ''), 140),
+            'body' => $escapedBody,
+            'is_pinned' => false,
+            'is_published' => false,
+            'comments_enabled' => true,
+            'published_at' => null,
+            'author_id' => $user->id,
+        ]);
+
+        $this->quickDraftTitle = '';
+        $this->quickDraftBody = '';
+        $this->quickDraftNotice = 'Draf cepat berhasil disimpan ke Daftar Berita & Publikasi (status: Draf).';
     }
 
     private function authorizeView(): void
@@ -60,23 +119,59 @@ class Dashboard extends Component
             ->filter(fn (CriteriaItem $item): bool => $item->isApplicableFor($activeTingkat))
             ->take(10);
 
-        $recentActivities = Activity::query()
-            ->with('causer')
-            ->latest('id')
-            ->limit(8)
+        $user = auth()->user();
+        $canWritePosts = $user !== null && ($user->can('manage-ppid-humas') || $user->hasAnyRole(['super_admin', 'admin_konten']));
+        $canModerateComments = $user !== null && $user->can('viewAny', PostComment::class);
+        $canViewAudit = $user !== null && $user->hasAnyRole(['super_admin', 'admin_konten', 'penilai_internal']);
+
+        $recentActivities = $canViewAudit
+            ? Activity::query()
+                ->with('causer')
+                ->latest('id')
+                ->limit(6)
+                ->get()
+            : collect();
+
+        $recentPostsQuery = Post::query()
+            ->select(['id', 'title', 'slug', 'category', 'is_published', 'views_count', 'updated_at'])
+            ->when(! $canWritePosts, fn ($q) => $q->publishedActive());
+
+        if ($canModerateComments) {
+            $recentPostsQuery->withCount(['approvedComments', 'pendingComments']);
+        } else {
+            $recentPostsQuery->withCount(['approvedComments']);
+        }
+
+        $recentPosts = $recentPostsQuery
+            ->orderByDesc('updated_at')
+            ->limit(5)
             ->get();
 
+        $pendingCommentsCount = $canModerateComments
+            ? PostComment::query()
+                ->where('status', PostComment::STATUS_PENDING)
+                ->count()
+            : 0;
+
         $totalVisits = (int) PageVisit::query()->sum('visits_count');
-        $brokenLinksCount = LinkCheckLog::query()->where('is_broken', true)->count();
+        $brokenLinksCount = $canViewAudit
+            ? LinkCheckLog::query()->where('is_broken', true)->count()
+            : 0;
 
         return view('livewire.admin.dashboard', [
             'satker' => $satker,
             'summary' => $summary,
             'attentionItems' => $attentionItems,
             'recentActivities' => $recentActivities,
+            'recentPosts' => $recentPosts,
+            'pendingCommentsCount' => $pendingCommentsCount,
+            'canWritePosts' => $canWritePosts,
+            'canModerateComments' => $canModerateComments,
+            'canViewAudit' => $canViewAudit,
+            'categories' => Post::categoryLabels(),
             'totalVisits' => $totalVisits,
             'brokenLinksCount' => $brokenLinksCount,
             'phpNearEol' => version_compare(PHP_VERSION, '8.4.0', '<'),
-        ])->title('Dashboard Kepatuhan SINOVA');
+        ])->title('Dashboard Studio & Kepatuhan SINOVA');
     }
 }

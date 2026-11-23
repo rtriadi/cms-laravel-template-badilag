@@ -5,20 +5,29 @@ namespace App\Livewire\Admin;
 use App\Models\Post;
 use App\Services\ImageOptimizerService;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 
 #[Layout('components.layouts.admin')]
 class PostManager extends Component
 {
-    use WithFileUploads;
+    use WithFileUploads, WithPagination;
 
     public string $categoryFilter = '';
+
+    public string $statusFilter = '';
+
+    public string $search = '';
+
+    /** @var array<int, int|string> */
+    public array $selectedIds = [];
+
+    public string $bulkAction = '';
 
     public bool $editorOpen = false;
 
@@ -43,6 +52,8 @@ class PostManager extends Component
 
     public bool $is_published = true;
 
+    public bool $comments_enabled = true;
+
     public ?string $statusNotice = null;
 
     public function mount(): void
@@ -59,6 +70,23 @@ class PostManager extends Component
         if ($editId > 0 && Post::query()->whereKey($editId)->exists()) {
             $this->edit($editId);
         }
+    }
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingCategoryFilter(): void
+    {
+        $this->selectedIds = [];
+        $this->resetPage();
+    }
+
+    public function updatingStatusFilter(): void
+    {
+        $this->selectedIds = [];
+        $this->resetPage();
     }
 
     public function updatedTitle(string $value): void
@@ -94,6 +122,7 @@ class PostManager extends Component
         $this->featured_image_alt = (string) ($post->featured_image_alt ?? '');
         $this->is_pinned = (bool) $post->is_pinned;
         $this->is_published = (bool) $post->is_published;
+        $this->comments_enabled = (bool) ($post->comments_enabled ?? true);
         $this->featured_image = null;
         $this->editorOpen = true;
     }
@@ -122,6 +151,12 @@ class PostManager extends Component
         $imagePath = $oldImagePath;
 
         if ($this->featured_image !== null) {
+            if (ImageOptimizerService::exceedsPixelLimit($this->featured_image)) {
+                $this->addError('featured_image', 'Total piksel gambar melebihi batas aman 25 megapiksel.');
+
+                return;
+            }
+
             $imagePath = app(ImageOptimizerService::class)->storeOptimized($this->featured_image, 'posts', 1000, 82, 'public', [400, 720]);
         }
 
@@ -135,6 +170,7 @@ class PostManager extends Component
             'featured_image_alt' => trim($this->featured_image_alt) ?: null,
             'is_pinned' => $this->is_pinned,
             'is_published' => $this->is_published,
+            'comments_enabled' => $this->comments_enabled,
             'published_at' => $this->is_published ? ($existing?->published_at ?? now()) : null,
             'author_id' => auth()->id(),
         ];
@@ -161,9 +197,50 @@ class PostManager extends Component
         $oldImagePath = $post->featured_image_path;
         $post->delete();
         if (is_string($oldImagePath) && $oldImagePath !== '') {
-            Storage::disk('public')->delete($oldImagePath);
+            app(ImageOptimizerService::class)->deleteWithVariants($oldImagePath);
         }
         $this->statusNotice = 'Publikasi berhasil dihapus.';
+    }
+
+    public function applyBulkAction(): void
+    {
+        $this->authorizeAccess();
+
+        $ids = array_values(array_unique(array_filter(array_map('intval', $this->selectedIds), static fn (int $id): bool => $id > 0)));
+        if ($ids === [] || $this->bulkAction === '') {
+            return;
+        }
+
+        $this->validate([
+            'bulkAction' => ['required', Rule::in(['publish', 'draft', 'pin', 'unpin', 'delete'])],
+        ]);
+
+        $optimizer = app(ImageOptimizerService::class);
+        $posts = Post::query()->whereIn('id', $ids)->get();
+
+        foreach ($posts as $post) {
+            match ($this->bulkAction) {
+                'publish' => $post->update([
+                    'is_published' => true,
+                    'published_at' => $post->published_at ?? now(),
+                ]),
+                'draft' => $post->update(['is_published' => false]),
+                'pin' => $post->update(['is_pinned' => true]),
+                'unpin' => $post->update(['is_pinned' => false]),
+                'delete' => (function () use ($post, $optimizer): void {
+                    $img = $post->featured_image_path;
+                    $post->delete();
+                    if (is_string($img) && $img !== '') {
+                        $optimizer->deleteWithVariants($img);
+                    }
+                })(),
+            };
+        }
+
+        $count = $posts->count();
+        $this->selectedIds = [];
+        $this->bulkAction = '';
+        $this->statusNotice = "Aksi massal berhasil diterapkan pada {$count} publikasi.";
     }
 
     private function resetForm(): void
@@ -178,6 +255,7 @@ class PostManager extends Component
         $this->featured_image_alt = '';
         $this->is_pinned = false;
         $this->is_published = true;
+        $this->comments_enabled = true;
         $this->resetValidation();
     }
 
@@ -194,14 +272,31 @@ class PostManager extends Component
     {
         $this->authorizeAccess();
 
+        $statusCounts = [
+            'all' => Post::query()->count(),
+            'published' => Post::query()->where('is_published', true)->count(),
+            'draft' => Post::query()->where('is_published', false)->count(),
+            'pinned' => Post::query()->where('is_pinned', true)->count(),
+        ];
+
         $posts = Post::query()
+            ->select(['id', 'title', 'slug', 'category', 'featured_image_path', 'featured_image_alt', 'is_pinned', 'is_published', 'views_count', 'comments_enabled', 'published_at', 'created_at'])
+            ->withCount(['approvedComments', 'pendingComments'])
             ->when($this->categoryFilter !== '', fn ($q) => $q->where('category', $this->categoryFilter))
+            ->when($this->statusFilter === 'published', fn ($q) => $q->where('is_published', true))
+            ->when($this->statusFilter === 'draft', fn ($q) => $q->where('is_published', false))
+            ->when($this->statusFilter === 'pinned', fn ($q) => $q->where('is_pinned', true))
+            ->when(trim($this->search) !== '', function ($q): void {
+                $term = '%'.trim($this->search).'%';
+                $q->where(fn ($sub) => $sub->where('title', 'like', $term)->orWhere('slug', 'like', $term));
+            })
             ->orderByDesc('is_pinned')
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate(20);
 
         return view('livewire.admin.post-manager', [
             'posts' => $posts,
+            'statusCounts' => $statusCounts,
             'categories' => Post::categoryLabels(),
         ])->title('Berita & Publikasi');
     }

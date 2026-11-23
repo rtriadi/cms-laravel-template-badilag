@@ -14,9 +14,22 @@ class InvalidateUserSessions
      */
     public function execute(User $user, ?string $exceptSessionId = null): void
     {
+        $nextVersion = ((int) ($user->session_version ?? 1)) + 1;
+
         $user->forceFill([
             'remember_token' => Str::random(60),
+            'session_version' => $nextVersion,
         ])->save();
+
+        if (
+            $exceptSessionId !== null
+            && $exceptSessionId !== ''
+            && request()->hasSession()
+            && request()->session()->getId() === $exceptSessionId
+        ) {
+            request()->session()->put('auth.session_version', $nextVersion);
+            request()->session()->put('auth.password_hash', (string) $user->getAuthPassword());
+        }
 
         if (config('session.driver') !== 'database') {
             return;

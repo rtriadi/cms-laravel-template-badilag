@@ -7,6 +7,7 @@ use App\Http\Controllers\PublicPageController;
 use App\Http\Controllers\PublicPostController;
 use App\Http\Controllers\PublicSearchController;
 use App\Livewire\Admin\AuditAndBackupManager;
+use App\Livewire\Admin\CommentManager;
 use App\Livewire\Admin\CriteriaManager;
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\DocumentManager;
@@ -38,8 +39,12 @@ Route::get('/halaman/{slug}', [PublicPageController::class, 'show'])
 
 Route::get('/publikasi', [PublicPostController::class, 'index'])->name('public.posts');
 Route::get('/publikasi/{slug}', [PublicPostController::class, 'show'])->name('public.posts.show');
+Route::post('/publikasi/{slug}/komentar', [PublicPostController::class, 'storeComment'])
+    ->middleware('throttle:5,1,post_comment')
+    ->name('public.posts.comments.store');
+
 Route::get('/cari', PublicSearchController::class)
-    ->middleware('throttle:60,1')
+    ->middleware('throttle:60,1,public_search')
     ->name('public.search');
 
 Route::get('/aksesibilitas', [PublicComplianceController::class, 'accessibility'])->name('public.accessibility');
@@ -69,14 +74,14 @@ Route::get('/captcha-image', function (LocalCaptchaService $captcha): Response {
         'Content-Type' => 'image/svg+xml',
         'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
     ]);
-})->middleware('throttle:30,1')->name('captcha.image');
+})->middleware('throttle:30,1,captcha_image')->name('captcha.image');
 
 Route::get('/captcha-text', function (LocalCaptchaService $captcha): Response {
     return response($captcha->generateCode(), 200, [
         'Content-Type' => 'text/plain; charset=UTF-8',
         'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
     ]);
-})->middleware('throttle:15,1')->name('captcha.text');
+})->middleware('throttle:15,1,captcha_text')->name('captcha.text');
 
 $adminPath = trim((string) config('satker.admin_path', 'panel-admin'), '/');
 
@@ -93,6 +98,7 @@ Route::prefix($adminPath)
         Route::get('/menu', MenuManager::class)->name('menus');
         Route::get('/halaman', PageManager::class)->name('pages');
         Route::get('/publikasi', PostManager::class)->name('posts');
+        Route::get('/komentar', CommentManager::class)->name('comments');
         Route::get('/dokumen', DocumentManager::class)->name('documents');
         Route::get('/kepaniteraan', KepaniteraanManager::class)->name('kepaniteraan');
         Route::get('/slider', SliderManager::class)->name('sliders');
@@ -100,5 +106,7 @@ Route::prefix($adminPath)
         Route::get('/kriteria', CriteriaManager::class)->name('criteria');
         Route::get('/pengguna', UserRoleManager::class)->name('users');
         Route::get('/audit', AuditAndBackupManager::class)->name('audit');
-        Route::post('/media/upload', EditorMediaUploadController::class)->name('media.upload');
+        Route::post('/media/upload', EditorMediaUploadController::class)
+            ->middleware('throttle:30,1,editor_media_upload')
+            ->name('media.upload');
     });

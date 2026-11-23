@@ -8,6 +8,8 @@ class LocalCaptchaService
 {
     public const string SESSION_KEY = 'local_captcha_hash';
 
+    public const string SESSION_EXPIRES_KEY = 'local_captcha_expires_at';
+
     private const string HMAC_PREFIX = 'hmac:';
 
     public function generateCode(): string
@@ -19,7 +21,10 @@ class LocalCaptchaService
             $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
         }
 
-        session([self::SESSION_KEY => $this->signCode($code)]);
+        session([
+            self::SESSION_KEY => $this->signCode($code),
+            self::SESSION_EXPIRES_KEY => now()->addMinutes(10)->timestamp,
+        ]);
 
         return $code;
     }
@@ -27,9 +32,14 @@ class LocalCaptchaService
     public function verify(string $input): bool
     {
         $stored = session()->pull(self::SESSION_KEY);
+        $expiresAt = session()->pull(self::SESSION_EXPIRES_KEY);
         $normalized = strtoupper(trim($input));
 
         if (! is_string($stored) || $stored === '' || $normalized === '') {
+            return false;
+        }
+
+        if (is_int($expiresAt) && $expiresAt < now()->timestamp) {
             return false;
         }
 
@@ -70,7 +80,10 @@ class LocalCaptchaService
 
     private function signCode(string $code): string
     {
-        $key = (string) config('app.key', 'satkercms-local-captcha');
+        $key = (string) config('app.key');
+        if ($key === '') {
+            throw new \RuntimeException('APP_KEY wajib dikonfigurasi untuk penandatanganan captcha.');
+        }
 
         return self::HMAC_PREFIX.hash_hmac('sha256', strtoupper($code), $key);
     }

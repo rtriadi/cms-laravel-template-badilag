@@ -120,12 +120,15 @@ class SetupWizard extends Component
         ));
 
         $admin = DB::transaction(function (): User {
+            app(RoleAndPermissionSeeder::class)->run();
+
             $setting = SatkerSetting::query()->lockForUpdate()->first();
-            if ($setting !== null && $setting->is_setup_completed) {
+            if (($setting !== null && $setting->is_setup_completed) || User::role('super_admin')->exists()) {
                 abort(403, 'Setup awal sudah selesai dijalankan.');
             }
 
             $setting ??= new SatkerSetting;
+            $setting->singleton_guard = 1;
             $setting->fill([
                 'nama_satker' => $this->nama_satker,
                 'jenis_badan' => $this->jenis_badan,
@@ -152,10 +155,6 @@ class SetupWizard extends Component
             ]);
             $setting->completeSetup();
 
-            app(RoleAndPermissionSeeder::class)->run();
-            app(SinovaCriteriaSeeder::class)->run();
-            app(SatkerDefaultContentSeeder::class)->run($this->tingkat);
-
             $user = User::query()->create([
                 'name' => $this->admin_name,
                 'email' => strtolower(trim($this->admin_email)),
@@ -163,6 +162,9 @@ class SetupWizard extends Component
                 'email_verified_at' => now(),
             ]);
             $user->assignRole('super_admin');
+
+            app(SinovaCriteriaSeeder::class)->run();
+            app(SatkerDefaultContentSeeder::class)->run($this->tingkat);
 
             return $user;
         });

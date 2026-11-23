@@ -6,7 +6,6 @@ use App\Models\HomeSlider;
 use App\Services\ImageOptimizerService;
 use App\Support\SafeHtml;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -113,6 +112,12 @@ class SliderManager extends Component
         $oldImagePath = $existing?->image_path;
         $imagePath = $oldImagePath;
         if ($this->image !== null) {
+            if (ImageOptimizerService::exceedsPixelLimit($this->image)) {
+                $this->addError('image', 'Total piksel gambar melebihi batas aman 25 megapiksel.');
+
+                return;
+            }
+
             $imagePath = app(ImageOptimizerService::class)->storeOptimized($this->image, 'sliders', 1280, 82, 'public', [480, 800]);
         }
 
@@ -162,7 +167,7 @@ class SliderManager extends Component
         $oldImagePath = $slide->image_path;
         $slide->delete();
         if (is_string($oldImagePath) && $oldImagePath !== '') {
-            Storage::disk('public')->delete($oldImagePath);
+            app(ImageOptimizerService::class)->deleteWithVariants($oldImagePath);
         }
         $this->statusNotice = 'Slide berhasil dihapus.';
     }

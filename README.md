@@ -188,7 +188,14 @@ ADMIN_PATH=panel-admin
 
 CACHE_STORE=file
 SESSION_DRIVER=file
+SESSION_ENCRYPT=true
+SESSION_SECURE_COOKIE=true
 QUEUE_CONNECTION=database
+LOG_LEVEL=error
+MAIL_MAILER=smtp
+TRUSTED_PROXIES=127.0.0.1
+TRUSTED_HOSTS=^(?:www\.)?pa-contoh\.go\.id$
+BACKUP_ARCHIVE_PASSWORD=GantiPasswordArsipBackupKuat!
 ```
 
 > **Catatan:** Jika Anda belum memiliki `APP_KEY`, Anda dapat menjalankan `php artisan key:generate --show` di komputer lokal lalu menyalin string `base64:...` tersebut ke `.env` server.
@@ -309,7 +316,14 @@ DB_PASSWORD=GantiDenganPasswordKuat123!
 ADMIN_PATH=panel-admin
 CACHE_STORE=file
 SESSION_DRIVER=file
+SESSION_ENCRYPT=true
+SESSION_SECURE_COOKIE=true
 QUEUE_CONNECTION=database
+LOG_LEVEL=error
+MAIL_MAILER=smtp
+TRUSTED_PROXIES=127.0.0.1
+TRUSTED_HOSTS=^(?:www\.)?pa-contoh\.go\.id$
+BACKUP_ARCHIVE_PASSWORD=GantiPasswordArsipBackupKuat!
 ```
 
 Lalu jalankan migrasi, symlink storage, cache produksi, dan set permission:

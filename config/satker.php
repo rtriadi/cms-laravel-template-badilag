@@ -4,6 +4,10 @@ return [
 
     'admin_path' => env('ADMIN_PATH', 'panel-admin'),
 
+    'trusted_proxies' => env('TRUSTED_PROXIES', ''),
+
+    'trusted_hosts' => env('TRUSTED_HOSTS', ''),
+
     'cms_version' => '1.0.0-dev',
 
     'brand_colors' => [

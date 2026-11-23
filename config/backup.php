@@ -37,12 +37,16 @@ return [
                  */
                 'exclude' => [
                     base_path('.env'),
+                    base_path('.env.local'),
+                    base_path('.env.staging'),
+                    base_path('.env.testing'),
                     base_path('.env.production'),
                     base_path('.env.backup'),
                     base_path('.git'),
                     base_path('vendor'),
                     base_path('node_modules'),
                     storage_path('framework'),
+                    storage_path('logs'),
                     storage_path('app/private'),
                 ],
 
@@ -203,7 +207,7 @@ return [
          * After creating the zip, verify it can be opened and contains files.
          * Recommended for critical backups but adds a small overhead.
          */
-        'verify_backup' => false,
+        'verify_backup' => true,
 
         /*
          * The number of attempts, in case the backup command encounters an exception
