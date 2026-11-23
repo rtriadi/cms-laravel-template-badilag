@@ -23,6 +23,8 @@ class PostFactory extends Factory
             'body' => '<p>'.fake()->paragraphs(2, true).'</p>',
             'is_pinned' => false,
             'is_published' => true,
+            'views_count' => 0,
+            'comments_enabled' => true,
             'published_at' => now(),
         ];
     }

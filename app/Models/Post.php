@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
@@ -23,6 +25,8 @@ use Spatie\Activitylog\Support\LogOptions;
     'featured_image_alt',
     'is_pinned',
     'is_published',
+    'views_count',
+    'comments_enabled',
     'published_at',
     'expires_at',
     'author_id',
@@ -40,6 +44,8 @@ class Post extends Model
         return [
             'is_pinned' => 'boolean',
             'is_published' => 'boolean',
+            'views_count' => 'integer',
+            'comments_enabled' => 'boolean',
             'published_at' => 'datetime',
             'expires_at' => 'datetime',
         ];
@@ -53,6 +59,7 @@ class Post extends Model
         });
 
         static::deleted(function (): void {
+            Cache::forget(PostComment::PENDING_COUNT_CACHE_KEY);
             PublicHomeController::flushCache();
             PublicComplianceController::flushCache();
         });
@@ -62,7 +69,7 @@ class Post extends Model
     {
         return LogOptions::defaults()
             ->useLogName('post')
-            ->logOnly(['title', 'slug', 'category', 'is_published'])
+            ->logOnly(['title', 'slug', 'category', 'is_published', 'comments_enabled'])
             ->logOnlyDirty()
             ->dontLogEmptyChanges();
     }
@@ -73,6 +80,40 @@ class Post extends Model
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
+    }
+
+    /**
+     * @return HasMany<PostComment, $this>
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(PostComment::class);
+    }
+
+    /**
+     * @return HasMany<PostComment, $this>
+     */
+    public function approvedComments(): HasMany
+    {
+        return $this->hasMany(PostComment::class)->where('status', PostComment::STATUS_APPROVED);
+    }
+
+    /**
+     * @return HasMany<PostComment, $this>
+     */
+    public function pendingComments(): HasMany
+    {
+        return $this->hasMany(PostComment::class)->where('status', PostComment::STATUS_PENDING);
+    }
+
+    /**
+     * @return HasMany<PostComment, $this>
+     */
+    public function approvedTopLevelComments(): HasMany
+    {
+        return $this->hasMany(PostComment::class)
+            ->where('status', PostComment::STATUS_APPROVED)
+            ->whereNull('parent_id');
     }
 
     /**
@@ -91,6 +132,9 @@ class Post extends Model
             });
     }
 
+    /**
+     * @return array<string, string>
+     */
     public static function categoryLabels(): array
     {
         return [
