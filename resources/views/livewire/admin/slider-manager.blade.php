@@ -54,6 +54,14 @@
                 <flux:field>
                     <flux:label for="sl_img">Gambar Banner (Maks. 2 MB)</flux:label>
                     <input id="sl_img" type="file" wire:model="image" accept="image/*" class="block w-full cursor-pointer text-xs text-ink file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-hairline file:bg-mist file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-primary" />
+                    <div class="mt-2 rounded-lg border border-emerald-200 bg-primary-soft/70 px-3 py-2 text-2xs leading-relaxed text-ink-body">
+                        <p class="font-semibold text-primary-deep">Panduan Ukuran Banner Slider Beranda:</p>
+                        <ul class="mt-1 list-disc space-y-0.5 pl-4">
+                            <li><strong>Resolusi ideal:</strong> <span class="font-mono font-semibold text-ink">1280 &times; 720 px</span> atau <span class="font-mono font-semibold text-ink">1600 &times; 900 px</span> (rasio lanskap HD <span class="font-mono">16:9</span>, minimal <span class="font-mono">960 &times; 540 px</span>).</li>
+                            <li><strong>Format:</strong> JPG, PNG, atau WebP (maks. 2 MB, dikonversi otomatis ke WebP responsif).</li>
+                            <li><strong>Zona aman:</strong> Sisakan margin &plusmn;10% dari tepi gambar agar teks/logo tidak terpotong di layar desktop maupun seluler.</li>
+                        </ul>
+                    </div>
                     <div wire:loading wire:target="image" class="mt-1 text-xs text-primary">Mengunggah gambar slide...</div>
                     <flux:error name="image" />
                 </flux:field>

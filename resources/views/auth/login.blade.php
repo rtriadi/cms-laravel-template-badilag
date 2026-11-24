@@ -30,7 +30,7 @@
 
             <flux:field>
                 <flux:label for="captcha">Kode Keamanan (Captcha Lokal)</flux:label>
-                <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div class="flex flex-col gap-2.5">
                     <div class="flex flex-wrap items-center gap-2">
                         <img
                             id="local-captcha-img"
@@ -45,7 +45,7 @@
                             type="button"
                             id="local-captcha-refresh"
                             aria-label="Muat ulang kode keamanan"
-                            class="inline-flex min-h-11 items-center rounded-md border border-hairline bg-white px-3 text-xs font-semibold text-ink hover:bg-mist"
+                            class="inline-flex min-h-11 cursor-pointer items-center rounded-md border border-hairline bg-white px-3 text-xs font-semibold text-ink hover:bg-mist"
                         >
                             Ulang
                         </button>
@@ -54,12 +54,12 @@
                             id="local-captcha-mode"
                             aria-controls="local-captcha-text"
                             aria-expanded="false"
-                            class="inline-flex min-h-11 items-center rounded-md border border-hairline bg-white px-3 text-xs font-semibold text-ink hover:bg-mist"
+                            class="inline-flex min-h-11 cursor-pointer items-center rounded-md border border-hairline bg-white px-3 text-xs font-semibold text-ink hover:bg-mist"
                         >
                             Mode teks
                         </button>
                     </div>
-                    <flux:input id="captcha" name="captcha" type="text" required autocomplete="off" aria-describedby="captcha-help" placeholder="Ketik 5 karakter" class="flex-1" />
+                    <flux:input id="captcha" name="captcha" type="text" required autocomplete="off" aria-describedby="captcha-help" placeholder="Ketik 5 karakter kode keamanan" />
                 </div>
                 <p id="captcha-help" class="mt-1 text-xs text-ink-muted">
                     Ketik 5 karakter pada gambar atau kode teks. Huruf besar dan kecil tidak dibedakan.

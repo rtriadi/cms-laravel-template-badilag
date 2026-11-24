@@ -100,20 +100,38 @@
 
         <!-- Daftar Dokumen per Koleksi -->
         <div class="studio-card p-5 lg:col-span-7">
-            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-hairline pb-3">
-                <h2 class="font-serif text-lg font-bold text-ink">Daftar Dokumen ({{ $documents->count() }})</h2>
-                <div class="w-64">
-                    <label for="doc_filter" class="sr-only">Pilih koleksi dokumen</label>
-                    <flux:select id="doc_filter" wire:model.live="collectionFilter">
-                        @foreach ($collections as $colKey => $colLabel)
-                            <option value="{{ $colKey }}">{{ $colLabel }}</option>
-                        @endforeach
-                    </flux:select>
+            <div class="space-y-3 border-b border-hairline pb-3">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <h2 class="font-serif text-lg font-bold text-ink">Daftar Dokumen ({{ number_format($documents->total()) }})</h2>
+                    <div class="w-full sm:w-64">
+                        <label for="doc_filter" class="sr-only">Pilih koleksi dokumen</label>
+                        <flux:select id="doc_filter" wire:model.live="collectionFilter">
+                            @foreach ($collections as $colKey => $colLabel)
+                                <option value="{{ $colKey }}">{{ $colLabel }}</option>
+                            @endforeach
+                        </flux:select>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="min-w-0 flex-1">
+                        <flux:input wire:model.live.debounce.300ms="search" aria-label="Cari judul dokumen" placeholder="Cari judul atau status dokumen..." />
+                    </div>
+                    <div class="w-36 shrink-0">
+                        <label for="doc_year_filter" class="sr-only">Filter tahun dokumen</label>
+                        <flux:select id="doc_year_filter" wire:model.live="yearFilter">
+                            <option value="">Semua Tahun</option>
+                            @foreach ($availableYears as $yr)
+                                <option value="{{ $yr }}">{{ $yr }}</option>
+                            @endforeach
+                        </flux:select>
+                    </div>
                 </div>
             </div>
 
             @if ($documents->isEmpty())
-                <p class="py-10 text-center text-sm text-ink-muted">Belum ada dokumen tersimpan untuk koleksi ini.</p>
+                <p class="py-10 text-center text-sm text-ink-muted">
+                    {{ trim($search) !== '' || $yearFilter !== '' ? 'Tidak ada dokumen yang cocok dengan filter pencarian.' : 'Belum ada dokumen tersimpan untuk koleksi ini.' }}
+                </p>
             @else
                 <ul class="mt-3 divide-y divide-hairline">
                     @foreach ($documents as $doc)
@@ -153,6 +171,10 @@
                         </li>
                     @endforeach
                 </ul>
+
+                <div class="mt-4 border-t border-hairline pt-3">
+                    {{ $documents->links() }}
+                </div>
             @endif
         </div>
     </div>

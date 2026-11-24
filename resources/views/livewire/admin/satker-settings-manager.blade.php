@@ -20,6 +20,8 @@
                 ['id' => 'identitas', 'href' => '#sec-identitas', 'label' => 'Identitas & Logo'],
                 ['id' => 'alamat', 'href' => '#sec-alamat', 'label' => 'Alamat & Kontak'],
                 ['id' => 'integrasi', 'href' => '#sec-integrasi', 'label' => 'Integrasi SIPP & SIMTEPA'],
+                ['id' => 'pengawasan', 'href' => '#sec-pengawasan', 'label' => 'Pengawasan & Beranda'],
+                ['id' => 'tautan-medsos', 'href' => '#sec-tautan-medsos', 'label' => 'Tautan, Medsos & CCTV'],
                 ['id' => 'tingkat', 'href' => '#sec-tingkat', 'label' => 'Tingkat Peradilan'],
             ] as $navItem)
                 <a
@@ -197,9 +199,9 @@
                     <flux:field>
                         <div class="mb-1.5 flex items-center justify-between gap-2">
                             <flux:label for="ext_sim_str" class="mb-0!">Token / URL SIMTEPA Struktur</flux:label>
-                            <span class="font-mono text-[10.5px] text-[#64748b]">6 Tab Auto</span>
+                            <span class="font-mono text-[10.5px] text-[#64748b]">Bagan / Link Struktur</span>
                         </div>
-                        <flux:input id="ext_sim_str" wire:model="simtepa_struktur_url" placeholder="https://simtepa.mahkamahagung.go.id/share/profil_ketua/html/..." />
+                        <flux:input id="ext_sim_str" wire:model="simtepa_struktur_url" placeholder="https://simtepa.mahkamahagung.go.id/share/struktur_organisasi/..." />
                     </flux:field>
                     <flux:field>
                         <flux:label for="ext_skm">URL Survei SKM / IKPM</flux:label>
@@ -226,7 +228,24 @@
                             @endif
                         </div>
 
-                        @php $simtepaTabs = $satker->simtepaCategoryTabs(false); @endphp
+                        @php
+                            $simtepaTabs = $satker->simtepaCategoryTabs(false);
+                            $simtepaStrukturResolved = $satker->resolveEmbedSource('simtepa_struktur');
+                        @endphp
+                        <div class="border-t border-[#c7e6da] pt-2.5">
+                            <p class="font-bold text-primary-deep">URL Bagan Struktur Organisasi SIMTEPA Aktif:</p>
+                            @if (! empty($simtepaStrukturResolved['embed_url']) && empty($simtepaStrukturResolved['tabs']))
+                                <div class="mt-1.5 flex flex-wrap items-center justify-between gap-2 rounded-md border border-[#e2e8e5] bg-white px-2.5 py-1.5 text-[11px]">
+                                    <span class="break-all font-mono text-[#0f172a]">{{ $simtepaStrukturResolved['embed_url'] }}</span>
+                                    <a href="{{ $simtepaStrukturResolved['embed_url'] }}" target="_blank" rel="noopener noreferrer" class="shrink-0 font-mono font-semibold text-primary hover:underline">Buka &nearr;</a>
+                                </div>
+                            @elseif (! empty($simtepaStrukturResolved['tabs']))
+                                <p class="mt-1 text-[11px] text-[#334155]">Menggunakan mode 6 Tab Pejabat SIMTEPA (isi URL <code>/share/struktur_organisasi/...</code> di atas untuk menanamkan bagan langsung).</p>
+                            @else
+                                <p class="mt-1 text-[11px] text-[#64748b]">URL struktur organisasi belum diisi (halaman Struktur Organisasi akan memakai data cadangan lokal).</p>
+                            @endif
+                        </div>
+
                         <div class="border-t border-[#c7e6da] pt-2.5">
                             <p class="font-bold text-primary-deep">
                                 Pemetaan Otomatis 7 Kategori Share Data SIMTEPA
@@ -253,6 +272,219 @@
                         </div>
                     </div>
                 @endif
+            </section>
+
+            <!-- Card 3B: Kelengkapan Halaman Depan (Pedoman Pengawasan A-6) -->
+            <section id="sec-pengawasan" class="studio-card scroll-mt-20 space-y-5 p-5 sm:p-6">
+                <div class="border-b border-[#e2e8e5] pb-3.5">
+                    <h3 class="font-serif text-[17px] font-bold text-[#0f172a]">Pengawasan &amp; Kelengkapan Halaman Depan</h3>
+                    <p class="mt-0.5 text-xs text-[#64748b]">
+                        Tautan Pengadilan Tingkat Banding, angka Indeks Survei Pelayanan (SKM, SPAK, SPKP), serta tautan ringan Video Profil, Video PTSP, dan Infografis Kebijakan MA sesuai Pedoman Pengawasan.
+                    </p>
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <flux:field>
+                        <flux:label for="ext_pta_nama">Nama Pengadilan Tingkat Banding (PTA / MS Aceh)</flux:label>
+                        <flux:input id="ext_pta_nama" wire:model="pta_nama" placeholder="Pengadilan Tinggi Agama Gorontalo" />
+                    </flux:field>
+                    <flux:field>
+                        <flux:label for="ext_pta_url">URL Website Pengadilan Tingkat Banding</flux:label>
+                        <flux:input id="ext_pta_url" type="url" wire:model="pta_url" placeholder="https://pta-gorontalo.go.id" />
+                    </flux:field>
+                </div>
+
+                <div class="border-t border-[#e2e8e5] pt-4">
+                    <p class="mb-3 text-xs font-bold text-[#0f172a]">Indeks Survei Pelayanan di Beranda (SKM / SPAK / SPKP)</p>
+                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <flux:field>
+                            <flux:label for="idx_periode">Periode Survei</flux:label>
+                            <flux:input id="idx_periode" wire:model="survei_periode" placeholder="Triwulan III 2026" />
+                        </flux:field>
+                        <flux:field>
+                            <flux:label for="idx_skm">Nilai IKM / SKM</flux:label>
+                            <flux:input id="idx_skm" wire:model="nilai_skm" placeholder="95,40" />
+                        </flux:field>
+                        <flux:field>
+                            <flux:label for="idx_spak">Nilai IPAK / SPAK</flux:label>
+                            <flux:input id="idx_spak" wire:model="nilai_spak" placeholder="96,10" />
+                        </flux:field>
+                        <flux:field>
+                            <flux:label for="idx_spkp">Nilai IPKL / SPKP</flux:label>
+                            <flux:input id="idx_spkp" wire:model="nilai_spkp" placeholder="95,80" />
+                        </flux:field>
+                    </div>
+                </div>
+
+                <div class="border-t border-[#e2e8e5] pt-4">
+                    <p class="mb-3 text-xs font-bold text-[#0f172a]">Tautan Video &amp; Infografis Kebijakan MA (Tanpa Embed Berat)</p>
+                    <div class="grid gap-4 sm:grid-cols-3">
+                        <flux:field>
+                            <flux:label for="vid_profil">URL Video Profil Pengadilan</flux:label>
+                            <flux:input id="vid_profil" type="url" wire:model="video_profil_url" placeholder="https://youtube.com/watch?v=..." />
+                        </flux:field>
+                        <flux:field>
+                            <flux:label for="vid_ptsp">URL Video PTSP Pengadilan</flux:label>
+                            <flux:input id="vid_ptsp" type="url" wire:model="video_ptsp_url" placeholder="https://youtube.com/watch?v=..." />
+                        </flux:field>
+                        <flux:field>
+                            <flux:label for="vid_kebijakan">URL Video / Infografis Kebijakan MA</flux:label>
+                            <flux:input id="vid_kebijakan" type="url" wire:model="video_kebijakan_ma_url" placeholder="https://youtube.com/watch?v=..." />
+                        </flux:field>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Card 3C: Tautan Instansi, Sosial Media Resmi & Access CCTV Online (ACO) -->
+            <section id="sec-tautan-medsos" class="studio-card scroll-mt-20 space-y-5 p-5 sm:p-6">
+                <div class="border-b border-[#e2e8e5] pb-3.5">
+                    <h3 class="font-serif text-[17px] font-bold text-[#0f172a]">Tautan Instansi, Sosial Media &amp; CCTV (ACO)</h3>
+                    <p class="mt-0.5 text-xs text-[#64748b]">
+                        Kelola tautan website instansi terkait, kanal media sosial resmi satuan kerja, serta tautan Access CCTV Online (ACO) yang tampil di beranda dan footer.
+                    </p>
+                </div>
+
+                <!-- Sub-block 1: Access CCTV Online (ACO) -->
+                <div class="rounded-xl border border-[#c7e6da] bg-[#edf7f3]/60 p-4 space-y-3">
+                    <div>
+                        <p class="text-xs font-bold text-primary-deep">Access CCTV Online (ACO) Badilag</p>
+                        <p class="mt-0.5 text-[11px] text-[#475569]">
+                            Tampil sebagai kartu tautan ringan menuju portal pantauan CCTV daring (tanpa live streaming berat di beranda agar waktu muat tetap di bawah 5 detik sesuai SK Dirjen Badilag Bab III.A.5).
+                        </p>
+                    </div>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <flux:field>
+                            <flux:label for="ext_cctv_url">URL Access CCTV Online (ACO)</flux:label>
+                            <flux:input id="ext_cctv_url" type="url" wire:model="cctv_aco_url" placeholder="https://cctv.badilag.net/display/satker/..." />
+                            <flux:error name="cctv_aco_url" />
+                        </flux:field>
+                        <flux:field>
+                            <flux:label for="ext_cctv_label">Label Tampilan CCTV</flux:label>
+                            <flux:input id="ext_cctv_label" wire:model="cctv_aco_label" placeholder="Access CCTV Online (ACO)" />
+                            <flux:error name="cctv_aco_label" />
+                        </flux:field>
+                    </div>
+                </div>
+
+                <!-- Sub-block 2: Kanal Sosial Media Resmi -->
+                <div class="border-t border-[#e2e8e5] pt-4">
+                    <p class="mb-3 text-xs font-bold text-[#0f172a]">Kanal Sosial Media Resmi Satuan Kerja</p>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <flux:field>
+                            <flux:label for="soc_fb">URL Facebook</flux:label>
+                            <flux:input id="soc_fb" type="url" wire:model="social_facebook_url" placeholder="https://www.facebook.com/..." />
+                            <flux:error name="social_facebook_url" />
+                        </flux:field>
+                        <flux:field>
+                            <flux:label for="soc_ig">URL Instagram</flux:label>
+                            <flux:input id="soc_ig" type="url" wire:model="social_instagram_url" placeholder="https://www.instagram.com/..." />
+                            <flux:error name="social_instagram_url" />
+                        </flux:field>
+                        <flux:field>
+                            <flux:label for="soc_tt">URL TikTok</flux:label>
+                            <flux:input id="soc_tt" type="url" wire:model="social_tiktok_url" placeholder="https://www.tiktok.com/@..." />
+                            <flux:error name="social_tiktok_url" />
+                        </flux:field>
+                        <flux:field>
+                            <flux:label for="soc_yt">URL YouTube</flux:label>
+                            <flux:input id="soc_yt" type="url" wire:model="social_youtube_url" placeholder="https://www.youtube.com/@..." />
+                            <flux:error name="social_youtube_url" />
+                        </flux:field>
+                        <flux:field class="sm:col-span-2">
+                            <flux:label for="soc_x">URL X / Twitter (Opsional)</flux:label>
+                            <flux:input id="soc_x" type="url" wire:model="social_x_url" placeholder="https://x.com/..." />
+                            <flux:error name="social_x_url" />
+                        </flux:field>
+                    </div>
+                </div>
+
+                <!-- Sub-block 3: Tautan Instansi Terkait (Dinamis) -->
+                <div class="border-t border-[#e2e8e5] pt-4 space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <p class="text-xs font-bold text-[#0f172a]">Daftar Tautan Instansi Terkait</p>
+                            <p class="mt-0.5 text-[11px] text-[#64748b]">Misalnya Mahkamah Agung RI, Ditjen Badilag, PTA/MS Aceh, PA sewilayah, dan Pemerintah Daerah.</p>
+                        </div>
+                        <button
+                            type="button"
+                            wire:click="addRelatedLink"
+                            class="inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-primary bg-[#edf7f3] px-3 text-xs font-bold text-primary hover:bg-primary hover:text-white"
+                        >
+                            + Tambah Tautan Instansi
+                        </button>
+                    </div>
+
+                    @if ($related_links === [])
+                        <div class="rounded-lg border border-dashed border-[#cbd5e1] bg-[#f8faf9] px-4 py-5 text-center text-xs text-[#64748b]">
+                            Belum ada tautan instansi terkait. Klik tombol <strong>+ Tambah Tautan Instansi</strong> untuk menambahkan.
+                        </div>
+                    @else
+                        <div class="space-y-3">
+                            @foreach ($related_links as $rIdx => $rItem)
+                                <div wire:key="rel-link-{{ $rIdx }}" class="rounded-xl border border-[#e2e8e5] bg-[#f9fbfa] p-3.5 space-y-3">
+                                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#e2e8e5] pb-2">
+                                        <span class="font-mono text-[11px] font-bold text-primary">Tautan #{{ $rIdx + 1 }}</span>
+                                        <div class="flex items-center gap-1.5">
+                                            <button
+                                                type="button"
+                                                wire:click="moveRelatedLinkUp({{ $rIdx }})"
+                                                @disabled($rIdx === 0)
+                                                aria-label="Geser tautan #{{ $rIdx + 1 }} ke atas"
+                                                class="inline-flex min-h-8 min-w-8 cursor-pointer items-center justify-center rounded border border-[#cbd5e1] bg-white px-2 text-xs font-bold text-[#334155] hover:bg-[#edf7f3] disabled:cursor-not-allowed disabled:opacity-40"
+                                            >
+                                                &uarr;
+                                            </button>
+                                            <button
+                                                type="button"
+                                                wire:click="moveRelatedLinkDown({{ $rIdx }})"
+                                                @disabled($rIdx === count($related_links) - 1)
+                                                aria-label="Geser tautan #{{ $rIdx + 1 }} ke bawah"
+                                                class="inline-flex min-h-8 min-w-8 cursor-pointer items-center justify-center rounded border border-[#cbd5e1] bg-white px-2 text-xs font-bold text-[#334155] hover:bg-[#edf7f3] disabled:cursor-not-allowed disabled:opacity-40"
+                                            >
+                                                &darr;
+                                            </button>
+                                            <button
+                                                type="button"
+                                                wire:click="removeRelatedLink({{ $rIdx }})"
+                                                class="inline-flex min-h-8 cursor-pointer items-center rounded border border-red-200 bg-red-50 px-2.5 text-xs font-semibold text-red-700 hover:bg-red-100"
+                                            >
+                                                Hapus
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid gap-3 sm:grid-cols-12">
+                                        <div class="sm:col-span-3">
+                                            <flux:field>
+                                                <flux:label for="rl_code_{{ $rIdx }}">Kode Singkat</flux:label>
+                                                <flux:input id="rl_code_{{ $rIdx }}" wire:model="related_links.{{ $rIdx }}.code" placeholder="MARI / PTA" />
+                                            </flux:field>
+                                        </div>
+                                        <div class="sm:col-span-9">
+                                            <flux:field>
+                                                <flux:label for="rl_title_{{ $rIdx }}">Nama Instansi</flux:label>
+                                                <flux:input id="rl_title_{{ $rIdx }}" wire:model="related_links.{{ $rIdx }}.title" placeholder="Mahkamah Agung RI" />
+                                            </flux:field>
+                                        </div>
+                                        <div class="sm:col-span-6">
+                                            <flux:field>
+                                                <flux:label for="rl_sub_{{ $rIdx }}">Keterangan Singkat</flux:label>
+                                                <flux:input id="rl_sub_{{ $rIdx }}" wire:model="related_links.{{ $rIdx }}.subtitle" placeholder="Website Mahkamah Agung Republik Indonesia" />
+                                            </flux:field>
+                                        </div>
+                                        <div class="sm:col-span-6">
+                                            <flux:field>
+                                                <flux:label for="rl_url_{{ $rIdx }}">URL Website</flux:label>
+                                                <flux:input id="rl_url_{{ $rIdx }}" type="url" wire:model="related_links.{{ $rIdx }}.url" placeholder="https://www.mahkamahagung.go.id" />
+                                                <flux:error name="related_links.{{ $rIdx }}.url" />
+                                            </flux:field>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
             </section>
 
             <!-- Card 4: Tingkat Peradilan -->

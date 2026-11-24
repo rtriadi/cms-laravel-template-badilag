@@ -10,12 +10,17 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Spatie\Activitylog\Models\Activity;
 
 #[Layout('components.layouts.admin')]
 class AuditAndBackupManager extends Component
 {
+    use WithPagination;
+
     public string $tab = 'links';
+
+    public string $redirectSearch = '';
 
     public string $from_path = '';
 
@@ -28,6 +33,16 @@ class AuditAndBackupManager extends Component
     public function mount(): void
     {
         $this->authorizeView();
+    }
+
+    public function updatingRedirectSearch(): void
+    {
+        $this->resetPage('redirectsPage');
+    }
+
+    public function updatingTab(): void
+    {
+        $this->resetPage('redirectsPage');
     }
 
     public function runLinkAudit(SinovaHealthCheckService $healthCheck): void
@@ -199,10 +214,28 @@ class AuditAndBackupManager extends Component
     {
         $this->authorizeView();
 
+        $linkLogs = $this->tab === 'links'
+            ? LinkCheckLog::query()->orderByDesc('is_broken')->orderByDesc('checked_at')->limit(50)->get()
+            : collect();
+
+        $redirects = $this->tab === 'redirects'
+            ? Redirect::query()
+                ->when(trim($this->redirectSearch) !== '', function ($q): void {
+                    $term = '%'.trim($this->redirectSearch).'%';
+                    $q->where(fn ($sub) => $sub->where('from_path', 'like', $term)->orWhere('to_path', 'like', $term));
+                })
+                ->orderByDesc('id')
+                ->paginate(25, ['*'], 'redirectsPage')
+            : null;
+
+        $activities = $this->tab === 'activity'
+            ? Activity::query()->with('causer')->latest()->limit(50)->get()
+            : collect();
+
         return view('livewire.admin.audit-and-backup-manager', [
-            'linkLogs' => LinkCheckLog::query()->orderByDesc('is_broken')->orderByDesc('checked_at')->limit(50)->get(),
-            'redirects' => Redirect::query()->orderByDesc('id')->get(),
-            'activities' => Activity::query()->with('causer')->latest()->limit(50)->get(),
+            'linkLogs' => $linkLogs,
+            'redirects' => $redirects,
+            'activities' => $activities,
             'canModify' => auth()->user()?->hasAnyRole(['super_admin', 'admin_konten']) ?? false,
         ])->title('Tautan Rusak, Audit Log & Backup');
     }

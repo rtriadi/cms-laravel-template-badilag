@@ -273,21 +273,30 @@ class PageManager extends Component
     {
         $this->authorizeAccess();
 
-        $pages = Page::query()
-            ->when($this->sectionFilter !== '', function ($query): void {
-                $query->where('slug', 'like', $this->sectionFilter.'/%');
-            })
-            ->when(trim($this->search) !== '', function ($query): void {
-                $term = '%'.trim($this->search).'%';
-                $query->where(fn ($q) => $q->where('title', 'like', $term)->orWhere('slug', 'like', $term)->orWhere('criteria_code', 'like', $term));
-            })
-            ->orderBy('slug')
-            ->get();
+        $driver = Page::query()->getConnection()->getDriverName();
+        $blockCountExpr = $driver === 'sqlite'
+            ? 'COALESCE(json_array_length(blocks), 0) as blocks_count'
+            : 'COALESCE(JSON_LENGTH(blocks), 0) as blocks_count';
+
+        $pages = $this->editorOpen
+            ? collect()
+            : Page::query()
+                ->select(['id', 'title', 'slug', 'criteria_code', 'is_published', 'tingkat_scope'])
+                ->selectRaw($blockCountExpr)
+                ->when($this->sectionFilter !== '', function ($query): void {
+                    $query->where('slug', 'like', $this->sectionFilter.'/%');
+                })
+                ->when(trim($this->search) !== '', function ($query): void {
+                    $term = '%'.trim($this->search).'%';
+                    $query->where(fn ($q) => $q->where('title', 'like', $term)->orWhere('slug', 'like', $term)->orWhere('criteria_code', 'like', $term));
+                })
+                ->orderBy('slug')
+                ->get();
 
         return view('livewire.admin.page-manager', [
             'pages' => $pages,
             'satker' => SatkerSetting::current(),
-            'criteriaOptions' => CriteriaItem::query()->orderBy('code')->get(['code', 'name']),
+            'criteriaOptions' => $this->editorOpen ? CriteriaItem::query()->orderBy('code')->get(['code', 'name']) : collect(),
             'collectionTypes' => Document::collectionTypes(),
             'postCategories' => Post::categoryLabels(),
         ])->title('Halaman & Page Builder');

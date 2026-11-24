@@ -111,7 +111,7 @@ class Dashboard extends Component
         $summary = $healthCheck->scoreSummary($activeTingkat);
 
         $attentionItems = CriteriaItem::query()
-            ->with(['group', 'linkedPage'])
+            ->with(['group:id,code,name,aspect', 'linkedPage:id,slug,title,is_published'])
             ->whereIn('health_status', ['broken', 'warning', 'empty'])
             ->orderBy('criteria_group_id')
             ->orderBy('sort_order')
@@ -147,6 +147,8 @@ class Dashboard extends Component
             ->limit(5)
             ->get();
 
+        $publishedPostsCount = Post::query()->publishedActive()->count();
+
         $pendingCommentsCount = $canModerateComments
             ? PostComment::query()
                 ->where('status', PostComment::STATUS_PENDING)
@@ -164,6 +166,7 @@ class Dashboard extends Component
             'attentionItems' => $attentionItems,
             'recentActivities' => $recentActivities,
             'recentPosts' => $recentPosts,
+            'publishedPostsCount' => $publishedPostsCount,
             'pendingCommentsCount' => $pendingCommentsCount,
             'canWritePosts' => $canWritePosts,
             'canModerateComments' => $canModerateComments,

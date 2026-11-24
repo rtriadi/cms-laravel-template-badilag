@@ -10,13 +10,18 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 
 #[Layout('components.layouts.admin')]
 class DocumentManager extends Component
 {
-    use WithFileUploads;
+    use WithFileUploads, WithPagination;
 
     public string $collectionFilter = 'lkjip';
+
+    public string $search = '';
+
+    public string $yearFilter = '';
 
     #[Locked]
     public ?int $editingId = null;
@@ -64,6 +69,18 @@ class DocumentManager extends Component
         if ($this->editingId === null && array_key_exists($value, $this->allowedCollections())) {
             $this->collection_type = $value;
         }
+        $this->yearFilter = '';
+        $this->resetPage();
+    }
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingYearFilter(): void
+    {
+        $this->resetPage();
     }
 
     public function createNew(): void
@@ -263,15 +280,28 @@ class DocumentManager extends Component
             $this->collectionFilter = array_key_first($allowedCollections) ?? 'lkjip';
         }
 
+        $availableYears = Document::query()
+            ->where('collection_type', $this->collectionFilter)
+            ->distinct()
+            ->orderByDesc('year')
+            ->pluck('year')
+            ->all();
+
         $documents = Document::query()
             ->where('collection_type', $this->collectionFilter)
+            ->when($this->yearFilter !== '', fn ($q) => $q->where('year', (int) $this->yearFilter))
+            ->when(trim($this->search) !== '', function ($q): void {
+                $term = '%'.trim($this->search).'%';
+                $q->where(fn ($sub) => $sub->where('title', 'like', $term)->orWhere('status_label', 'like', $term));
+            })
             ->orderByDesc('year')
             ->orderByDesc('month')
             ->orderByDesc('id')
-            ->get();
+            ->paginate(20);
 
         return view('livewire.admin.document-manager', [
             'documents' => $documents,
+            'availableYears' => $availableYears,
             'collections' => $allowedCollections,
         ])->title('Dokumen SAKIP, Keuangan & Publik');
     }

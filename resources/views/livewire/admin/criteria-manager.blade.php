@@ -53,7 +53,7 @@
                     <div class="grid gap-3 sm:grid-cols-2">
                         <flux:field>
                             <flux:label for="ci_code">Kode Butir</flux:label>
-                            <flux:input id="ci_code" wire:model="item_code" required placeholder="Contoh: 1.a.3.12" />
+                            <flux:input id="ci_code" wire:model="item_code" required placeholder="Contoh: 1.a.3.l" />
                             <flux:error name="item_code" />
                         </flux:field>
                         <flux:field>

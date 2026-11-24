@@ -5,8 +5,9 @@
         </div>
     @endif
 
+    @if ($editorOpen)
     <!-- Article & News Studio v3 Workspace (Unified Action Bar + 67/33 Canvas) -->
-    <div id="workspace-editor-publikasi" x-show="$wire.editorOpen" x-cloak class="space-y-4">
+    <div id="workspace-editor-publikasi" class="space-y-4">
         <div class="studio-card flex flex-wrap items-center justify-between gap-3 px-4 py-3">
             <div class="flex min-w-0 flex-wrap items-center gap-2.5">
                 <button
@@ -60,11 +61,12 @@
                 <flux:field>
                     <flux:label for="post_body">Isi Konten Lengkap *</flux:label>
                     <x-rich-editor
+                        wire:key="post-body-editor-{{ $editingId ?? 'new' }}"
                         id="post_body"
                         model="body"
                         label="Isi konten publikasi"
                         placeholder="Tulis isi berita, pengumuman, atau artikel lengkap, serta sisipkan gambar atau dokumen PDF..."
-                        :min-height="360"
+                        :min-height="420"
                     />
                     <flux:error name="body" />
                 </flux:field>
@@ -75,6 +77,7 @@
                         <span class="font-mono text-[11px] text-[#64748b]">Opsional</span>
                     </div>
                     <x-rich-editor
+                        wire:key="post-excerpt-editor-{{ $editingId ?? 'new' }}"
                         id="post_excerpt"
                         model="excerpt"
                         label="Ringkasan singkat publikasi"
@@ -120,7 +123,19 @@
 
                 <div class="space-y-3 rounded-xl border border-[#e2e8e5] bg-[#f9fbfa] p-3.5">
                     <flux:field>
-                        <flux:label for="post_image">Gambar Sampul (Maks. 4 MB)</flux:label>
+                        <flux:label for="post_image">Thumbnail Kartu Berita (Maks. 4 MB)</flux:label>
+                        <p class="mb-2 text-[11px] leading-relaxed text-[#64748b]">
+                            Dipakai sebagai thumbnail kartu di beranda, daftar publikasi, &amp; pratinjau tautan (tidak ditampilkan ulang sebagai foto banner di atas isi berita).
+                        </p>
+                        @if ($existingFeaturedImagePath)
+                            <div class="mb-2.5 overflow-hidden rounded-lg border border-[#e2e8e5] bg-white p-1.5">
+                                <img
+                                    src="{{ asset('storage/' . $existingFeaturedImagePath) }}"
+                                    alt="{{ $featured_image_alt ?: $title }}"
+                                    class="h-28 w-full rounded object-cover"
+                                />
+                            </div>
+                        @endif
                         <input id="post_image" type="file" wire:model="featured_image" accept="image/*" class="block w-full cursor-pointer text-xs text-[#0f172a] file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-[#cbd5e1] file:bg-white file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-primary" />
                         <div wire:loading wire:target="featured_image" class="mt-1 text-xs text-primary">Mengunggah gambar...</div>
                         <flux:error name="featured_image" />
@@ -154,9 +169,9 @@
             </aside>
         </form>
     </div>
-
-    <!-- Clean Linear/WordPress Editorial Table View -->
-    <div x-show="!$wire.editorOpen" class="space-y-5">
+    @else
+    <!-- Clean Editorial Table View -->
+    <div class="space-y-5">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h2 class="font-serif text-2xl font-bold tracking-tight text-[#0f172a]">Publikasi &amp; Berita Resmi</h2>
@@ -232,7 +247,7 @@
                 </form>
             @endif
 
-            @if ($posts->isEmpty())
+            @if ($posts === null || $posts->isEmpty())
                 <p class="py-12 text-center text-sm text-[#64748b]">Belum ada publikasi pada filter kategori atau status ini.</p>
             @else
                 <div class="overflow-x-auto">
@@ -259,41 +274,41 @@
                                             class="size-4 rounded border-[#cbd5e1] text-primary"
                                         >
                                     </td>
-                                    <td class="px-3 py-3.5">
-                                        <div class="flex items-center gap-3">
+                                    <td class="px-3 py-3.5 align-top">
+                                        <div class="flex max-w-lg items-start gap-3">
                                             @if ($post->featured_image_path)
                                                 <img
                                                     src="{{ asset('storage/' . $post->featured_image_path) }}"
                                                     alt="{{ $post->featured_image_alt ?: $post->title }}"
                                                     width="56"
                                                     height="42"
-                                                    class="h-10.5 w-14 shrink-0 rounded-md border border-[#e2e8e5] object-cover"
+                                                    class="mt-0.5 h-10.5 w-14 shrink-0 rounded-md border border-[#e2e8e5] object-cover"
                                                 />
                                             @else
-                                                <div class="flex h-10.5 w-14 shrink-0 items-center justify-center rounded-md border border-[#e2e8e5] bg-[#edf7f3] font-mono text-[9.5px] font-bold text-primary">
+                                                <div class="mt-0.5 flex h-10.5 w-14 shrink-0 items-center justify-center rounded-md border border-[#e2e8e5] bg-[#edf7f3] font-mono text-[9.5px] font-bold text-primary">
                                                     IMG
                                                 </div>
                                             @endif
-                                            <div class="min-w-0">
+                                            <div class="min-w-0 flex-1">
                                                 <div class="flex flex-wrap items-center gap-1.5">
-                                                    <p class="truncate text-[13px] font-semibold text-[#0f172a]">{{ $post->title }}</p>
+                                                    <p class="break-words text-[13px] leading-snug font-semibold text-[#0f172a]">{{ $post->title }}</p>
                                                     @if ($post->is_pinned)
-                                                        <span class="rounded bg-[#fff7e6] px-1.5 py-0.5 font-mono text-[10px] font-bold text-[#92400e]">PIN</span>
+                                                        <span class="shrink-0 rounded bg-[#fff7e6] px-1.5 py-0.5 font-mono text-[10px] font-bold text-[#92400e]">PIN</span>
                                                     @endif
                                                     @if ($post->featured_image_path && empty($post->featured_image_alt))
-                                                        <span class="rounded bg-[#fef2f2] px-1.5 py-0.5 text-[10px] font-semibold text-red-700">Alt Kosong</span>
+                                                        <span class="shrink-0 rounded bg-[#fef2f2] px-1.5 py-0.5 text-[10px] font-semibold text-red-700">Alt Kosong</span>
                                                     @endif
                                                 </div>
-                                                <p class="mt-0.5 truncate font-mono text-[11px] text-[#64748b]">/publikasi/{{ $post->slug }}</p>
+                                                <p class="mt-1 break-all font-mono text-[11px] leading-snug text-[#64748b] line-clamp-1" title="/publikasi/{{ $post->slug }}">/publikasi/{{ $post->slug }}</p>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-3 py-3.5">
+                                    <td class="whitespace-nowrap px-3 py-3.5 align-top">
                                         <span class="inline-flex rounded-md bg-[#edf7f3] px-2.5 py-0.5 text-[11px] font-semibold text-primary">
                                             {{ $categories[$post->category] ?? $post->category }}
                                         </span>
                                     </td>
-                                    <td class="px-3 py-3.5">
+                                    <td class="whitespace-nowrap px-3 py-3.5 align-top">
                                         <span @class([
                                             'inline-flex items-center rounded-md px-2.5 py-0.5 text-[11px] font-semibold',
                                             'bg-[#ecfdf5] text-[#047857]' => $post->is_published,
@@ -302,7 +317,7 @@
                                             {{ $post->is_published ? '● Tayang' : '○ Draf' }}
                                         </span>
                                     </td>
-                                    <td class="px-3 py-3.5 font-mono text-[11px]">
+                                    <td class="whitespace-nowrap px-3 py-3.5 align-top font-mono text-[11px]">
                                         <p class="font-medium text-[#0f172a]">{{ number_format((int) $post->views_count) }} dilihat</p>
                                         <p class="mt-0.5 text-[#64748b]">
                                             {{ number_format((int) $post->approved_comments_count) }} komentar
@@ -313,7 +328,7 @@
                                             @endif
                                         </p>
                                     </td>
-                                    <td class="py-3.5 pl-3 pr-5 text-right">
+                                    <td class="whitespace-nowrap py-3.5 pl-3 pr-5 text-right align-top">
                                         <div class="inline-flex items-center gap-1.5">
                                             @if ($post->is_published)
                                                 <a
@@ -328,7 +343,7 @@
                                             <button
                                                 type="button"
                                                 wire:click="edit({{ $post->id }})"
-                                                x-on:click="document.getElementById('workspace-editor-publikasi')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"
+                                                x-on:click="window.scrollTo({ top: 0, behavior: 'smooth' })"
                                                 class="inline-flex h-8 cursor-pointer items-center rounded-md border border-primary bg-white px-3 text-xs font-semibold text-primary hover:bg-primary hover:text-white"
                                             >
                                                 Edit
@@ -355,4 +370,5 @@
             @endif
         </div>
     </div>
+    @endif
 </div>

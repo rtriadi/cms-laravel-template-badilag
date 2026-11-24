@@ -48,63 +48,121 @@
     @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>try{localStorage.setItem('flux.appearance','light')}catch(e){}document.documentElement.classList.remove('dark');</script>
-    <script src="{{ asset('vendor/tinymce/tinymce.min.js') }}"></script>
+    @php
+        $tinymceScriptPath = parse_url(asset('vendor/tinymce/tinymce.min.js'), PHP_URL_PATH) ?: '/vendor/tinymce/tinymce.min.js';
+    @endphp
+    <script src="{{ $tinymceScriptPath }}"></script>
     <script>
         window.satkerRichEditor = function (config) {
             return {
                 model: config.model,
                 uploadUrl: config.uploadUrl,
                 csrfToken: config.csrfToken,
+                tinymceBaseUrl: config.tinymceBaseUrl || '/vendor/tinymce',
                 placeholder: config.placeholder || '',
                 minHeight: config.minHeight || 280,
                 compact: Boolean(config.compact),
+                mode: 'editor',
+                codeValue: '',
                 uploading: false,
                 uploadMessage: '',
                 uploadError: '',
                 editorInstance: null,
+                unwatchWire: null,
+                isDestroyed: false,
+                syncingFromEditor: false,
 
                 init() {
                     const initialValue = this.$wire.get(this.model) || '';
+                    this.codeValue = this.formatHtml(initialValue);
+
                     if (this.$refs.textarea) {
                         this.$refs.textarea.value = initialValue;
                     }
 
-                    this.$watch(() => this.$wire.get(this.model), (newVal) => {
-                        const normalized = newVal ?? '';
-                        if (this.editorInstance) {
-                            if (this.editorInstance.getContent() !== normalized) {
-                                this.editorInstance.setContent(normalized);
+                    if (this.$wire && typeof this.$wire.$watch === 'function') {
+                        this.unwatchWire = this.$wire.$watch(this.model, (newVal) => {
+                            if (this.syncingFromEditor) {
+                                return;
                             }
-                        } else if (this.$refs.textarea && this.$refs.textarea.value !== normalized) {
-                            this.$refs.textarea.value = normalized;
-                        }
-                    });
+                            const normalized = newVal ?? '';
+                            if (this.mode === 'code') {
+                                if (this.codeValue !== normalized) {
+                                    this.codeValue = this.formatHtml(normalized);
+                                }
+                            } else {
+                                this.codeValue = this.formatHtml(normalized);
+                            }
 
-                    if (typeof window.tinymce === 'undefined' || !this.$refs.textarea) {
+                            if (this.editorInstance) {
+                                if (this.editorInstance.getContent() !== normalized) {
+                                    this.editorInstance.setContent(normalized);
+                                }
+                            } else if (this.$refs.textarea && this.$refs.textarea.value !== normalized) {
+                                this.$refs.textarea.value = normalized;
+                            }
+                        });
+                    }
+
+                    this.$nextTick(() => {
+                        requestAnimationFrame(() => {
+                            this.mountTinyMce();
+                        });
+                    });
+                },
+
+                mountTinyMce() {
+                    if (this.isDestroyed || typeof window.tinymce === 'undefined' || !this.$refs.textarea) {
                         return;
                     }
 
+                    const targetEl = this.$refs.textarea;
+                    if (!targetEl.isConnected) {
+                        setTimeout(() => this.mountTinyMce(), 60);
+                        return;
+                    }
+
+                    if (targetEl.id) {
+                        const stale = window.tinymce.get(targetEl.id);
+                        if (stale) {
+                            try {
+                                stale.remove();
+                            } catch (e) {}
+                        }
+                    }
+
+                    const fullToolbar = [
+                        'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | removeformat',
+                        'alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table blockquote hr | charmap searchreplace visualblocks fullscreen',
+                    ];
+                    const compactToolbar = 'undo redo | bold italic underline | bullist numlist | link image | removeformat';
+
                     window.tinymce.init({
-                        target: this.$refs.textarea,
+                        target: targetEl,
                         license_key: 'gpl',
-                        base_url: '/vendor/tinymce',
+                        base_url: this.tinymceBaseUrl,
                         suffix: '.min',
-                        menubar: !this.compact,
+                        menubar: this.compact ? false : 'file edit view insert format table',
                         branding: false,
                         promotion: false,
                         statusbar: true,
+                        elementpath: !this.compact,
                         min_height: this.minHeight,
+                        max_height: this.compact ? 320 : 680,
+                        autoresize_bottom_margin: 24,
                         placeholder: this.placeholder,
                         relative_urls: false,
                         remove_script_host: true,
                         convert_urls: true,
+                        image_caption: true,
+                        image_advtab: true,
+                        object_resizing: true,
+                        toolbar_mode: 'wrap',
                         plugins: this.compact
-                            ? 'lists link image table code autoresize'
-                            : 'lists link image table code fullscreen searchreplace wordcount preview autoresize',
-                        toolbar: this.compact
-                            ? 'undo redo | bold italic underline | bullist numlist | link image table | code'
-                            : 'undo redo | blocks | bold italic underline strikethrough | bullist numlist | link image table blockquote | code fullscreen',
-                        content_style: "body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; font-size: 14px; color: #111827; line-height: 1.65; margin: 12px; } table { border-collapse: collapse; width: 100%; margin: 8px 0; } th, td { border: 1px solid #d8e2dd; padding: 6px 10px; } th { background: #f0f7f4; font-weight: 700; } img { max-width: 100%; height: auto; border-radius: 6px; } a { color: #056e4f; font-weight: 600; text-decoration: underline; } blockquote { border-left: 4px solid #056e4f; padding-left: 12px; color: #374151; margin-left: 0; }",
+                            ? 'lists link image table code autoresize wordcount'
+                            : 'lists advlist link image table code fullscreen searchreplace wordcount preview autoresize charmap visualblocks',
+                        toolbar: this.compact ? compactToolbar : fullToolbar,
+                        content_style: "body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; font-size: 14.5px; color: #1e293b; line-height: 1.75; margin: 16px 18px; background: #ffffff; } p { margin: 0 0 0.9em; } h1, h2, h3, h4 { font-family: 'Source Serif 4', Georgia, serif; color: #0f172a; font-weight: 700; margin: 1.1em 0 0.5em; } table { border-collapse: collapse; width: 100%; margin: 12px 0; } th, td { border: 1px solid #d8e2dd; padding: 8px 10px; vertical-align: top; } th { background: #f0f7f4; font-weight: 700; text-align: left; } img { max-width: 100%; height: auto; border-radius: 8px; display: inline-block; } a { color: #056e4f; font-weight: 600; text-decoration: underline; } blockquote { border-left: 4px solid #056e4f; padding: 6px 14px; color: #334155; background: #f8faf9; margin: 12px 0; border-radius: 0 6px 6px 0; }",
                         images_upload_handler: (blobInfo) => this.uploadBlob(blobInfo.blob(), blobInfo.filename()),
                         file_picker_types: 'file image',
                         file_picker_callback: (cb, value, meta) => {
@@ -134,24 +192,146 @@
                         setup: (editor) => {
                             this.editorInstance = editor;
                             editor.on('init', () => {
-                                editor.setContent(this.$wire.get(this.model) || '');
+                                if (this.isDestroyed) {
+                                    try {
+                                        editor.remove();
+                                    } catch (e) {}
+                                    return;
+                                }
+                                const currentVal = this.$wire.get(this.model) || '';
+                                editor.setContent(currentVal);
+                                this.codeValue = this.formatHtml(currentVal);
                             });
+
                             const syncToWire = () => {
                                 const content = editor.getContent();
+                                this.codeValue = content;
                                 if (this.$refs.textarea) {
                                     this.$refs.textarea.value = content;
                                 }
-                                this.$wire.set(this.model, content, false);
+                                this.pushToWire(content);
                             };
+
                             editor.on('change input Undo Redo SetContent blur', syncToWire);
                         },
                     });
                 },
 
+                pushToWire(content) {
+                    this.syncingFromEditor = true;
+                    try {
+                        this.$wire.set(this.model, content, false);
+                    } finally {
+                        setTimeout(() => {
+                            this.syncingFromEditor = false;
+                        }, 0);
+                    }
+                },
+
+                getCurrentHtml() {
+                    if (this.mode === 'code') {
+                        return this.codeValue || '';
+                    }
+                    if (this.editorInstance) {
+                        return this.editorInstance.getContent() || '';
+                    }
+                    return (this.$refs.textarea && this.$refs.textarea.value) || this.codeValue || '';
+                },
+
+                switchMode(nextMode) {
+                    if (this.mode === nextMode) {
+                        return;
+                    }
+
+                    if (this.mode === 'editor') {
+                        const current = this.editorInstance
+                            ? this.editorInstance.getContent()
+                            : ((this.$refs.textarea && this.$refs.textarea.value) || '');
+                        this.codeValue = this.formatHtml(current);
+                        this.pushToWire(current);
+                    } else if (this.mode === 'code') {
+                        const raw = this.codeValue || '';
+                        if (this.editorInstance) {
+                            this.editorInstance.setContent(raw);
+                        }
+                        if (this.$refs.textarea) {
+                            this.$refs.textarea.value = raw;
+                        }
+                        this.pushToWire(raw);
+                    }
+
+                    this.mode = nextMode;
+
+                    if (nextMode === 'editor') {
+                        this.$nextTick(() => {
+                            if (this.editorInstance) {
+                                try {
+                                    this.editorInstance.execCommand('mceAutoResize');
+                                } catch (e) {}
+                            }
+                        });
+                    }
+                },
+
+                prettifyCode() {
+                    this.codeValue = this.formatHtml(this.codeValue || '');
+                    this.syncFromCode();
+                },
+
+                formatHtml(html) {
+                    const raw = String(html || '').trim();
+                    if (!raw) {
+                        return '';
+                    }
+                    return raw
+                        .replace(/>\s+</g, '><')
+                        .replace(/(<\/(?:p|div|h[1-6]|ul|ol|li|table|thead|tbody|tr|blockquote|figure|section|article|hr)>)/gi, '$1\n')
+                        .replace(/(<(?:p|div|h[1-6]|ul|ol|li|table|thead|tbody|tr|blockquote|figure|hr)\b[^>]*>)/gi, '\n$1')
+                        .replace(/\n{3,}/g, '\n\n')
+                        .trim();
+                },
+
+                previewHtml() {
+                    const raw = this.getCurrentHtml();
+                    if (!raw || !raw.trim()) {
+                        return '';
+                    }
+                    const container = document.createElement('div');
+                    container.innerHTML = raw;
+                    container.querySelectorAll('script, style, iframe, object, embed, form').forEach((el) => el.remove());
+                    container.querySelectorAll('*').forEach((el) => {
+                        Array.from(el.attributes).forEach((attr) => {
+                            const name = attr.name.toLowerCase();
+                            const val = attr.value.trim().toLowerCase();
+                            if (name.startsWith('on') || ((name === 'href' || name === 'src') && val.startsWith('javascript:'))) {
+                                el.removeAttribute(attr.name);
+                            }
+                        });
+                    });
+                    container.querySelectorAll('table').forEach((tbl) => {
+                        if (!tbl.parentElement || !tbl.parentElement.classList.contains('prose-table-wrap')) {
+                            const wrap = document.createElement('div');
+                            wrap.className = 'prose-table-wrap';
+                            tbl.parentNode.insertBefore(wrap, tbl);
+                            wrap.appendChild(tbl);
+                        }
+                    });
+                    return container.innerHTML;
+                },
+
                 syncFromTextarea() {
                     if (this.$refs.textarea) {
-                        this.$wire.set(this.model, this.$refs.textarea.value, false);
+                        this.codeValue = this.$refs.textarea.value;
+                        this.pushToWire(this.$refs.textarea.value);
                     }
+                },
+
+                syncFromCode() {
+                    const val = this.codeValue || '';
+                    if (this.$refs.textarea) {
+                        this.$refs.textarea.value = val;
+                    }
+                    this.pushToWire(val);
                 },
 
                 escapeHtml(str) {
@@ -226,16 +406,27 @@
                             ? `<p><a href="${safeUrl}" target="_blank" rel="noopener noreferrer"><strong>Unduh Dokumen PDF:</strong> ${safeName}</a>${safeDate ? ` <span class="text-xs text-ink-muted">(Diunggah: ${safeDate})</span>` : ''}</p>`
                             : `<p><img src="${safeUrl}" alt="${safeName}" /></p>`;
 
-                        if (this.editorInstance) {
+                        if (this.mode === 'code' && this.$refs.codeTextarea) {
+                            const el = this.$refs.codeTextarea;
+                            const start = el.selectionStart ?? this.codeValue.length;
+                            const end = el.selectionEnd ?? this.codeValue.length;
+                            this.codeValue = this.codeValue.slice(0, start) + '\n' + html + '\n' + this.codeValue.slice(end);
+                            if (this.editorInstance) {
+                                this.editorInstance.setContent(this.codeValue);
+                            }
+                            this.syncFromCode();
+                        } else if (this.editorInstance) {
                             this.editorInstance.insertContent(html);
                             const updated = this.editorInstance.getContent();
+                            this.codeValue = this.formatHtml(updated);
                             if (this.$refs.textarea) {
                                 this.$refs.textarea.value = updated;
                             }
-                            this.$wire.set(this.model, updated, false);
+                            this.pushToWire(updated);
                         } else if (this.$refs.textarea) {
                             this.$refs.textarea.value = (this.$refs.textarea.value || '') + '\n' + html;
-                            this.$wire.set(this.model, this.$refs.textarea.value, false);
+                            this.codeValue = this.$refs.textarea.value;
+                            this.pushToWire(this.$refs.textarea.value);
                         }
                     } catch (e) {
                     } finally {
@@ -244,6 +435,13 @@
                 },
 
                 destroy() {
+                    this.isDestroyed = true;
+                    if (typeof this.unwatchWire === 'function') {
+                        try {
+                            this.unwatchWire();
+                        } catch (e) {}
+                        this.unwatchWire = null;
+                    }
                     if (this.editorInstance) {
                         try {
                             this.editorInstance.remove();

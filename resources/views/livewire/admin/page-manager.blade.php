@@ -5,8 +5,9 @@
         </div>
     @endif
 
+    @if ($editorOpen)
     <!-- Page Builder Studio v3 Workspace (Single Unified Action Bar + 67% Document Sheet + 33% Tabbed Inspector) -->
-    <div id="workspace-editor-halaman" x-show="$wire.editorOpen" x-cloak class="space-y-4">
+    <div id="workspace-editor-halaman" class="space-y-4">
         <!-- Single Unified Editor Top Action Bar -->
         <div class="studio-card flex flex-wrap items-center justify-between gap-3 px-4 py-3">
             <div class="flex min-w-0 flex-wrap items-center gap-2.5">
@@ -176,6 +177,7 @@
 
                                 @if (($block['type'] ?? '') === 'richtext')
                                     <x-rich-editor
+                                        wire:key="page-rt-{{ $editingId ?? 'new' }}-{{ $index }}"
                                         model="blocks.{{ $index }}.content"
                                         label="Konten blok teks #{{ $index + 1 }}"
                                         placeholder="Tulis isi konten halaman, sisipkan tabel, gambar, atau lampiran PDF..."
@@ -217,9 +219,10 @@
                                                     <option value="sipp_perkara">SIPP Daftar / Penelusuran Perkara (/)</option>
                                                     <option value="sipp_statistik">SIPP Statistik Perkara (/statistik_perkara)</option>
                                                 </optgroup>
-                                                <optgroup label="SIMTEPA Gabungan (7 Tab Otomatis dari Token SIMTEPA)">
+                                                <optgroup label="SIMTEPA Struktur &amp; Profil Gabungan">
+                                                    <option value="simtepa_struktur">SIMTEPA Struktur Organisasi (Link Bagan Struktur)</option>
                                                     <option value="simtepa_pegawai">SIMTEPA Semua Profil Pegawai (7 Tab)</option>
-                                                    <option value="simtepa_struktur">SIMTEPA Struktur Pejabat (6 Tab)</option>
+                                                    <option value="simtepa_struktur_tabs">SIMTEPA Daftar Pejabat Struktural (6 Tab)</option>
                                                 </optgroup>
                                                 <optgroup label="SIMTEPA Per Kategori Khusus">
                                                     <option value="simtepa_ketua">SIMTEPA 1. Profil Ketua</option>
@@ -278,6 +281,7 @@
                                         <flux:input wire:model="blocks.{{ $index }}.default_url" aria-label="URL bawaan portal blok #{{ $index + 1 }}" placeholder="https://..." />
                                     </flux:field>
                                     <x-rich-editor
+                                        wire:key="page-ep-{{ $editingId ?? 'new' }}-{{ $index }}"
                                         model="blocks.{{ $index }}.description"
                                         label="Penjelasan portal blok #{{ $index + 1 }}"
                                         placeholder="Penjelasan portal, panduan layanan, gambar, atau dokumen PDF..."
@@ -433,9 +437,9 @@
             </aside>
         </form>
     </div>
-
+    @else
     <!-- Clean Editorial Directory Table View -->
-    <div x-show="!$wire.editorOpen" class="space-y-5">
+    <div class="space-y-5">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h2 class="font-serif text-2xl font-bold tracking-tight text-[#0f172a]">Halaman Website</h2>
@@ -493,14 +497,16 @@
                         <tbody class="divide-y divide-[#eef2f0]">
                             @foreach ($pages as $pg)
                                 <tr wire:key="pg-{{ $pg->id }}" class="transition-colors hover:bg-[#f9fbfa]">
-                                    <td class="py-3.5 pl-5 pr-3">
-                                        <p class="text-[13px] font-semibold text-[#0f172a]">{{ $pg->title }}</p>
-                                        <p class="mt-0.5 font-mono text-[11px] text-[#64748b]">/halaman/{{ $pg->slug }}</p>
+                                    <td class="py-3.5 pl-5 pr-3 align-top">
+                                        <div class="max-w-lg">
+                                            <p class="break-words text-[13px] leading-snug font-semibold text-[#0f172a]">{{ $pg->title }}</p>
+                                            <p class="mt-0.5 break-all font-mono text-[11px] text-[#64748b] line-clamp-1" title="/halaman/{{ $pg->slug }}">/halaman/{{ $pg->slug }}</p>
+                                        </div>
                                     </td>
-                                    <td class="px-3 py-3.5 font-mono text-[11.5px] text-[#334155]">
-                                        {{ is_array($pg->blocks) ? count($pg->blocks) : 0 }} blok
+                                    <td class="whitespace-nowrap px-3 py-3.5 align-top font-mono text-[11.5px] text-[#334155]">
+                                        {{ (int) ($pg->blocks_count ?? (is_array($pg->blocks) ? count($pg->blocks) : 0)) }} blok
                                     </td>
-                                    <td class="px-3 py-3.5">
+                                    <td class="whitespace-nowrap px-3 py-3.5 align-top">
                                         @if ($pg->criteria_code)
                                             <span class="rounded-md bg-[#edf7f3] px-2 py-0.5 font-mono text-[11px] font-semibold text-primary">
                                                 {{ $pg->criteria_code }}
@@ -509,7 +515,7 @@
                                             <span class="text-[#94a3b8]">-</span>
                                         @endif
                                     </td>
-                                    <td class="px-3 py-3.5">
+                                    <td class="whitespace-nowrap px-3 py-3.5 align-top">
                                         <span @class([
                                             'inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold',
                                             'bg-[#ecfdf5] text-[#047857]' => $pg->is_published,
@@ -518,7 +524,7 @@
                                             {{ $pg->is_published ? '● Tayang' : '○ Draf' }}
                                         </span>
                                     </td>
-                                    <td class="py-3.5 pl-3 pr-5 text-right">
+                                    <td class="whitespace-nowrap py-3.5 pl-3 pr-5 text-right align-top">
                                         <div class="inline-flex items-center gap-1.5">
                                             <a
                                                 href="{{ route('public.page', ['slug' => $pg->slug]) }}"
@@ -531,7 +537,7 @@
                                             <button
                                                 type="button"
                                                 wire:click="edit({{ $pg->id }})"
-                                                x-on:click="document.getElementById('workspace-editor-halaman')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"
+                                                x-on:click="window.scrollTo({ top: 0, behavior: 'smooth' })"
                                                 class="inline-flex h-8 cursor-pointer items-center rounded-md border border-primary bg-white px-3 text-xs font-semibold text-primary hover:bg-primary hover:text-white"
                                             >
                                                 Edit
@@ -554,4 +560,5 @@
             @endif
         </div>
     </div>
+    @endif
 </div>

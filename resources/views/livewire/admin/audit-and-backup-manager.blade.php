@@ -101,25 +101,38 @@
             @endif
 
             <div @class(['rounded-lg border border-hairline bg-white p-5', 'lg:col-span-7' => $canModify, 'lg:col-span-12' => ! $canModify])>
-                <h2 class="border-b border-hairline pb-3 font-serif text-lg font-bold text-ink">Daftar Aturan Pengalihan ({{ $redirects->count() }})</h2>
-                @if ($redirects->isEmpty())
-                    <p class="py-10 text-center text-sm text-ink-muted">Belum ada aturan redirect tersimpan.</p>
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-hairline pb-3">
+                    <h2 class="font-serif text-lg font-bold text-ink">
+                        Daftar Aturan Pengalihan ({{ number_format($redirects?->total() ?? 0) }})
+                    </h2>
+                    <div class="w-full sm:w-64">
+                        <flux:input wire:model.live.debounce.300ms="redirectSearch" aria-label="Cari aturan redirect" placeholder="Cari path lama atau tujuan..." />
+                    </div>
+                </div>
+                @if ($redirects === null || $redirects->isEmpty())
+                    <p class="py-10 text-center text-sm text-ink-muted">
+                        {{ trim($redirectSearch) !== '' ? 'Tidak ada aturan pengalihan yang cocok dengan pencarian.' : 'Belum ada aturan redirect tersimpan.' }}
+                    </p>
                 @else
                     <ul class="mt-3 divide-y divide-hairline">
                         @foreach ($redirects as $rd)
                             <li wire:key="rd-{{ $rd->id }}" class="flex flex-wrap items-center justify-between gap-2 py-2.5 text-xs">
-                                <div class="min-w-0">
-                                    <p class="font-mono font-semibold text-ink">{{ $rd->from_path }} -> {{ $rd->to_path }}</p>
-                                    <p class="text-ink-muted">HTTP {{ $rd->status_code }} | Hits: {{ $rd->hits }}</p>
+                                <div class="min-w-0 flex-1">
+                                    <p class="break-all font-mono font-semibold text-ink">{{ $rd->from_path }} &rarr; {{ $rd->to_path }}</p>
+                                    <p class="text-ink-muted">HTTP {{ $rd->status_code }} | Hits: {{ number_format((int) $rd->hits) }}</p>
                                 </div>
                                 @if ($canModify)
-                                    <button type="button" wire:click="deleteRedirect({{ $rd->id }})" wire:confirm="Hapus aturan pengalihan ini?" class="min-h-11 cursor-pointer rounded border border-red-200 px-3 py-1 font-semibold text-red-700 hover:bg-red-50">
+                                    <button type="button" wire:click="deleteRedirect({{ $rd->id }})" wire:confirm="Hapus aturan pengalihan ini?" class="min-h-11 shrink-0 cursor-pointer rounded border border-red-200 px-3 py-1 font-semibold text-red-700 hover:bg-red-50">
                                         Hapus
                                     </button>
                                 @endif
                             </li>
                         @endforeach
                     </ul>
+
+                    <div class="mt-4 border-t border-hairline pt-3">
+                        {{ $redirects->links() }}
+                    </div>
                 @endif
             </div>
         </div>

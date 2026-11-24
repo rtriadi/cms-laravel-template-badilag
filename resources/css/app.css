@@ -124,11 +124,24 @@
         margin: 0.75rem 0;
     }
 
+    .prose-table-wrap {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0.75rem 0;
+        border-radius: 0.5rem;
+    }
+
     .prose table {
         width: 100%;
         border-collapse: collapse;
         margin: 0.75rem 0;
         font-size: 0.8125rem;
+    }
+
+    .prose-table-wrap > table {
+        margin: 0;
     }
 
     .prose th,
@@ -435,4 +448,27 @@ textarea:focus-visible {
     border-color: #056e4f !important;
     box-shadow: 0 0 0 3px rgba(5, 110, 79, 0.14) !important;
     outline: none !important;
+}
+
+.satker-tinymce-shell {
+    padding: 0 !important;
+}
+
+.satker-tinymce-shell .tox-tinymce {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+.satker-tinymce-shell .tox .tox-toolbar-overlord,
+.satker-tinymce-shell .tox .tox-toolbar__primary,
+.satker-tinymce-shell .tox .tox-menubar {
+    background-color: #fbfdfc !important;
+}
+
+.satker-tinymce-shell .tox .tox-statusbar {
+    border-top: 1px solid #e2e8e5 !important;
+    background-color: #f8faf9 !important;
+    font-family: var(--font-mono) !important;
+    font-size: 11px !important;
 }

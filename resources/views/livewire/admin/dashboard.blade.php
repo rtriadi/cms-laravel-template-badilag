@@ -58,11 +58,11 @@
 
         <a href="{{ route('admin.posts') }}" class="studio-card block p-5 transition-colors hover:border-primary/40">
             <div class="flex items-center justify-between gap-2">
-                <span class="font-mono text-[10px] font-bold tracking-wider text-[#64748b] uppercase">Publikasi Terakhir</span>
+                <span class="font-mono text-[10px] font-bold tracking-wider text-[#64748b] uppercase">Publikasi Tayang</span>
                 <span class="rounded-md bg-[#f1f5f9] px-2 py-0.5 text-[10px] font-semibold text-[#334155]">Editorial</span>
             </div>
-            <p class="mt-2.5 font-serif text-3xl font-bold text-[#0f172a]">{{ $recentPosts->count() }}</p>
-            <p class="mt-1 text-xs text-[#64748b]">Berita, pengumuman &amp; artikel terbaru</p>
+            <p class="mt-2.5 font-serif text-3xl font-bold text-[#0f172a]">{{ number_format($publishedPostsCount) }}</p>
+            <p class="mt-1 text-xs text-[#64748b]">Berita, pengumuman &amp; artikel aktif di portal</p>
         </a>
 
         <a href="{{ route('admin.comments') }}" class="studio-card block p-5 transition-colors hover:border-primary/40">

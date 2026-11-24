@@ -93,7 +93,7 @@
 
                 <flux:field>
                     <flux:label for="menu_criteria">Tag Kode Kriteria SINOVA (Opsional)</flux:label>
-                    <flux:input id="menu_criteria" wire:model="criteria_code" placeholder="Contoh: 1.a.2.2" />
+                    <flux:input id="menu_criteria" wire:model="criteria_code" placeholder="Contoh: 1.a.2.b" />
                 </flux:field>
 
                 <div class="flex flex-wrap gap-4 text-xs">
@@ -159,6 +159,11 @@
                                     @unless ($menu->is_visible)
                                         <span class="ml-2 rounded bg-mist px-2 py-0.5 text-2xs text-ink-muted">Nonaktif</span>
                                     @endunless
+                                    @if ($menu->type === 'page' && $menu->page === null)
+                                        <span class="ml-2 rounded bg-red-50 px-2 py-0.5 text-2xs font-semibold text-red-700">Halaman belum ditautkan (tersembunyi di publik)</span>
+                                    @elseif ($menu->type === 'page' && ! $menu->page->is_published)
+                                        <span class="ml-2 rounded bg-amber-100 px-2 py-0.5 text-2xs font-semibold text-amber-900">Halaman draf (tersembunyi di publik)</span>
+                                    @endif
                                 </div>
                                 <div class="flex flex-wrap items-center gap-1.5 text-xs">
                                     <button type="button" wire:click="moveUp({{ $menu->id }})" aria-label="Naikkan menu {{ $menu->title }}" class="min-h-11 cursor-pointer rounded border border-hairline bg-white px-2.5">Naik</button>
@@ -183,6 +188,11 @@
                                                     @unless ($child->is_visible)
                                                         <span class="ml-2 rounded bg-mist px-2 py-0.5 text-2xs text-ink-muted">Nonaktif</span>
                                                     @endunless
+                                                    @if ($child->type === 'page' && $child->page === null)
+                                                        <span class="ml-2 rounded bg-red-50 px-2 py-0.5 text-2xs font-semibold text-red-700">Halaman belum ditautkan (tersembunyi di publik)</span>
+                                                    @elseif ($child->type === 'page' && ! $child->page->is_published)
+                                                        <span class="ml-2 rounded bg-amber-100 px-2 py-0.5 text-2xs font-semibold text-amber-900">Halaman draf (tersembunyi di publik)</span>
+                                                    @endif
                                                 </div>
                                                 <div class="flex flex-wrap items-center gap-1">
                                                     <button type="button" wire:click="moveUp({{ $child->id }})" aria-label="Naikkan submenu {{ $child->title }}" class="min-h-11 cursor-pointer rounded border border-hairline px-2.5">Naik</button>
@@ -203,6 +213,11 @@
                                                                 @unless ($grandchild->is_visible)
                                                                     <span class="ml-2 rounded bg-mist px-2 py-0.5 text-2xs text-ink-muted">Nonaktif</span>
                                                                 @endunless
+                                                                @if ($grandchild->type === 'page' && $grandchild->page === null)
+                                                                    <span class="ml-2 rounded bg-red-50 px-2 py-0.5 text-2xs font-semibold text-red-700">Halaman belum ditautkan (tersembunyi di publik)</span>
+                                                                @elseif ($grandchild->type === 'page' && ! $grandchild->page->is_published)
+                                                                    <span class="ml-2 rounded bg-amber-100 px-2 py-0.5 text-2xs font-semibold text-amber-900">Halaman draf (tersembunyi di publik)</span>
+                                                                @endif
                                                             </div>
                                                             <div class="flex flex-wrap items-center gap-1">
                                                                 <button type="button" wire:click="moveUp({{ $grandchild->id }})" aria-label="Naikkan sub-submenu {{ $grandchild->title }}" class="min-h-11 cursor-pointer rounded border border-hairline bg-white px-2.5">Naik</button>

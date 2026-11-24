@@ -45,6 +45,10 @@ class SatkerSettingsManager extends Component
 
     public string $website_url = '';
 
+    public string $pta_nama = '';
+
+    public string $pta_url = '';
+
     public string $sipp_url = '';
 
     public string $ecourt_url = '';
@@ -60,6 +64,37 @@ class SatkerSettingsManager extends Component
     public string $skm_url = '';
 
     public string $spak_url = '';
+
+    public string $survei_periode = '';
+
+    public string $nilai_skm = '';
+
+    public string $nilai_spak = '';
+
+    public string $nilai_spkp = '';
+
+    public string $video_profil_url = '';
+
+    public string $video_ptsp_url = '';
+
+    public string $video_kebijakan_ma_url = '';
+
+    public string $cctv_aco_url = '';
+
+    public string $cctv_aco_label = '';
+
+    public string $social_facebook_url = '';
+
+    public string $social_instagram_url = '';
+
+    public string $social_tiktok_url = '';
+
+    public string $social_youtube_url = '';
+
+    public string $social_x_url = '';
+
+    /** @var array<int, array{code: string, title: string, subtitle: string, url: string}> */
+    public array $related_links = [];
 
     public mixed $logo = null;
 
@@ -84,15 +119,68 @@ class SatkerSettingsManager extends Component
         $this->fillFromSetting(SatkerSetting::current());
     }
 
+    public function addRelatedLink(): void
+    {
+        $this->authorizeAccess();
+        if (count($this->related_links) >= 20) {
+            return;
+        }
+
+        $this->related_links[] = [
+            'code' => '',
+            'title' => '',
+            'subtitle' => '',
+            'url' => '',
+        ];
+    }
+
+    public function removeRelatedLink(int $index): void
+    {
+        $this->authorizeAccess();
+        unset($this->related_links[$index]);
+        $this->related_links = array_values($this->related_links);
+    }
+
+    public function moveRelatedLinkUp(int $index): void
+    {
+        $this->authorizeAccess();
+        if ($index <= 0 || ! isset($this->related_links[$index], $this->related_links[$index - 1])) {
+            return;
+        }
+
+        [$this->related_links[$index - 1], $this->related_links[$index]] = [
+            $this->related_links[$index],
+            $this->related_links[$index - 1],
+        ];
+        $this->related_links = array_values($this->related_links);
+    }
+
+    public function moveRelatedLinkDown(int $index): void
+    {
+        $this->authorizeAccess();
+        if (! isset($this->related_links[$index], $this->related_links[$index + 1])) {
+            return;
+        }
+
+        [$this->related_links[$index], $this->related_links[$index + 1]] = [
+            $this->related_links[$index + 1],
+            $this->related_links[$index],
+        ];
+        $this->related_links = array_values($this->related_links);
+    }
+
     public function save(): void
     {
         $this->authorizeAccess();
 
-        foreach (['simtepa_pegawai_url', 'simtepa_struktur_url'] as $simField) {
-            $trimmedSim = trim($this->{$simField});
-            if (preg_match('/^[a-f0-9]{32}$/i', $trimmedSim) === 1) {
-                $this->{$simField} = 'https://simtepa.mahkamahagung.go.id/share/profil_ketua/html/'.strtolower($trimmedSim);
-            }
+        $trimmedPegawai = trim($this->simtepa_pegawai_url);
+        if (preg_match('/^[a-f0-9]{32}$/i', $trimmedPegawai) === 1) {
+            $this->simtepa_pegawai_url = 'https://simtepa.mahkamahagung.go.id/share/profil_ketua/html/'.strtolower($trimmedPegawai);
+        }
+
+        $trimmedStruktur = trim($this->simtepa_struktur_url);
+        if (preg_match('/^[a-f0-9]{32}$/i', $trimmedStruktur) === 1) {
+            $this->simtepa_struktur_url = 'https://simtepa.mahkamahagung.go.id/share/struktur_organisasi/'.strtolower($trimmedStruktur);
         }
 
         $this->validate([
@@ -109,6 +197,8 @@ class SatkerSettingsManager extends Component
             'telepon' => ['nullable', 'string', 'max:60'],
             'email' => ['nullable', 'email', 'max:160'],
             'website_url' => ['nullable', 'url:http,https', 'max:255'],
+            'pta_nama' => ['nullable', 'string', 'max:255'],
+            'pta_url' => ['nullable', 'url:http,https', 'max:500'],
             'sipp_url' => ['nullable', 'url:http,https', 'max:500'],
             'ecourt_url' => ['nullable', 'url:http,https', 'max:500'],
             'direktori_putusan_url' => ['nullable', 'url:http,https', 'max:500'],
@@ -117,6 +207,25 @@ class SatkerSettingsManager extends Component
             'simtepa_struktur_url' => ['nullable', 'url:http,https', 'max:500'],
             'skm_url' => ['nullable', 'url:http,https', 'max:500'],
             'spak_url' => ['nullable', 'url:http,https', 'max:500'],
+            'survei_periode' => ['nullable', 'string', 'max:100'],
+            'nilai_skm' => ['nullable', 'string', 'max:32'],
+            'nilai_spak' => ['nullable', 'string', 'max:32'],
+            'nilai_spkp' => ['nullable', 'string', 'max:32'],
+            'video_profil_url' => ['nullable', 'url:http,https', 'max:500'],
+            'video_ptsp_url' => ['nullable', 'url:http,https', 'max:500'],
+            'video_kebijakan_ma_url' => ['nullable', 'url:http,https', 'max:500'],
+            'cctv_aco_url' => ['nullable', 'url:http,https', 'max:500'],
+            'cctv_aco_label' => ['nullable', 'string', 'max:120'],
+            'social_facebook_url' => ['nullable', 'url:http,https', 'max:500'],
+            'social_instagram_url' => ['nullable', 'url:http,https', 'max:500'],
+            'social_tiktok_url' => ['nullable', 'url:http,https', 'max:500'],
+            'social_youtube_url' => ['nullable', 'url:http,https', 'max:500'],
+            'social_x_url' => ['nullable', 'url:http,https', 'max:500'],
+            'related_links' => ['array', 'max:20'],
+            'related_links.*.code' => ['nullable', 'string', 'max:12'],
+            'related_links.*.title' => ['nullable', 'string', 'max:140'],
+            'related_links.*.subtitle' => ['nullable', 'string', 'max:200'],
+            'related_links.*.url' => ['nullable', 'url:http,https', 'max:500'],
             'logo' => ['nullable', 'image', 'max:2048', 'dimensions:max_width=8000,max_height=8000'],
             'foto_gedung' => ['nullable', 'image', 'max:4096', 'dimensions:max_width=8000,max_height=8000'],
         ], [
@@ -152,6 +261,22 @@ class SatkerSettingsManager extends Component
             $fotoPath = $optimizer->storeOptimized($this->foto_gedung, 'satker', 1280, 82, 'public', [480, 800]);
         }
 
+        $normalizedRelatedLinks = [];
+        foreach ($this->related_links as $row) {
+            $rowTitle = trim((string) ($row['title'] ?? ''));
+            $rowUrl = trim((string) ($row['url'] ?? ''));
+            if ($rowTitle === '' || $rowUrl === '') {
+                continue;
+            }
+
+            $normalizedRelatedLinks[] = [
+                'code' => strtoupper(mb_substr(trim((string) ($row['code'] ?? '')), 0, 12)),
+                'title' => $rowTitle,
+                'subtitle' => trim((string) ($row['subtitle'] ?? '')),
+                'url' => $rowUrl,
+            ];
+        }
+
         $setting->fill([
             'nama_satker' => trim($this->nama_satker),
             'jenis_badan' => $this->jenis_badan,
@@ -166,6 +291,8 @@ class SatkerSettingsManager extends Component
             'telepon' => trim($this->telepon) ?: null,
             'email' => trim($this->email) ?: null,
             'website_url' => trim($this->website_url) ?: null,
+            'pta_nama' => trim($this->pta_nama) ?: null,
+            'pta_url' => trim($this->pta_url) ?: null,
             'logo_path' => $logoPath,
             'foto_gedung_path' => $fotoPath,
             'sipp_url' => trim($this->sipp_url) ?: null,
@@ -176,6 +303,21 @@ class SatkerSettingsManager extends Component
             'simtepa_struktur_url' => trim($this->simtepa_struktur_url) ?: null,
             'skm_url' => trim($this->skm_url) ?: null,
             'spak_url' => trim($this->spak_url) ?: null,
+            'survei_periode' => trim($this->survei_periode) ?: null,
+            'nilai_skm' => trim($this->nilai_skm) ?: null,
+            'nilai_spak' => trim($this->nilai_spak) ?: null,
+            'nilai_spkp' => trim($this->nilai_spkp) ?: null,
+            'video_profil_url' => trim($this->video_profil_url) ?: null,
+            'video_ptsp_url' => trim($this->video_ptsp_url) ?: null,
+            'video_kebijakan_ma_url' => trim($this->video_kebijakan_ma_url) ?: null,
+            'cctv_aco_url' => trim($this->cctv_aco_url) ?: null,
+            'cctv_aco_label' => trim($this->cctv_aco_label) ?: null,
+            'social_facebook_url' => trim($this->social_facebook_url) ?: null,
+            'social_instagram_url' => trim($this->social_instagram_url) ?: null,
+            'social_tiktok_url' => trim($this->social_tiktok_url) ?: null,
+            'social_youtube_url' => trim($this->social_youtube_url) ?: null,
+            'social_x_url' => trim($this->social_x_url) ?: null,
+            'related_links' => $normalizedRelatedLinks !== [] ? $normalizedRelatedLinks : null,
         ]);
 
         if (! $setting->exists) {
@@ -187,17 +329,18 @@ class SatkerSettingsManager extends Component
         $setting->save();
 
         if ($this->logo !== null && is_string($oldLogoPath) && $oldLogoPath !== '' && $oldLogoPath !== $logoPath) {
-            $optimizer->deleteWithVariants($oldLogoPath, [128]);
+            $optimizer->deleteWithVariants($oldLogoPath);
         }
 
         if ($this->foto_gedung !== null && is_string($oldFotoPath) && $oldFotoPath !== '' && $oldFotoPath !== $fotoPath) {
-            $optimizer->deleteWithVariants($oldFotoPath, [480, 800]);
+            $optimizer->deleteWithVariants($oldFotoPath);
         }
 
         $this->logo = null;
         $this->foto_gedung = null;
         $this->existingLogoPath = $setting->logo_path;
         $this->existingFotoGedungPath = $setting->foto_gedung_path;
+        $this->related_links = $setting->resolvedRelatedLinks();
         $this->statusNotice = 'Identitas satuan kerja dan tautan integrasi berhasil diperbarui.';
     }
 
@@ -273,6 +416,8 @@ class SatkerSettingsManager extends Component
         $this->telepon = (string) ($setting->telepon ?? '');
         $this->email = (string) ($setting->email ?? '');
         $this->website_url = (string) ($setting->website_url ?? '');
+        $this->pta_nama = (string) ($setting->pta_nama ?? '');
+        $this->pta_url = (string) ($setting->pta_url ?? '');
         $this->sipp_url = (string) ($setting->sipp_url ?? '');
         $this->ecourt_url = (string) ($setting->ecourt_url ?? '');
         $this->direktori_putusan_url = (string) ($setting->direktori_putusan_url ?? '');
@@ -281,6 +426,21 @@ class SatkerSettingsManager extends Component
         $this->simtepa_struktur_url = (string) ($setting->simtepa_struktur_url ?? '');
         $this->skm_url = (string) ($setting->skm_url ?? '');
         $this->spak_url = (string) ($setting->spak_url ?? '');
+        $this->survei_periode = (string) ($setting->survei_periode ?? '');
+        $this->nilai_skm = (string) ($setting->nilai_skm ?? '');
+        $this->nilai_spak = (string) ($setting->nilai_spak ?? '');
+        $this->nilai_spkp = (string) ($setting->nilai_spkp ?? '');
+        $this->video_profil_url = (string) ($setting->video_profil_url ?? '');
+        $this->video_ptsp_url = (string) ($setting->video_ptsp_url ?? '');
+        $this->video_kebijakan_ma_url = (string) ($setting->video_kebijakan_ma_url ?? '');
+        $this->cctv_aco_url = (string) ($setting->cctv_aco_url ?? '');
+        $this->cctv_aco_label = (string) ($setting->cctv_aco_label ?? '');
+        $this->social_facebook_url = (string) ($setting->social_facebook_url ?? '');
+        $this->social_instagram_url = (string) ($setting->social_instagram_url ?? '');
+        $this->social_tiktok_url = (string) ($setting->social_tiktok_url ?? '');
+        $this->social_youtube_url = (string) ($setting->social_youtube_url ?? '');
+        $this->social_x_url = (string) ($setting->social_x_url ?? '');
+        $this->related_links = $setting->resolvedRelatedLinks();
         $this->existingLogoPath = $setting->logo_path;
         $this->existingFotoGedungPath = $setting->foto_gedung_path;
     }

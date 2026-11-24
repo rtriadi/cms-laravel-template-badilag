@@ -46,6 +46,8 @@ class PostManager extends Component
 
     public mixed $featured_image = null;
 
+    public ?string $existingFeaturedImagePath = null;
+
     public string $featured_image_alt = '';
 
     public bool $is_pinned = false;
@@ -120,6 +122,7 @@ class PostManager extends Component
         $this->excerpt = (string) ($post->excerpt ?? '');
         $this->body = $post->body;
         $this->featured_image_alt = (string) ($post->featured_image_alt ?? '');
+        $this->existingFeaturedImagePath = $post->featured_image_path;
         $this->is_pinned = (bool) $post->is_pinned;
         $this->is_published = (bool) $post->is_published;
         $this->comments_enabled = (bool) ($post->comments_enabled ?? true);
@@ -252,6 +255,7 @@ class PostManager extends Component
         $this->excerpt = '';
         $this->body = '';
         $this->featured_image = null;
+        $this->existingFeaturedImagePath = null;
         $this->featured_image_alt = '';
         $this->is_pinned = false;
         $this->is_published = true;
@@ -272,27 +276,34 @@ class PostManager extends Component
     {
         $this->authorizeAccess();
 
+        $agg = Post::query()
+            ->selectRaw('COUNT(*) as total, COALESCE(SUM(CASE WHEN is_published = 1 THEN 1 ELSE 0 END), 0) as published, COALESCE(SUM(CASE WHEN is_published = 0 THEN 1 ELSE 0 END), 0) as draft, COALESCE(SUM(CASE WHEN is_pinned = 1 THEN 1 ELSE 0 END), 0) as pinned')
+            ->first();
+
         $statusCounts = [
-            'all' => Post::query()->count(),
-            'published' => Post::query()->where('is_published', true)->count(),
-            'draft' => Post::query()->where('is_published', false)->count(),
-            'pinned' => Post::query()->where('is_pinned', true)->count(),
+            'all' => (int) ($agg?->total ?? 0),
+            'published' => (int) ($agg?->published ?? 0),
+            'draft' => (int) ($agg?->draft ?? 0),
+            'pinned' => (int) ($agg?->pinned ?? 0),
         ];
 
-        $posts = Post::query()
-            ->select(['id', 'title', 'slug', 'category', 'featured_image_path', 'featured_image_alt', 'is_pinned', 'is_published', 'views_count', 'comments_enabled', 'published_at', 'created_at'])
-            ->withCount(['approvedComments', 'pendingComments'])
-            ->when($this->categoryFilter !== '', fn ($q) => $q->where('category', $this->categoryFilter))
-            ->when($this->statusFilter === 'published', fn ($q) => $q->where('is_published', true))
-            ->when($this->statusFilter === 'draft', fn ($q) => $q->where('is_published', false))
-            ->when($this->statusFilter === 'pinned', fn ($q) => $q->where('is_pinned', true))
-            ->when(trim($this->search) !== '', function ($q): void {
-                $term = '%'.trim($this->search).'%';
-                $q->where(fn ($sub) => $sub->where('title', 'like', $term)->orWhere('slug', 'like', $term));
-            })
-            ->orderByDesc('is_pinned')
-            ->orderByDesc('created_at')
-            ->paginate(20);
+        $posts = $this->editorOpen
+            ? null
+            : Post::query()
+                ->select(['id', 'title', 'slug', 'category', 'featured_image_path', 'featured_image_alt', 'is_pinned', 'is_published', 'views_count', 'comments_enabled', 'published_at', 'created_at'])
+                ->withCount(['approvedComments', 'pendingComments'])
+                ->when($this->categoryFilter !== '', fn ($q) => $q->where('category', $this->categoryFilter))
+                ->when($this->statusFilter === 'published', fn ($q) => $q->where('is_published', true))
+                ->when($this->statusFilter === 'draft', fn ($q) => $q->where('is_published', false))
+                ->when($this->statusFilter === 'pinned', fn ($q) => $q->where('is_pinned', true))
+                ->when(trim($this->search) !== '', function ($q): void {
+                    $term = '%'.trim($this->search).'%';
+                    $q->where(fn ($sub) => $sub->where('title', 'like', $term)->orWhere('slug', 'like', $term));
+                })
+                ->orderByDesc('is_pinned')
+                ->orderByDesc('published_at')
+                ->orderByDesc('created_at')
+                ->paginate(20);
 
         return view('livewire.admin.post-manager', [
             'posts' => $posts,
