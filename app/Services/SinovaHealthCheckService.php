@@ -63,12 +63,15 @@ class SinovaHealthCheckService
     }
 
     /**
-     * @return array{checked: int, healthy: int, warning: int, broken: int, empty: int}
+     * @return array{checked: int, healthy: int, warning: int, broken: int, empty: int, menu_checked: int, menu_broken: int}
      */
     public function checkAll(?string $tingkat = null, bool $probeExternal = false): array
     {
         $satker = SatkerSetting::current();
         $activeTingkat = $tingkat ?? $satker?->tingkat ?? 'pertama';
+
+        // Ganti hasil pemeriksaan lama agar tautan yang sudah diperbaiki tidak terus menumpuk sebagai rusak.
+        LinkCheckLog::query()->delete();
 
         $items = CriteriaItem::query()
             ->with(['linkedPage', 'linkedMenu', 'group'])
@@ -96,6 +99,8 @@ class SinovaHealthCheckService
             'warning' => 0,
             'broken' => 0,
             'empty' => 0,
+            'menu_checked' => 0,
+            'menu_broken' => 0,
         ];
 
         foreach ($items as $item) {
@@ -106,9 +111,28 @@ class SinovaHealthCheckService
             if (isset($counts[$status])) {
                 $counts[$status]++;
             }
+
+            if ($status === 'broken') {
+                $resolvedUrl = (string) ($updated->resolvedUrl($satker) ?? '#');
+                $alreadyProbedExternally = $probeExternal && $updated->use_manual_url && str_starts_with($resolvedUrl, 'http');
+
+                if (! $alreadyProbedExternally) {
+                    LinkCheckLog::query()->create([
+                        'source_type' => 'criteria',
+                        'source_label' => trim($updated->code.' '.$updated->name),
+                        'url' => $resolvedUrl,
+                        'http_status' => $updated->http_status ?? 404,
+                        'is_broken' => true,
+                        'error_message' => $updated->health_message ?: 'Tautan kriteria bermasalah.',
+                        'checked_at' => now(),
+                    ]);
+                }
+            }
         }
 
-        $this->auditMenuLinks($activeTingkat, $probeExternal);
+        $menuSummary = $this->auditMenuLinks($activeTingkat, $probeExternal);
+        $counts['menu_checked'] = $menuSummary['checked'];
+        $counts['menu_broken'] = $menuSummary['broken'];
 
         return $counts;
     }
@@ -542,23 +566,34 @@ class SinovaHealthCheckService
         return "{$base['scheme']}://{$base['host']}{$port}/{$location}";
     }
 
-    private function auditMenuLinks(string $activeTingkat, bool $probeExternal): void
+    /**
+     * @return array{checked: int, broken: int, healthy: int}
+     */
+    private function auditMenuLinks(string $activeTingkat, bool $probeExternal): array
     {
         $menus = MenuItem::query()
             ->with('page')
             ->where('is_visible', true)
+            ->orderBy('sort_order')
+            ->orderBy('id')
             ->get()
             ->filter(fn (MenuItem $menu): bool => $menu->tingkat_scope === 'all' || $menu->tingkat_scope === $activeTingkat);
+
+        $checked = 0;
+        $broken = 0;
+        $healthy = 0;
 
         foreach ($menus as $menu) {
             if ($menu->type === 'group') {
                 continue;
             }
 
+            $checked++;
             $url = $menu->resolvedUrl();
             $isBroken = false;
             $status = 200;
             $err = null;
+            $alreadyLogged = false;
 
             if ($menu->type === 'page') {
                 if ($menu->page === null || ! $menu->page->is_published) {
@@ -575,19 +610,32 @@ class SinovaHealthCheckService
                 $isBroken = ! $probe['ok'];
                 $status = $probe['status'];
                 $err = $probe['ok'] ? null : $probe['message'];
+                $alreadyLogged = true;
             }
 
             if ($isBroken) {
+                $broken++;
+            } else {
+                $healthy++;
+            }
+
+            if (! $alreadyLogged) {
                 LinkCheckLog::query()->create([
                     'source_type' => 'menu',
                     'source_label' => $menu->title,
                     'url' => $url,
                     'http_status' => $status,
-                    'is_broken' => true,
+                    'is_broken' => $isBroken,
                     'error_message' => $err,
                     'checked_at' => now(),
                 ]);
             }
         }
+
+        return [
+            'checked' => $checked,
+            'broken' => $broken,
+            'healthy' => $healthy,
+        ];
     }
 }

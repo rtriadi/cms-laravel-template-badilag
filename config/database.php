@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\MysqlDumpBinaryResolver;
 use Illuminate\Support\Str;
 use Pdo\Mysql;
 
@@ -62,6 +63,9 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
+            'dump' => array_filter([
+                'dump_binary_path' => MysqlDumpBinaryResolver::resolve(env('MYSQL_DUMP_BINARY_PATH')),
+            ], static fn (mixed $value): bool => $value !== ''),
         ],
 
         'mariadb' => [
@@ -82,6 +86,9 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
+            'dump' => array_filter([
+                'dump_binary_path' => MysqlDumpBinaryResolver::resolve(env('MYSQL_DUMP_BINARY_PATH')),
+            ], static fn (mixed $value): bool => $value !== ''),
         ],
 
         'pgsql' => [

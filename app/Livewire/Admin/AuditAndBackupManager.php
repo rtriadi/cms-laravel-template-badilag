@@ -5,13 +5,18 @@ namespace App\Livewire\Admin;
 use App\Models\LinkCheckLog;
 use App\Models\Redirect;
 use App\Services\SinovaHealthCheckService;
+use App\Support\MysqlDumpBinaryResolver;
 use App\Support\SafeHtml;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Spatie\Activitylog\Models\Activity;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Throwable;
 
 #[Layout('components.layouts.admin')]
 class AuditAndBackupManager extends Component
@@ -19,6 +24,8 @@ class AuditAndBackupManager extends Component
     use WithPagination;
 
     public string $tab = 'links';
+
+    public string $linkFilter = 'all';
 
     public string $redirectSearch = '';
 
@@ -30,9 +37,148 @@ class AuditAndBackupManager extends Component
 
     public ?string $statusNotice = null;
 
+    public ?string $errorNotice = null;
+
+    /** @var array<int, array{name: string, size: int, modified: int}> */
+    public array $backups = [];
+
     public function mount(): void
     {
         $this->authorizeView();
+        $this->loadBackups();
+    }
+
+    public function runBackup(): void
+    {
+        abort_unless(auth()->user()?->hasRole('super_admin'), 403);
+
+        $this->statusNotice = null;
+        $this->errorNotice = null;
+
+        $this->ensureDumpBinaryConfigured();
+
+        try {
+            // shortcut: sinkron di request admin, cukup untuk database kecil; pindah ke queue bila arsip > 100 MB.
+            $exitCode = Artisan::call('backup:run', [
+                '--only-db' => true,
+                '--disable-notifications' => true,
+            ]);
+            $output = trim(Artisan::output());
+        } catch (Throwable $e) {
+            report($e);
+            $this->loadBackups();
+            $this->errorNotice = 'Backup database gagal dijalankan: '.$this->summarizeBackupFailure($e->getMessage());
+
+            return;
+        }
+
+        $this->loadBackups();
+
+        if ($exitCode !== 0) {
+            $reason = $this->summarizeBackupFailure($output);
+
+            activity('backup')
+                ->causedBy(auth()->id())
+                ->withProperties([
+                    'exit_code' => $exitCode,
+                    'reason' => $reason,
+                ])
+                ->log('Backup database manual gagal dijalankan');
+
+            $this->errorNotice = 'Backup database gagal dijalankan. '.$reason;
+
+            return;
+        }
+
+        activity('backup')->causedBy(auth()->id())->log('Menjalankan backup database manual dari panel admin');
+
+        $this->statusNotice = 'Backup database berhasil dibuat. Unduh arsip terbaru pada daftar di bawah.';
+    }
+
+    public function downloadBackup(string $name): StreamedResponse
+    {
+        abort_unless(auth()->user()?->hasRole('super_admin'), 403);
+        abort_unless(preg_match('/^[A-Za-z0-9._-]+\.zip$/', $name) === 1, 404);
+
+        $path = $this->backupDirectory().'/'.$name;
+        $disk = Storage::disk($this->backupDiskName());
+        abort_unless($disk->exists($path), 404);
+
+        activity('backup')->causedBy(auth()->id())->log('Mengunduh arsip backup: '.$name);
+
+        return $disk->download($path);
+    }
+
+    private function loadBackups(): void
+    {
+        $disk = Storage::disk($this->backupDiskName());
+        $directory = $this->backupDirectory();
+
+        $this->backups = collect($disk->files($directory))
+            ->filter(fn (string $file): bool => str_ends_with($file, '.zip'))
+            ->map(fn (string $file): array => [
+                'name' => basename($file),
+                'size' => $disk->size($file),
+                'modified' => $disk->lastModified($file),
+            ])
+            ->sortByDesc('modified')
+            ->take(10)
+            ->values()
+            ->all();
+    }
+
+    private function backupDiskName(): string
+    {
+        $disks = config('backup.backup.destination.disks', ['local']);
+
+        return is_array($disks) && isset($disks[0]) && is_string($disks[0]) && $disks[0] !== ''
+            ? $disks[0]
+            : 'local';
+    }
+
+    private function backupDirectory(): string
+    {
+        return trim((string) config('backup.backup.name', 'SatkerCMS'), '/');
+    }
+
+    private function ensureDumpBinaryConfigured(): void
+    {
+        $connection = (string) config('database.default', 'mysql');
+        if (! in_array($connection, ['mysql', 'mariadb'], true)) {
+            return;
+        }
+
+        $configured = (string) config("database.connections.{$connection}.dump.dump_binary_path", '');
+        if ($configured !== '') {
+            return;
+        }
+
+        $resolved = MysqlDumpBinaryResolver::resolve();
+        if ($resolved !== '') {
+            config()->set("database.connections.{$connection}.dump.dump_binary_path", $resolved);
+        }
+    }
+
+    private function summarizeBackupFailure(string $output): string
+    {
+        $normalized = strtolower($output);
+
+        if (str_contains($normalized, 'mysqldump') && (str_contains($normalized, 'not recognized') || str_contains($normalized, 'not found'))) {
+            return 'Perintah mysqldump tidak ditemukan di peladen. Tetapkan MYSQL_DUMP_BINARY_PATH pada berkas .env ke direktori bin MySQL (misalnya C:/laragon/bin/mysql/mysql-8.0.30-winx64/bin).';
+        }
+
+        if (str_contains($normalized, 'access denied')) {
+            return 'Akses database ditolak saat dump. Periksa DB_USERNAME dan DB_PASSWORD pada berkas .env.';
+        }
+
+        $lines = array_values(array_filter(array_map('trim', preg_split('/\r?\n/', $output) ?: [])));
+        foreach ($lines as $line) {
+            if (stripos($line, 'Backup failed because:') !== false || stripos($line, 'Error') !== false) {
+                return mb_strimwidth($line, 0, 220, '...');
+            }
+        }
+
+        return 'Periksa log sistem di storage/logs/laravel.log untuk rincian teknis.';
     }
 
     public function updatingRedirectSearch(): void
@@ -48,13 +194,18 @@ class AuditAndBackupManager extends Component
     public function runLinkAudit(SinovaHealthCheckService $healthCheck): void
     {
         $this->authorizeModify();
+        $this->statusNotice = null;
+        $this->errorNotice = null;
+
         $counts = $healthCheck->checkAll(probeExternal: false);
-        $this->statusNotice = "Pemeriksaan selesai: {$counts['checked']} tautan kriteria diperiksa ({$counts['healthy']} siap, {$counts['warning']} peringatan, {$counts['broken']} bermasalah).";
+        $this->statusNotice = "Pemeriksaan selesai: {$counts['checked']} kriteria SINOVA ({$counts['healthy']} siap, {$counts['warning']} peringatan, {$counts['broken']} bermasalah) dan {$counts['menu_checked']} tautan menu ({$counts['menu_broken']} bermasalah).";
     }
 
     public function saveRedirect(): void
     {
         $this->authorizeModify();
+        $this->statusNotice = null;
+        $this->errorNotice = null;
 
         $normalizedFrom = '/'.ltrim(trim($this->from_path), '/');
         $this->from_path = $normalizedFrom;
@@ -118,6 +269,8 @@ class AuditAndBackupManager extends Component
     public function deleteRedirect(int $id): void
     {
         $this->authorizeModify();
+        $this->statusNotice = null;
+        $this->errorNotice = null;
         Redirect::query()->findOrFail($id)->delete();
         $this->statusNotice = 'Aturan pengalihan berhasil dihapus.';
     }
@@ -214,9 +367,25 @@ class AuditAndBackupManager extends Component
     {
         $this->authorizeView();
 
-        $linkLogs = $this->tab === 'links'
-            ? LinkCheckLog::query()->orderByDesc('is_broken')->orderByDesc('checked_at')->limit(50)->get()
-            : collect();
+        $linkStats = [
+            'broken' => 0,
+            'healthy' => 0,
+            'last_checked_at' => null,
+        ];
+
+        $linkLogs = collect();
+        if ($this->tab === 'links') {
+            $linkStats['broken'] = LinkCheckLog::query()->where('is_broken', true)->count();
+            $linkStats['healthy'] = LinkCheckLog::query()->where('is_broken', false)->count();
+            $linkStats['last_checked_at'] = LinkCheckLog::query()->max('checked_at');
+
+            $linkLogs = LinkCheckLog::query()
+                ->when($this->linkFilter === 'broken', fn ($q) => $q->where('is_broken', true))
+                ->orderByDesc('is_broken')
+                ->orderByDesc('checked_at')
+                ->limit(100)
+                ->get();
+        }
 
         $redirects = $this->tab === 'redirects'
             ? Redirect::query()
@@ -234,6 +403,7 @@ class AuditAndBackupManager extends Component
 
         return view('livewire.admin.audit-and-backup-manager', [
             'linkLogs' => $linkLogs,
+            'linkStats' => $linkStats,
             'redirects' => $redirects,
             'activities' => $activities,
             'canModify' => auth()->user()?->hasAnyRole(['super_admin', 'admin_konten']) ?? false,
