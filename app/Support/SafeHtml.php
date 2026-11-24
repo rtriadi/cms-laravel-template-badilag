@@ -59,7 +59,7 @@ class SafeHtml
      *
      * @var list<string>
      */
-    private const array GLOBAL_ALLOWED_ATTRS = ['class', 'title', 'dir', 'lang'];
+    private const array GLOBAL_ALLOWED_ATTRS = ['class', 'title', 'dir', 'lang', 'style'];
 
     /**
      * Dangerous elements whose entire subtree must be discarded.
@@ -244,6 +244,17 @@ class SafeHtml
                 $lowerAttr = strtolower($attrName);
                 if (! in_array($lowerAttr, $allowedAttrs, true)) {
                     $child->removeAttribute($attrName);
+
+                    continue;
+                }
+
+                if ($lowerAttr === 'style') {
+                    $cleanStyle = self::sanitizeStyleAttribute($child->getAttribute($attrName));
+                    if ($cleanStyle === null) {
+                        $child->removeAttribute($attrName);
+                    } else {
+                        $child->setAttribute('style', $cleanStyle);
+                    }
                 }
             }
 
@@ -321,5 +332,58 @@ class SafeHtml
     private static function isSafeFragment(string $href): bool
     {
         return preg_match('/^#[A-Za-z0-9._-]*$/', $href) === 1;
+    }
+
+    /**
+     * Allow only safe TinyMCE editorial inline CSS declarations while blocking layout/script hijacking.
+     */
+    private static function sanitizeStyleAttribute(string $rawStyle): ?string
+    {
+        if (trim($rawStyle) === '' || preg_match('/url\s*\(|expression\s*\(|javascript:|behavior|@import|-moz-binding|\\\\/i', $rawStyle) === 1) {
+            return null;
+        }
+
+        $allowed = [];
+        $declarations = explode(';', $rawStyle);
+
+        foreach ($declarations as $declaration) {
+            $declaration = trim($declaration);
+            if ($declaration === '' || ! str_contains($declaration, ':')) {
+                continue;
+            }
+
+            [$prop, $val] = explode(':', $declaration, 2);
+            $prop = strtolower(trim($prop));
+            $val = trim((string) preg_replace('/\s+/', ' ', $val));
+
+            if ($val === '' || str_contains($val, '{') || str_contains($val, '}') || str_contains($val, '<') || str_contains($val, '>')) {
+                continue;
+            }
+
+            $valid = match ($prop) {
+                'text-align' => preg_match('/^(left|right|center|justify)$/i', $val) === 1,
+                'text-indent' => preg_match('/^(0|\d{1,3}(?:\.\d{1,2})?(px|pt|em|rem|cm|mm|%))$/i', $val) === 1,
+                'vertical-align' => preg_match('/^(top|middle|bottom|baseline)$/i', $val) === 1,
+                'display' => preg_match('/^(block|inline|inline-block)$/i', $val) === 1,
+                'float' => preg_match('/^(left|right|none)$/i', $val) === 1,
+                'font-weight' => preg_match('/^(normal|bold|400|500|600|700)$/i', $val) === 1,
+                'font-style' => preg_match('/^(normal|italic)$/i', $val) === 1,
+                'text-decoration' => preg_match('/^(none|underline|line-through)$/i', $val) === 1,
+                'list-style-type' => preg_match('/^(disc|circle|square|decimal|lower-alpha|upper-alpha|lower-roman|upper-roman|none)$/i', $val) === 1,
+                'border-collapse' => preg_match('/^(collapse|separate)$/i', $val) === 1,
+                'font-size' => preg_match('/^\d{1,2}(?:\.\d{1,2})?(px|pt|em|rem|%)$/i', $val) === 1,
+                'line-height' => preg_match('/^(normal|\d(?:\.\d{1,2})?|\d{1,2}(?:\.\d{1,2})?(px|em|rem|%))$/i', $val) === 1,
+                'width', 'max-width', 'height' => preg_match('/^(auto|\d{1,4}(?:\.\d{1,2})?(px|em|rem|%))$/i', $val) === 1,
+                'margin', 'margin-top', 'margin-bottom', 'margin-left', 'margin-right', 'padding-left', 'padding-right' => preg_match('/^((?:auto|0|\d{1,3}(?:\.\d{1,2})?(?:px|em|rem|%))(?:\s+(?:auto|0|\d{1,3}(?:\.\d{1,2})?(?:px|em|rem|%))){0,3})$/i', $val) === 1,
+                'color', 'background-color' => preg_match('/^(#[0-9a-f]{3}|#[0-9a-f]{6}|rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)|rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*(?:0|1|0?\.\d+)\s*\)|transparent|inherit|black|white)$/i', $val) === 1,
+                default => false,
+            };
+
+            if ($valid) {
+                $allowed[$prop] = $prop.': '.$val;
+            }
+        }
+
+        return $allowed === [] ? null : implode('; ', $allowed).';';
     }
 }

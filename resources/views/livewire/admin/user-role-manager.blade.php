@@ -130,6 +130,9 @@
                                 <td class="py-2.5 text-right">
                                     <div class="inline-flex gap-1.5">
                                         <button type="button" wire:click="edit({{ $usr->id }})" class="min-h-11 cursor-pointer rounded border border-primary px-2.5 py-1 font-semibold text-primary">Edit</button>
+                                        @if ($has2fa && auth()->user()?->hasRole('super_admin'))
+                                            <button type="button" wire:click="resetTwoFactor({{ $usr->id }})" wire:confirm="Reset 2FA akun {{ $usr->name }}? Pengguna harus aktivasi ulang saat masuk." class="min-h-11 cursor-pointer rounded border border-amber-300 px-2.5 py-1 font-semibold text-amber-800">Reset 2FA</button>
+                                        @endif
                                         @if ($usr->id !== auth()->id())
                                             <button type="button" wire:click="delete({{ $usr->id }})" wire:confirm="Hapus akun admin ini?" class="min-h-11 cursor-pointer rounded border border-red-200 px-2.5 py-1 font-semibold text-red-700">Hapus</button>
                                         @endif

@@ -56,6 +56,8 @@ class PostManager extends Component
 
     public bool $comments_enabled = true;
 
+    public string $expiresAt = '';
+
     public ?string $statusNotice = null;
 
     public function mount(): void
@@ -126,6 +128,7 @@ class PostManager extends Component
         $this->is_pinned = (bool) $post->is_pinned;
         $this->is_published = (bool) $post->is_published;
         $this->comments_enabled = (bool) ($post->comments_enabled ?? true);
+        $this->expiresAt = $post->expires_at?->format('Y-m-d\TH:i') ?? '';
         $this->featured_image = null;
         $this->editorOpen = true;
     }
@@ -143,6 +146,7 @@ class PostManager extends Component
             'body' => ['required', 'string'],
             'featured_image' => ['nullable', 'image', 'max:4096', 'dimensions:max_width=8000,max_height=8000'],
             'featured_image_alt' => ['required_with:featured_image', 'nullable', 'string', 'max:255'],
+            'expiresAt' => ['nullable', 'date'],
         ], [
             'title.required' => 'Judul publikasi wajib diisi.',
             'body.required' => 'Isi konten publikasi wajib diisi.',
@@ -174,6 +178,7 @@ class PostManager extends Component
             'is_pinned' => $this->is_pinned,
             'is_published' => $this->is_published,
             'comments_enabled' => $this->comments_enabled,
+            'expires_at' => $this->expiresAt !== '' ? $this->expiresAt : null,
             'published_at' => $this->is_published ? ($existing?->published_at ?? now()) : null,
             'author_id' => auth()->id(),
         ];
@@ -260,6 +265,7 @@ class PostManager extends Component
         $this->is_pinned = false;
         $this->is_published = true;
         $this->comments_enabled = true;
+        $this->expiresAt = '';
         $this->resetValidation();
     }
 

@@ -163,6 +163,20 @@
                     </label>
                 </div>
 
+                <div class="space-y-1">
+                    <label for="post-expires-at" class="block text-xs font-semibold text-[#0f172a]">Kedaluwarsa tayang (opsional)</label>
+                    <input
+                        id="post-expires-at"
+                        type="datetime-local"
+                        wire:model="expiresAt"
+                        class="h-10 w-full rounded-lg border border-[#cbd5e1] bg-white px-3 text-xs text-[#0f172a] focus:border-primary focus:outline-none"
+                    >
+                    <p class="text-[11px] text-[#64748b]">Publikasi otomatis disembunyikan dari portal setelah waktu ini.</p>
+                    @error('expiresAt')
+                        <p class="text-[11px] font-semibold text-red-700">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <flux:button type="submit" variant="primary" class="h-10 w-full cursor-pointer bg-primary text-xs font-semibold text-white hover:bg-primary-hover">
                     {{ $editingId ? 'Simpan Perubahan' : 'Terbitkan Publikasi' }}
                 </flux:button>

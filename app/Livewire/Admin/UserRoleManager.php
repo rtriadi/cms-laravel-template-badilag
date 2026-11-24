@@ -148,6 +148,28 @@ class UserRoleManager extends Component
         $this->createNew();
     }
 
+    public function resetTwoFactor(int $id, InvalidateUserSessions $invalidateSessions): void
+    {
+        $this->authorizeAccess();
+        abort_unless(auth()->user()?->hasRole('super_admin'), 403, 'Hanya Super Admin yang berwenang mereset 2FA.');
+
+        $target = User::query()->findOrFail($id);
+        $target->forceFill([
+            'two_factor_secret' => null,
+            'two_factor_recovery_codes' => null,
+            'two_factor_confirmed_at' => null,
+        ])->save();
+
+        $invalidateSessions->execute($target);
+
+        activity('user')
+            ->causedBy(auth()->user())
+            ->performedOn($target)
+            ->log('Mereset 2FA akun admin');
+
+        $this->statusNotice = '2FA akun '.$target->name.' berhasil direset. Pengguna wajib mengaktivasi ulang saat masuk berikutnya.';
+    }
+
     public function delete(int $id, InvalidateUserSessions $invalidateSessions): void
     {
         $this->authorizeAccess();

@@ -39,6 +39,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="robots" content="noindex, nofollow">
     @if ($satker?->logo_path)
         <link rel="icon" href="{{ asset('storage/' . $satker->logo_path) }}">
     @endif
@@ -133,9 +134,9 @@
 
                     const fullToolbar = [
                         'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | removeformat',
-                        'alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table blockquote hr | charmap searchreplace visualblocks fullscreen',
+                        'alignleft aligncenter alignright alignjustify | firstlineindent outdent indent | bullist numlist | link image table blockquote hr | charmap searchreplace visualblocks fullscreen',
                     ];
-                    const compactToolbar = 'undo redo | bold italic underline | bullist numlist | link image | removeformat';
+                    const compactToolbar = 'undo redo | bold italic underline | firstlineindent | bullist numlist | link image | removeformat';
 
                     window.tinymce.init({
                         target: targetEl,
@@ -158,6 +159,12 @@
                         image_advtab: true,
                         object_resizing: true,
                         toolbar_mode: 'wrap',
+                        formats: {
+                            first_line_indent: {
+                                selector: 'p',
+                                styles: { 'text-indent': '2.5em' },
+                            },
+                        },
                         plugins: this.compact
                             ? 'lists link image table code autoresize wordcount'
                             : 'lists advlist link image table code fullscreen searchreplace wordcount preview autoresize charmap visualblocks',
@@ -191,6 +198,80 @@
                         },
                         setup: (editor) => {
                             this.editorInstance = editor;
+
+                            editor.ui.registry.addIcon(
+                                'first-line-indent',
+                                '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 6h11M4 11h16M4 16h16M4 20h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 4.5l3 2-3 2V4.5z" fill="currentColor"/></svg>'
+                            );
+
+                            const applyFirstLineToAll = (enable) => {
+                                editor.undoManager.transact(() => {
+                                    const paragraphs = editor.dom.select('p');
+                                    paragraphs.forEach((p) => {
+                                        if (!enable) {
+                                            editor.dom.setStyle(p, 'text-indent', '');
+                                            return;
+                                        }
+                                        const text = (p.textContent || '').replace(/\u00a0/g, ' ').trim();
+                                        const hasOnlyMedia = text === '' && p.querySelector('img, figure, br');
+                                        const align = (p.style.textAlign || '').toLowerCase();
+                                        if (text === '' || hasOnlyMedia || align === 'center' || align === 'right') {
+                                            return;
+                                        }
+                                        editor.dom.setStyle(p, 'text-indent', '2.5em');
+                                    });
+                                });
+                                editor.nodeChanged();
+                                editor.fire('change');
+                            };
+
+                            editor.ui.registry.addSplitButton('firstlineindent', {
+                                icon: 'first-line-indent',
+                                tooltip: 'Alinea: Baris Pertama Menjorok (Alt+Shift+I)',
+                                onAction: () => {
+                                    editor.formatter.toggle('first_line_indent');
+                                    editor.nodeChanged();
+                                    editor.fire('change');
+                                },
+                                onItemAction: (_api, value) => {
+                                    if (value === 'apply_all') {
+                                        applyFirstLineToAll(true);
+                                    } else if (value === 'remove_all') {
+                                        applyFirstLineToAll(false);
+                                    }
+                                },
+                                fetch: (callback) => {
+                                    callback([
+                                        {
+                                            type: 'choiceitem',
+                                            text: 'Terapkan Alinea ke Semua Paragraf Teks',
+                                            value: 'apply_all',
+                                        },
+                                        {
+                                            type: 'choiceitem',
+                                            text: 'Hapus Alinea Semua Paragraf',
+                                            value: 'remove_all',
+                                        },
+                                    ]);
+                                },
+                                onSetup: (api) => {
+                                    const unbind = editor.formatter.formatChanged('first_line_indent', (state) => {
+                                        api.setActive(state);
+                                    });
+                                    return () => {
+                                        if (unbind && typeof unbind.unbind === 'function') {
+                                            unbind.unbind();
+                                        }
+                                    };
+                                },
+                            });
+
+                            editor.addShortcut('alt+shift+i', 'Toggle alinea baris pertama paragraf', () => {
+                                editor.formatter.toggle('first_line_indent');
+                                editor.nodeChanged();
+                                editor.fire('change');
+                            });
+
                             editor.on('init', () => {
                                 if (this.isDestroyed) {
                                     try {

@@ -88,7 +88,7 @@ class Document extends Model
             'biaya_informasi' => 'SK Standar Biaya Perolehan Informasi & Formulir Permohonan/Keberatan PPID',
             'rekap_pengaduan' => 'Laporan Rekapitulasi Pengaduan Masyarakat',
             'hukuman_disiplin' => 'Hukuman Disiplin Hasil Pengawasan',
-            'survei' => 'Laporan Survei SKM / SPAK / SPKP (SI SURTI)',
+            'survei' => 'Laporan Survei SKM / SPAK / SPKP',
             'regulasi_sk' => 'Peraturan, Kebijakan, SK Tim Pengelola Website/Medsos, SK Meja e-Court & Pengaduan',
             'sop_evakuasi' => 'SOP Peringatan Dini & Prosedur Evakuasi Keadaan Darurat',
         ];

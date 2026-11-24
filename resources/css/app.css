@@ -92,7 +92,14 @@
     }
 
     .prose p {
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.85rem;
+        line-height: 1.75;
+    }
+
+    .prose strong,
+    .prose b {
+        font-weight: 700;
+        color: var(--color-ink);
     }
 
     .prose ul {
@@ -118,10 +125,23 @@
     }
 
     .prose img {
+        display: inline-block;
         max-width: 100%;
         height: auto;
         border-radius: 0.5rem;
-        margin: 0.75rem 0;
+        margin-top: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .prose figure {
+        margin: 1rem 0;
+    }
+
+    .prose figcaption {
+        margin-top: 0.4rem;
+        font-size: 0.8125rem;
+        color: var(--color-ink-muted);
+        text-align: center;
     }
 
     .prose-table-wrap {
