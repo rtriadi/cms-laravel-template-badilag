@@ -1,106 +1,58 @@
 <div class="space-y-5">
     @if ($statusNotice)
-        <div role="status" class="rounded-lg border border-emerald-200 bg-primary-soft px-4 py-3 text-sm font-medium text-primary">
+        <div role="status" class="rounded-xl border border-emerald-200 bg-[#edf7f3] px-4 py-3 text-sm font-medium text-primary">
             {{ $statusNotice }}
         </div>
     @endif
 
-    <!-- Studio Mode Switcher Bar (Daftar Publikasi <-> Studio Penulisan) -->
-    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-hairline bg-white p-3.5 shadow-2xs">
-        <div class="flex flex-wrap items-center gap-2">
-            <button
-                type="button"
-                wire:click="closeEditor"
-                @class([
-                    'inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-colors',
-                    'bg-primary text-white shadow-2xs' => ! $editorOpen,
-                    'border border-hairline bg-mist text-ink hover:bg-primary-soft hover:text-primary' => $editorOpen,
-                ])
-            >
-                <span>1. Daftar Berita, Artikel &amp; Pengumuman ({{ $posts->total() }})</span>
-            </button>
-            <button
-                type="button"
-                wire:click="$set('editorOpen', true)"
-                @class([
-                    'inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-colors',
-                    'bg-primary text-white shadow-2xs' => $editorOpen,
-                    'border border-hairline bg-mist text-ink hover:bg-primary-soft hover:text-primary' => ! $editorOpen,
-                ])
-            >
-                <span>2. Studio Penulisan Artikel &amp; Berita</span>
-                @if ($editingId)
-                    <span class="rounded bg-gold px-1.5 py-0.5 font-mono text-2xs font-bold text-ink">
-                        #{{ $editingId }}
-                    </span>
-                @endif
-            </button>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-2">
-            @if ($editorOpen)
+    <!-- Article & News Studio v3 Workspace (Unified Action Bar + 67/33 Canvas) -->
+    <div id="workspace-editor-publikasi" x-show="$wire.editorOpen" x-cloak class="space-y-4">
+        <div class="studio-card flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+            <div class="flex min-w-0 flex-wrap items-center gap-2.5">
                 <button
                     type="button"
                     wire:click="closeEditor"
-                    class="inline-flex min-h-10 cursor-pointer items-center rounded-md border border-hairline bg-mist px-3 text-xs font-semibold text-ink hover:bg-primary-soft hover:text-primary"
+                    class="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-[#e2e8e5] bg-[#f5f7f6] px-3 text-xs font-semibold text-[#334155] transition-colors hover:border-primary/40 hover:bg-[#edf7f3] hover:text-primary"
                 >
-                    &larr; Kembali ke Daftar Publikasi
+                    <span>&larr; Daftar Publikasi</span>
                 </button>
-            @endif
-            <button
-                type="button"
-                wire:click="createNew"
-                class="inline-flex min-h-10 cursor-pointer items-center rounded-md bg-primary px-3.5 text-xs font-semibold text-white hover:bg-primary-hover"
-            >
-                + Tulis Artikel Baru
-            </button>
-        </div>
-    </div>
-
-    <!-- Full-Width CMS Article & News Studio Workspace (8/4 Inspector Layout) -->
-    <div
-        id="workspace-editor-publikasi"
-        x-show="$wire.editorOpen"
-        x-cloak
-        class="rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-5 shadow-2xs sm:p-6"
-    >
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-hairline pb-4">
-            <div>
-                <span class="rounded bg-primary-soft px-2.5 py-0.5 font-mono text-2xs font-bold text-primary uppercase">
-                    {{ $editingId ? 'Mode Edit Artikel #' . $editingId : 'Mode Tulis Publikasi Baru' }}
+                <span @class([
+                    'inline-flex items-center rounded-md px-2.5 py-1 font-mono text-[10px] font-bold uppercase',
+                    'bg-[#edf7f3] text-primary' => $is_published,
+                    'bg-[#f1f5f9] text-[#64748b]' => ! $is_published,
+                ])>
+                    {{ $is_published ? '● Tayang' : '○ Draf' }}
                 </span>
-                <h2 class="mt-1 font-serif text-xl font-bold text-ink">
-                    {{ $editingId ? 'Edit Publikasi: ' . $title : 'Tulis Berita, Pengumuman, atau Artikel Layanan Hukum' }}
-                </h2>
-                <p class="text-xs text-ink-muted">
-                    Gunakan editor di bawah ini untuk menulis berita kegiatan, pengumuman, maupun artikel bantuan hukum (Prodeo &amp; Posbakum) lengkap dengan gambar dan lampiran PDF.
-                </p>
+                <span class="truncate font-mono text-xs text-[#64748b]">
+                    /publikasi/{{ $slug ?: 'slug-publikasi' }}
+                </span>
             </div>
+
             <div class="flex flex-wrap items-center gap-2">
-                <button
-                    type="button"
-                    wire:click="closeEditor"
-                    class="inline-flex min-h-11 cursor-pointer items-center rounded-md border border-hairline bg-mist px-3.5 text-xs font-semibold text-ink hover:bg-primary-soft hover:text-primary"
-                >
-                    &larr; Kembali ke Daftar
-                </button>
                 @if ($editingId)
                     <button
                         type="button"
                         wire:click="createNew"
-                        class="inline-flex min-h-11 cursor-pointer items-center rounded-md border border-primary bg-white px-3.5 text-xs font-semibold text-primary hover:bg-primary-soft"
+                        class="inline-flex h-9 cursor-pointer items-center rounded-lg border border-[#e2e8e5] bg-white px-3 text-xs font-semibold text-[#334155] hover:border-primary/40 hover:text-primary"
                     >
-                        + Tulis Artikel Baru
+                        + Tulis Baru
                     </button>
                 @endif
+                <button
+                    type="submit"
+                    form="post-studio-form"
+                    class="inline-flex h-9 cursor-pointer items-center rounded-lg bg-primary px-4 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-primary-hover"
+                >
+                    {{ $editingId ? 'Simpan Perubahan' : 'Terbitkan Publikasi' }}
+                </button>
             </div>
         </div>
 
-        <form wire:submit="save" class="mt-5 grid gap-6 xl:grid-cols-12">
-            <!-- Left 8 Columns: Wide Article Editor Canvas -->
-            <div class="space-y-4 xl:col-span-8">
+        <form id="post-studio-form" wire:submit="save" class="grid items-start gap-5 xl:grid-cols-12">
+            <!-- Left 8 Columns: Clean Paper Writing Canvas -->
+            <div class="studio-card space-y-5 p-5 sm:p-6 xl:col-span-8">
                 <flux:field>
-                    <flux:label for="post_title">Judul Berita / Artikel / Pengumuman *</flux:label>
+                    <flux:label for="post_title">Judul Publikasi *</flux:label>
                     <flux:input id="post_title" wire:model.live="title" required placeholder="Contoh: Panduan Layanan Pembebasan Biaya Perkara (Prodeo) dan Posbakum" />
                     <flux:error name="title" />
                 </flux:field>
@@ -118,7 +70,10 @@
                 </flux:field>
 
                 <flux:field>
-                    <flux:label for="post_excerpt">Ringkasan Singkat untuk Kartu Berita (Opsional)</flux:label>
+                    <div class="mb-1.5 flex items-center justify-between gap-2">
+                        <flux:label for="post_excerpt" class="mb-0!">Ringkasan Singkat</flux:label>
+                        <span class="font-mono text-[11px] text-[#64748b]">Opsional</span>
+                    </div>
                     <x-rich-editor
                         id="post_excerpt"
                         model="excerpt"
@@ -131,10 +86,10 @@
                 </flux:field>
             </div>
 
-            <!-- Right 4 Columns: Inspector Sidebar (Category, Slug, Featured Image, Comments, Publish CTA) -->
-            <aside class="space-y-4 rounded-xl border border-hairline bg-mist p-4 xl:col-span-4">
-                <h3 class="border-b border-hairline pb-2.5 font-serif text-base font-bold text-ink">
-                    Kategori, Gambar &amp; Penerbitan
+            <!-- Right 4 Columns: Inspector Sidebar -->
+            <aside class="studio-card space-y-4 p-4 sm:p-5 xl:sticky xl:top-20 xl:col-span-4">
+                <h3 class="border-b border-[#e2e8e5] pb-2.5 font-serif text-[15px] font-bold text-[#0f172a]">
+                    Kategori, Sampul &amp; Penerbitan
                 </h3>
 
                 <flux:field>
@@ -148,212 +103,256 @@
                 </flux:field>
 
                 @if ($category === 'serta_merta')
-                    <div class="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-ink">
-                        Kategori <strong>Informasi Serta Merta</strong> akan ditampilkan sebagai pita pengumuman prioritas di bagian paling atas beranda portal publik.
+                    <div class="rounded-lg border border-amber-200 bg-[#fff7e6] px-3 py-2 text-xs font-medium text-[#92400e]">
+                        Kategori <strong>Informasi Serta Merta</strong> tampil sebagai pita pengumuman prioritas di bagian atas beranda.
                     </div>
                 @elseif ($category === 'layanan_hukum')
-                    <div class="rounded-md border border-emerald-200 bg-primary-soft px-3 py-2 text-xs font-medium text-primary-deep">
-                        Artikel kategori <strong>Layanan &amp; Bantuan Hukum</strong> otomatis tampil pada halaman <em>Hak Pencari Keadilan (Prodeo &amp; Posbakum)</em> serta direktori berita.
+                    <div class="rounded-lg border border-[#c7e6da] bg-[#edf7f3] px-3 py-2 text-xs font-medium text-primary-deep">
+                        Artikel <strong>Layanan &amp; Bantuan Hukum</strong> otomatis tampil pada halaman <em>Prodeo &amp; Posbakum</em>.
                     </div>
                 @endif
 
                 <flux:field>
-                    <flux:label for="post_slug">Slug URL (/publikasi/...)</flux:label>
+                    <flux:label for="post_slug">Slug URL</flux:label>
                     <flux:input id="post_slug" wire:model="slug" required placeholder="panduan-layanan-prodeo-posbakum" />
                     <flux:error name="slug" />
                 </flux:field>
 
-                <div class="space-y-3 rounded-lg border border-hairline bg-white p-3.5">
+                <div class="space-y-3 rounded-xl border border-[#e2e8e5] bg-[#f9fbfa] p-3.5">
                     <flux:field>
-                        <flux:label for="post_image">Gambar Sampul Utama (Maks 4 MB)</flux:label>
-                        <input id="post_image" type="file" wire:model="featured_image" accept="image/*" class="block w-full cursor-pointer text-xs text-ink file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-hairline file:bg-mist file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-primary" />
+                        <flux:label for="post_image">Gambar Sampul (Maks. 4 MB)</flux:label>
+                        <input id="post_image" type="file" wire:model="featured_image" accept="image/*" class="block w-full cursor-pointer text-xs text-[#0f172a] file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-[#cbd5e1] file:bg-white file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-primary" />
                         <div wire:loading wire:target="featured_image" class="mt-1 text-xs text-primary">Mengunggah gambar...</div>
                         <flux:error name="featured_image" />
                     </flux:field>
 
                     <flux:field>
-                        <flux:label for="post_alt">Teks Alternatif Gambar (Alt Text)</flux:label>
+                        <flux:label for="post_alt">Teks Alternatif (Alt Text)</flux:label>
                         <flux:input id="post_alt" wire:model="featured_image_alt" placeholder="Deskripsi isi gambar untuk pembaca layar" />
                         <flux:error name="featured_image_alt" />
                     </flux:field>
                 </div>
 
-                <div class="space-y-1.5 rounded-lg border border-hairline bg-white p-3.5">
-                    <label class="flex min-h-10 cursor-pointer items-center gap-2.5 text-xs font-semibold text-ink">
-                        <input type="checkbox" wire:model="is_pinned" class="size-4 rounded border-hairline text-primary">
-                        <span>Sematkan di urutan teratas (Pinned)</span>
+                <div class="space-y-1 rounded-xl border border-[#e2e8e5] bg-[#f9fbfa] p-3">
+                    <label class="flex min-h-9 cursor-pointer items-center gap-2.5 text-xs font-semibold text-[#0f172a]">
+                        <input type="checkbox" wire:model="is_pinned" class="size-4 rounded border-[#cbd5e1] text-primary">
+                        <span>Sematkan di urutan teratas</span>
                     </label>
-
-                    <label class="flex min-h-10 cursor-pointer items-center gap-2.5 text-xs font-semibold text-ink">
-                        <input type="checkbox" wire:model="is_published" class="size-4 rounded border-hairline text-primary">
+                    <label class="flex min-h-9 cursor-pointer items-center gap-2.5 text-xs font-semibold text-[#0f172a]">
+                        <input type="checkbox" wire:model="is_published" class="size-4 rounded border-[#cbd5e1] text-primary">
                         <span>Publikasikan langsung ke portal</span>
                     </label>
-
-                    <label class="flex min-h-10 cursor-pointer items-center gap-2.5 text-xs font-semibold text-ink">
-                        <input type="checkbox" wire:model="comments_enabled" class="size-4 rounded border-hairline text-primary">
-                        <span>Aktifkan kolom komentar termoderasi</span>
+                    <label class="flex min-h-9 cursor-pointer items-center gap-2.5 text-xs font-semibold text-[#0f172a]">
+                        <input type="checkbox" wire:model="comments_enabled" class="size-4 rounded border-[#cbd5e1] text-primary">
+                        <span>Aktifkan komentar termoderasi</span>
                     </label>
                 </div>
 
-                <flux:button type="submit" variant="primary" class="min-h-11 w-full cursor-pointer bg-primary font-semibold text-white hover:bg-primary-hover">
+                <flux:button type="submit" variant="primary" class="h-10 w-full cursor-pointer bg-primary text-xs font-semibold text-white hover:bg-primary-hover">
                     {{ $editingId ? 'Simpan Perubahan' : 'Terbitkan Publikasi' }}
                 </flux:button>
             </aside>
         </form>
     </div>
 
-    <!-- Full-Width Editorial Manager List with Bulk Actions -->
-    <div x-show="!$wire.editorOpen" class="rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-5 shadow-2xs sm:p-6">
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-hairline pb-4">
+    <!-- Clean Linear/WordPress Editorial Table View -->
+    <div x-show="!$wire.editorOpen" class="space-y-5">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h2 class="font-serif text-lg font-bold text-ink">Daftar Berita, Artikel &amp; Pengumuman ({{ $posts->total() }})</h2>
-                <p class="text-xs text-ink-muted">Filter status, pilih beberapa publikasi untuk aksi massal, atau pantau statistik dilihat dan antrean komentar.</p>
+                <h2 class="font-serif text-2xl font-bold tracking-tight text-[#0f172a]">Publikasi &amp; Berita Resmi</h2>
+                <p class="mt-0.5 text-xs text-[#64748b] sm:text-[13px]">
+                    Kelola berita pelayanan, pengumuman, artikel bantuan hukum, statistik pembaca, dan antrean komentar.
+                </p>
             </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <div class="w-48">
-                    <flux:input wire:model.live.debounce.300ms="search" aria-label="Cari judul publikasi" placeholder="Cari judul atau slug..." />
-                </div>
-                <div class="w-56">
-                    <label for="post_filter" class="sr-only">Filter kategori</label>
-                    <flux:select id="post_filter" wire:model.live="categoryFilter">
-                        <option value="">Semua Kategori</option>
-                        @foreach ($categories as $catKey => $catLabel)
-                            <option value="{{ $catKey }}">{{ $catLabel }}</option>
-                        @endforeach
-                    </flux:select>
-                </div>
-            </div>
+            <button
+                type="button"
+                wire:click="createNew"
+                class="inline-flex h-10 cursor-pointer items-center rounded-lg bg-primary px-4 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-primary-hover"
+            >
+                + Tulis Publikasi
+            </button>
         </div>
 
-        <div class="mt-3 flex flex-wrap gap-1.5 border-b border-hairline pb-3">
-            @foreach ([
-                '' => 'Semua (' . $statusCounts['all'] . ')',
-                'published' => 'Tayang (' . $statusCounts['published'] . ')',
-                'draft' => 'Draf (' . $statusCounts['draft'] . ')',
-                'pinned' => 'Disematkan (' . $statusCounts['pinned'] . ')',
-            ] as $stKey => $stLabel)
-                <button
-                    type="button"
-                    wire:click="$set('statusFilter', '{{ $stKey }}')"
-                    @class([
-                        'min-h-10 cursor-pointer rounded-md px-3 py-1.5 text-xs font-semibold',
-                        'bg-primary text-white' => $statusFilter === $stKey,
-                        'border border-hairline bg-mist text-ink hover:bg-primary-soft' => $statusFilter !== $stKey,
-                    ])
-                >
-                    {{ $stLabel }}
-                </button>
-            @endforeach
-        </div>
-
-        @if (! empty($selectedIds))
-            <form wire:submit="applyBulkAction" class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/40 bg-primary-soft/70 px-4 py-2.5 text-xs">
-                <span class="font-bold text-primary-deep">{{ count($selectedIds) }} publikasi dipilih</span>
-                <div class="flex flex-wrap items-center gap-2">
-                    <select wire:model="bulkAction" aria-label="Pilih aksi massal publikasi" class="min-h-10 rounded-md border border-hairline bg-white px-3 text-xs font-semibold text-ink">
-                        <option value="">-- Pilih Aksi Massal --</option>
-                        <option value="publish">Terbitkan ke Portal</option>
-                        <option value="draft">Jadikan Draf</option>
-                        <option value="pin">Sematkan di Atas</option>
-                        <option value="unpin">Lepas Sematan</option>
-                        <option value="delete">Hapus Permanen</option>
-                    </select>
-                    <button type="submit" class="min-h-10 cursor-pointer rounded-md bg-primary px-4 font-bold text-white hover:bg-primary-hover">
-                        Terapkan
-                    </button>
+        <div class="studio-card overflow-hidden">
+            <!-- Unified Toolbar: Status Pills + Search + Category -->
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#e2e8e5] p-4 sm:px-5">
+                <div class="flex flex-wrap gap-1.5">
+                    @foreach ([
+                        '' => 'Semua (' . $statusCounts['all'] . ')',
+                        'published' => 'Tayang (' . $statusCounts['published'] . ')',
+                        'draft' => 'Draf (' . $statusCounts['draft'] . ')',
+                        'pinned' => 'Disematkan (' . $statusCounts['pinned'] . ')',
+                    ] as $stKey => $stLabel)
+                        <button
+                            type="button"
+                            wire:click="$set('statusFilter', '{{ $stKey }}')"
+                            @class([
+                                'h-8 cursor-pointer rounded-md px-3 text-xs font-semibold transition-colors',
+                                'bg-primary text-white' => $statusFilter === $stKey,
+                                'border border-[#e2e8e5] bg-[#f5f7f6] text-[#334155] hover:bg-[#edf7f3] hover:text-primary' => $statusFilter !== $stKey,
+                            ])
+                        >
+                            {{ $stLabel }}
+                        </button>
+                    @endforeach
                 </div>
-            </form>
-        @endif
 
-        @if ($posts->isEmpty())
-            <p class="py-10 text-center text-sm text-ink-muted">Belum ada publikasi pada filter kategori atau status ini.</p>
-        @else
-            <div class="mt-4 grid gap-3 md:grid-cols-2">
-                @foreach ($posts as $post)
-                    <div
-                        wire:key="post-{{ $post->id }}"
-                        @class([
-                            'flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3.5',
-                            'border-primary bg-primary-soft/50' => $editingId === $post->id,
-                            'border-hairline bg-mist/60 hover:border-primary/40 hover:bg-white' => $editingId !== $post->id,
-                        ])
-                    >
-                        <div class="flex min-w-0 flex-1 items-start gap-2.5">
-                            <input
-                                type="checkbox"
-                                value="{{ $post->id }}"
-                                wire:model.live="selectedIds"
-                                aria-label="Pilih publikasi {{ $post->title }}"
-                                class="mt-1 size-4 shrink-0 rounded border-hairline text-primary"
-                            >
-                            <div class="min-w-0 flex-1">
-                                <div class="flex flex-wrap items-center gap-1.5">
-                                    <span class="rounded bg-primary-soft px-2 py-0.5 text-2xs font-semibold text-primary">
-                                        {{ $categories[$post->category] ?? $post->category }}
-                                    </span>
-                                    @if ($post->is_pinned)
-                                        <span class="rounded bg-amber-100 px-2 py-0.5 text-2xs font-semibold text-ink">Disematkan</span>
-                                    @endif
-                                    <span @class([
-                                        'rounded px-2 py-0.5 text-2xs font-semibold',
-                                        'bg-emerald-50 text-emerald-800' => $post->is_published,
-                                        'bg-mist text-ink-muted' => ! $post->is_published,
-                                    ])>
-                                        {{ $post->is_published ? 'Tayang' : 'Draf' }}
-                                    </span>
-                                    @if ($post->featured_image_path && empty($post->featured_image_alt))
-                                        <span class="rounded bg-red-50 px-2 py-0.5 text-2xs font-semibold text-red-700">Alt-Text Kosong</span>
-                                    @endif
-                                </div>
-                                <p class="mt-1.5 text-sm font-bold text-ink">{{ $post->title }}</p>
-                                <p class="font-mono text-2xs text-ink-muted">/publikasi/{{ $post->slug }}</p>
-                                <p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-2xs text-ink-muted">
-                                    <span>{{ number_format((int) $post->views_count) }} dilihat</span>
-                                    <span>{{ number_format((int) $post->approved_comments_count) }} komentar</span>
-                                    @if ((int) $post->pending_comments_count > 0)
-                                        <a href="{{ route('admin.comments', ['status' => 'pending']) }}" class="font-bold text-amber-800 hover:underline">
-                                            {{ $post->pending_comments_count }} menunggu moderasi
-                                        </a>
-                                    @endif
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="flex flex-wrap items-center gap-1.5 text-xs">
-                            @if ($post->is_published)
-                                <a
-                                    href="{{ route('public.posts.show', ['slug' => $post->slug]) }}"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="inline-flex min-h-10 items-center rounded-md border border-hairline bg-white px-3 font-semibold text-ink hover:bg-primary-soft"
-                                >
-                                    Lihat
-                                </a>
-                            @endif
-                            <button
-                                type="button"
-                                wire:click="edit({{ $post->id }})"
-                                x-on:click="document.getElementById('workspace-editor-publikasi')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"
-                                class="inline-flex min-h-10 cursor-pointer items-center rounded-md bg-primary px-3 font-semibold text-white hover:bg-primary-hover"
-                            >
-                                Edit
-                            </button>
-                            <button
-                                type="button"
-                                wire:click="delete({{ $post->id }})"
-                                wire:confirm="Hapus publikasi ini?"
-                                class="inline-flex min-h-10 cursor-pointer items-center rounded-md border border-red-200 bg-white px-2.5 font-semibold text-red-700 hover:bg-red-50"
-                            >
-                                Hapus
-                            </button>
-                        </div>
+                <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+                    <div class="w-full sm:w-52">
+                        <flux:input wire:model.live.debounce.300ms="search" aria-label="Cari judul publikasi" placeholder="Cari judul atau slug..." />
                     </div>
-                @endforeach
+                    <div class="w-full sm:w-44">
+                        <label for="post_filter" class="sr-only">Filter kategori</label>
+                        <flux:select id="post_filter" wire:model.live="categoryFilter">
+                            <option value="">Semua Kategori</option>
+                            @foreach ($categories as $catKey => $catLabel)
+                                <option value="{{ $catKey }}">{{ $catLabel }}</option>
+                            @endforeach
+                        </flux:select>
+                    </div>
+                </div>
             </div>
 
-            <div class="mt-4">
-                {{ $posts->links() }}
-            </div>
-        @endif
+            @if (! empty($selectedIds))
+                <form wire:submit="applyBulkAction" class="flex flex-wrap items-center justify-between gap-3 border-b border-[#c7e6da] bg-[#edf7f3] px-5 py-2.5 text-xs">
+                    <span class="font-bold text-primary-deep">{{ count($selectedIds) }} publikasi dipilih</span>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select wire:model="bulkAction" aria-label="Pilih aksi massal publikasi" class="h-8 rounded-md border border-[#cbd5e1] bg-white px-2.5 text-xs font-semibold text-[#0f172a]">
+                            <option value="">-- Pilih Aksi Massal --</option>
+                            <option value="publish">Terbitkan ke Portal</option>
+                            <option value="draft">Jadikan Draf</option>
+                            <option value="pin">Sematkan di Atas</option>
+                            <option value="unpin">Lepas Sematan</option>
+                            <option value="delete">Hapus Permanen</option>
+                        </select>
+                        <button type="submit" class="h-8 cursor-pointer rounded-md bg-primary px-3.5 font-semibold text-white hover:bg-primary-hover">
+                            Terapkan
+                        </button>
+                    </div>
+                </form>
+            @endif
+
+            @if ($posts->isEmpty())
+                <p class="py-12 text-center text-sm text-[#64748b]">Belum ada publikasi pada filter kategori atau status ini.</p>
+            @else
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse text-left text-xs">
+                        <thead>
+                            <tr class="border-b border-[#e2e8e5] bg-[#f9fbfa] font-mono text-[10.5px] font-bold tracking-wider text-[#64748b] uppercase">
+                                <th class="w-10 py-3 pl-5 pr-2"><span class="sr-only">Pilih</span></th>
+                                <th class="px-3 py-3">Judul Publikasi</th>
+                                <th class="px-3 py-3">Kategori</th>
+                                <th class="px-3 py-3">Status</th>
+                                <th class="px-3 py-3">Statistik</th>
+                                <th class="py-3 pl-3 pr-5 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-[#eef2f0]">
+                            @foreach ($posts as $post)
+                                <tr wire:key="post-{{ $post->id }}" class="transition-colors hover:bg-[#f9fbfa]">
+                                    <td class="py-3.5 pl-5 pr-2 align-middle">
+                                        <input
+                                            type="checkbox"
+                                            value="{{ $post->id }}"
+                                            wire:model.live="selectedIds"
+                                            aria-label="Pilih publikasi {{ $post->title }}"
+                                            class="size-4 rounded border-[#cbd5e1] text-primary"
+                                        >
+                                    </td>
+                                    <td class="px-3 py-3.5">
+                                        <div class="flex items-center gap-3">
+                                            @if ($post->featured_image_path)
+                                                <img
+                                                    src="{{ asset('storage/' . $post->featured_image_path) }}"
+                                                    alt="{{ $post->featured_image_alt ?: $post->title }}"
+                                                    width="56"
+                                                    height="42"
+                                                    class="h-10.5 w-14 shrink-0 rounded-md border border-[#e2e8e5] object-cover"
+                                                />
+                                            @else
+                                                <div class="flex h-10.5 w-14 shrink-0 items-center justify-center rounded-md border border-[#e2e8e5] bg-[#edf7f3] font-mono text-[9.5px] font-bold text-primary">
+                                                    IMG
+                                                </div>
+                                            @endif
+                                            <div class="min-w-0">
+                                                <div class="flex flex-wrap items-center gap-1.5">
+                                                    <p class="truncate text-[13px] font-semibold text-[#0f172a]">{{ $post->title }}</p>
+                                                    @if ($post->is_pinned)
+                                                        <span class="rounded bg-[#fff7e6] px-1.5 py-0.5 font-mono text-[10px] font-bold text-[#92400e]">PIN</span>
+                                                    @endif
+                                                    @if ($post->featured_image_path && empty($post->featured_image_alt))
+                                                        <span class="rounded bg-[#fef2f2] px-1.5 py-0.5 text-[10px] font-semibold text-red-700">Alt Kosong</span>
+                                                    @endif
+                                                </div>
+                                                <p class="mt-0.5 truncate font-mono text-[11px] text-[#64748b]">/publikasi/{{ $post->slug }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-3 py-3.5">
+                                        <span class="inline-flex rounded-md bg-[#edf7f3] px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                                            {{ $categories[$post->category] ?? $post->category }}
+                                        </span>
+                                    </td>
+                                    <td class="px-3 py-3.5">
+                                        <span @class([
+                                            'inline-flex items-center rounded-md px-2.5 py-0.5 text-[11px] font-semibold',
+                                            'bg-[#ecfdf5] text-[#047857]' => $post->is_published,
+                                            'bg-[#f1f5f9] text-[#64748b]' => ! $post->is_published,
+                                        ])>
+                                            {{ $post->is_published ? '● Tayang' : '○ Draf' }}
+                                        </span>
+                                    </td>
+                                    <td class="px-3 py-3.5 font-mono text-[11px]">
+                                        <p class="font-medium text-[#0f172a]">{{ number_format((int) $post->views_count) }} dilihat</p>
+                                        <p class="mt-0.5 text-[#64748b]">
+                                            {{ number_format((int) $post->approved_comments_count) }} komentar
+                                            @if ((int) $post->pending_comments_count > 0)
+                                                <a href="{{ route('admin.comments', ['status' => 'pending']) }}" class="font-bold text-[#b45309] hover:underline">
+                                                    ({{ $post->pending_comments_count }} pending)
+                                                </a>
+                                            @endif
+                                        </p>
+                                    </td>
+                                    <td class="py-3.5 pl-3 pr-5 text-right">
+                                        <div class="inline-flex items-center gap-1.5">
+                                            @if ($post->is_published)
+                                                <a
+                                                    href="{{ route('public.posts.show', ['slug' => $post->slug]) }}"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="inline-flex h-8 items-center rounded-md border border-[#e2e8e5] bg-white px-2.5 text-xs font-semibold text-[#334155] hover:border-primary hover:text-primary"
+                                                >
+                                                    Lihat
+                                                </a>
+                                            @endif
+                                            <button
+                                                type="button"
+                                                wire:click="edit({{ $post->id }})"
+                                                x-on:click="document.getElementById('workspace-editor-publikasi')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"
+                                                class="inline-flex h-8 cursor-pointer items-center rounded-md border border-primary bg-white px-3 text-xs font-semibold text-primary hover:bg-primary hover:text-white"
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                type="button"
+                                                wire:click="delete({{ $post->id }})"
+                                                wire:confirm="Hapus publikasi ini?"
+                                                class="inline-flex h-8 cursor-pointer items-center rounded-md border border-red-200 bg-white px-2.5 text-xs font-semibold text-red-700 hover:bg-[#fef2f2]"
+                                            >
+                                                Hapus
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="border-t border-[#e2e8e5] px-5 py-3">
+                    {{ $posts->links() }}
+                </div>
+            @endif
+        </div>
     </div>
 </div>

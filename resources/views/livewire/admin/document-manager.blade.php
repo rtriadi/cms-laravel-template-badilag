@@ -7,7 +7,7 @@
 
     <div class="grid gap-6 lg:grid-cols-12">
         <!-- Form Unggah Dokumen -->
-        <div class="rounded-lg border border-hairline bg-white p-5 lg:col-span-5">
+        <div class="studio-card p-5 lg:col-span-5">
             <div class="flex items-center justify-between border-b border-hairline pb-3">
                 <h2 class="font-serif text-lg font-bold text-ink">
                     {{ $editingId ? 'Edit Dokumen' : 'Unggah Dokumen Baru' }}
@@ -21,7 +21,7 @@
 
             <form wire:submit="save" class="mt-4 space-y-4">
                 <flux:field>
-                    <flux:label for="doc_collection">Jenis Koleksi Dokumen (SAKIP / Keuangan / Kepaniteraan)</flux:label>
+                    <flux:label for="doc_collection">Koleksi Dokumen</flux:label>
                     <flux:select id="doc_collection" wire:model="collection_type">
                         @foreach ($collections as $colKey => $colLabel)
                             <option value="{{ $colKey }}">{{ $colLabel }}</option>
@@ -31,21 +31,21 @@
                 </flux:field>
 
                 <flux:field>
-                    <flux:label for="doc_title">Judul Dokumen</flux:label>
+                    <flux:label for="doc_title">Judul Dokumen *</flux:label>
                     <flux:input id="doc_title" wire:model="title" required placeholder="Contoh: Laporan Kinerja Instansi Pemerintah Tahun 2026" />
                     <flux:error name="title" />
                 </flux:field>
 
                 <div class="grid gap-3 sm:grid-cols-3">
                     <flux:field>
-                        <flux:label for="doc_year">Tahun</flux:label>
+                        <flux:label for="doc_year">Tahun *</flux:label>
                         <flux:input id="doc_year" type="number" wire:model="year" min="1980" max="2100" required />
                         <flux:error name="year" />
                     </flux:field>
 
                     <flux:field>
-                        <flux:label for="doc_month">Bulan (Opsional)</flux:label>
-                        <flux:input id="doc_month" type="number" wire:model="month" min="1" max="12" placeholder="1-12" />
+                        <flux:label for="doc_month">Bulan (1-12)</flux:label>
+                        <flux:input id="doc_month" type="number" wire:model="month" min="1" max="12" placeholder="Opsional" />
                         <flux:error name="month" />
                     </flux:field>
 
@@ -57,7 +57,7 @@
                 </div>
 
                 <flux:field>
-                    <flux:label for="doc_pdf">Berkas PDF (Maks 10 MB)</flux:label>
+                    <flux:label for="doc_pdf">Berkas PDF (Maks. 10 MB)</flux:label>
                     <label for="doc_pdf" class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-primary/35 bg-mist px-4 py-5 text-center hover:border-primary hover:bg-primary-soft/50">
                         <span class="font-mono text-2xs font-bold text-primary uppercase">Klik atau Lepas Berkas PDF di Sini</span>
                         <span class="mt-1 text-xs text-ink-muted">Format PDF standar arsip peradilan (Maks. 10 MB)</span>
@@ -71,18 +71,18 @@
                 </flux:field>
 
                 <flux:field>
-                    <flux:label for="doc_url">Atau Tautan Eksternal (Opsional)</flux:label>
+                    <flux:label for="doc_url">Tautan Eksternal (Opsional)</flux:label>
                     <flux:input id="doc_url" type="url" wire:model="external_url" placeholder="https://..." />
                     <flux:error name="external_url" />
                 </flux:field>
 
                 <div class="grid gap-3 rounded-lg border border-hairline bg-mist p-3.5 sm:grid-cols-2">
                     <flux:field>
-                        <flux:label for="doc_meta_nomor">Nomor Dokumen (Opsional)</flux:label>
+                        <flux:label for="doc_meta_nomor">No. Dokumen (Opsional)</flux:label>
                         <flux:input id="doc_meta_nomor" wire:model="meta.nomor" placeholder="No. Surat / DIPA" />
                     </flux:field>
                     <flux:field>
-                        <flux:label for="doc_meta_dipa">Jenis Anggaran / DIPA (Opsional)</flux:label>
+                        <flux:label for="doc_meta_dipa">Jenis DIPA (Opsional)</flux:label>
                         <flux:input id="doc_meta_dipa" wire:model="meta.jenis_dipa" placeholder="DIPA 01 / DIPA 04" />
                     </flux:field>
                 </div>
@@ -99,7 +99,7 @@
         </div>
 
         <!-- Daftar Dokumen per Koleksi -->
-        <div class="rounded-lg border border-hairline bg-white p-5 lg:col-span-7">
+        <div class="studio-card p-5 lg:col-span-7">
             <div class="flex flex-wrap items-center justify-between gap-3 border-b border-hairline pb-3">
                 <h2 class="font-serif text-lg font-bold text-ink">Daftar Dokumen ({{ $documents->count() }})</h2>
                 <div class="w-64">

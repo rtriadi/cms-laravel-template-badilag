@@ -49,7 +49,7 @@
     <!-- Band 1: Obsidian-Emerald Civic Hero Stage + Progressive Three.js / SVG Visual -->
     <section
         aria-label="Sorotan Utama Portal Resmi"
-        class="pub-hero-grid-pattern relative overflow-hidden border-b-4 border-gold bg-gradient-to-br from-obsidian via-primary-deep to-primary text-white"
+        class="pub-hero-grid-pattern relative overflow-hidden border-b-4 border-gold bg-obsidian text-white"
     >
         <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-11">
             @if ($sliders->isNotEmpty())
@@ -76,7 +76,7 @@
                                         <span class="inline-flex items-center rounded bg-gold px-2.5 py-0.5 font-mono text-2xs font-bold text-ink uppercase">
                                             {{ $satker?->nama_satker ?? 'Portal Resmi Peradilan Agama' }}
                                         </span>
-                                        <span class="rounded border border-white/25 bg-black/25 px-2.5 py-0.5 font-mono text-2xs font-semibold text-emerald-100">
+                                        <span class="rounded border border-white/35 bg-obsidian/80 px-2.5 py-0.5 font-mono text-2xs font-semibold text-emerald-50">
                                             Slide {{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }} / {{ str_pad((string) $sliders->count(), 2, '0', STR_PAD_LEFT) }}
                                         </span>
                                     </div>
@@ -130,7 +130,7 @@
                                         @endif
                                         <a
                                             href="{{ route('public.page', ['slug' => $isProdeoCta ? 'layanan-hukum/jadwal-sidang' : 'layanan-hukum/hak-pencari-keadilan']) }}"
-                                            class="pub-btn inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/35 bg-white/10 px-4 py-2 text-xs font-semibold text-white hover:bg-white/20"
+                                            class="pub-btn inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/45 bg-obsidian/70 px-4 py-2 text-xs font-semibold text-white hover:bg-obsidian/90"
                                         >
                                             <span>{{ $isProdeoCta ? 'Jadwal Sidang Hari Ini' : 'Panduan Prodeo & Posbakum' }}</span>
                                         </a>
@@ -209,21 +209,21 @@
                                     type="button"
                                     data-slider-pause
                                     aria-pressed="false"
-                                    class="pub-btn min-h-11 cursor-pointer rounded-md border border-white/30 bg-obsidian/50 px-3.5 text-xs font-semibold text-white hover:bg-white/15"
+                                    class="pub-btn min-h-11 cursor-pointer rounded-md border border-white/40 bg-obsidian/75 px-3.5 text-xs font-semibold text-white hover:bg-obsidian"
                                 >
                                     Jeda
                                 </button>
                                 <button
                                     type="button"
                                     data-slider-prev
-                                    class="pub-btn min-h-11 cursor-pointer rounded-md border border-white/30 bg-obsidian/50 px-3.5 text-xs font-semibold text-white hover:bg-white/15"
+                                    class="pub-btn min-h-11 cursor-pointer rounded-md border border-white/40 bg-obsidian/75 px-3.5 text-xs font-semibold text-white hover:bg-obsidian"
                                 >
                                     Sebelumnya
                                 </button>
                                 <button
                                     type="button"
                                     data-slider-next
-                                    class="pub-btn min-h-11 cursor-pointer rounded-md border border-white/30 bg-obsidian/50 px-3.5 text-xs font-semibold text-white hover:bg-white/15"
+                                    class="pub-btn min-h-11 cursor-pointer rounded-md border border-white/40 bg-obsidian/75 px-3.5 text-xs font-semibold text-white hover:bg-obsidian"
                                 >
                                     Berikutnya
                                 </button>
@@ -236,7 +236,7 @@
                                         data-slider-dot="{{ $dotIndex }}"
                                         aria-label="Pilih slide {{ $dotIndex + 1 }}"
                                         aria-current="{{ $dotIndex === 0 ? 'true' : 'false' }}"
-                                        class="pub-btn min-h-11 min-w-11 cursor-pointer rounded-full border border-white/40 px-2 font-mono text-xs font-bold text-white"
+                                        class="pub-btn min-h-11 min-w-11 cursor-pointer rounded-full border border-white/45 bg-obsidian/75 px-2 font-mono text-xs font-bold text-white hover:bg-obsidian"
                                     >
                                         {{ $dotIndex + 1 }}
                                     </button>

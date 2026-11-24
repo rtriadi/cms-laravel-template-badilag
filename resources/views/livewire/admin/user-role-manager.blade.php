@@ -17,17 +17,17 @@
             @php
                 $roleCount = $users->filter(fn ($u) => $u->roles->contains('name', $rKey))->count();
             @endphp
-            <div class="rounded-lg border border-hairline border-t-4 border-t-primary bg-white p-3.5 shadow-2xs">
-                <p class="font-mono text-2xs font-bold text-primary">{{ $rKey }}</p>
-                <p class="mt-0.5 text-xs font-bold text-ink">{{ $rLabel }}</p>
-                <p class="mt-1.5 font-mono text-xs text-ink-muted">{{ $roleCount }} pengguna</p>
+            <div class="studio-card p-3.5">
+                <p class="font-mono text-[10.5px] font-bold text-primary">{{ $rKey }}</p>
+                <p class="mt-0.5 text-xs font-bold text-[#0f172a]">{{ $rLabel }}</p>
+                <p class="mt-1.5 font-mono text-xs text-[#64748b]">{{ $roleCount }} pengguna</p>
             </div>
         @endforeach
     </section>
 
     <div class="grid gap-6 lg:grid-cols-12">
         <!-- Form Pengguna -->
-        <div class="rounded-lg border border-hairline bg-white p-5 lg:col-span-5">
+        <div class="studio-card p-5 lg:col-span-5">
             <div class="flex items-center justify-between border-b border-hairline pb-3">
                 <h2 class="font-serif text-lg font-bold text-ink">
                     {{ $editingId ? 'Edit Pengguna & Peran' : 'Tambah Admin Baru' }}
@@ -61,14 +61,15 @@
                 </flux:field>
 
                 <flux:field>
-                    <flux:label for="usr_pass">Kata Sandi {{ $editingId ? '(Kosongkan jika tidak diubah)' : '(Minimal 8 karakter)' }}</flux:label>
+                    <flux:label for="usr_pass">Kata Sandi</flux:label>
                     <div x-data="{ show: false }" class="flex items-center gap-2">
                         <input
                             id="usr_pass"
                             x-bind:type="show ? 'text' : 'password'"
                             wire:model="password"
                             autocomplete="new-password"
-                            class="min-h-11 w-full rounded-md border border-hairline bg-white px-3 text-sm text-ink"
+                            placeholder="{{ $editingId ? 'Kosongkan jika tidak diubah' : 'Minimal 8 karakter' }}"
+                            class="min-h-10 w-full rounded-lg border border-hairline bg-white px-3 text-sm text-ink"
                         />
                         <button
                             type="button"
@@ -89,7 +90,7 @@
         </div>
 
         <!-- Daftar Pengguna -->
-        <div class="rounded-lg border border-hairline bg-white p-5 lg:col-span-7">
+        <div class="studio-card p-5 lg:col-span-7">
             <h2 class="border-b border-hairline pb-3 font-serif text-lg font-bold text-ink">Daftar Pengelola & Status 2FA ({{ $users->count() }})</h2>
             <div class="mt-3 overflow-x-auto">
                 <table class="w-full border-collapse text-left text-xs">

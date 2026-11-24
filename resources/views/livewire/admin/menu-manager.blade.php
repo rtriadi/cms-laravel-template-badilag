@@ -7,7 +7,7 @@
 
     <div class="grid gap-6 lg:grid-cols-12">
         <!-- Menu Form -->
-        <div class="rounded-lg border border-hairline bg-white p-5 lg:col-span-5">
+        <div class="studio-card p-5 lg:col-span-5">
             <div class="flex items-center justify-between border-b border-hairline pb-3">
                 <h2 class="font-serif text-lg font-bold text-ink">
                     {{ $editingId ? 'Ubah Item Menu' : 'Tambah Item Menu' }}
@@ -114,7 +114,7 @@
         </div>
 
         <!-- Menu Tree -->
-        <div class="rounded-lg border border-hairline bg-white p-5 lg:col-span-7">
+        <div class="studio-card p-5 lg:col-span-7">
             <div class="flex flex-wrap items-center justify-between gap-3 border-b border-hairline pb-3">
                 <div>
                     <h2 class="font-serif text-lg font-bold text-ink">Struktur Menu Aktif</h2>

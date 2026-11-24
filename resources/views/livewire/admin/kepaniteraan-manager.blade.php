@@ -43,8 +43,8 @@
                         <flux:error name="nomor_perkara" />
                     </flux:field>
                     <flux:field>
-                        <flux:label for="sch_parties">Para Pihak (Disamarkan jika perkara tertutup)</flux:label>
-                        <flux:input id="sch_parties" wire:model="para_pihak" required placeholder="Pihak P vs Pihak T" />
+                        <flux:label for="sch_parties">Para Pihak *</flux:label>
+                        <flux:input id="sch_parties" wire:model="para_pihak" required placeholder="Pihak P vs Pihak T (samarkan jika perkara tertutup)" />
                         <flux:error name="para_pihak" />
                     </flux:field>
                     <div class="grid gap-3 sm:grid-cols-2">

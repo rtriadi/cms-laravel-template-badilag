@@ -26,7 +26,7 @@
 
     <div class="grid gap-6 lg:grid-cols-12">
         <!-- Form Slider -->
-        <div class="rounded-lg border border-hairline bg-white p-5 lg:col-span-5">
+        <div class="studio-card p-5 lg:col-span-5">
             <div class="flex items-center justify-between border-b border-hairline pb-3">
                 <h2 class="font-serif text-lg font-bold text-ink">
                     {{ $editingId ? 'Edit Slide Beranda' : 'Tambah Slide Beranda' }}
@@ -52,25 +52,25 @@
                 </flux:field>
 
                 <flux:field>
-                    <flux:label for="sl_img">Gambar Banner (Maks 2 MB, disarankan WebP/JPEG)</flux:label>
+                    <flux:label for="sl_img">Gambar Banner (Maks. 2 MB)</flux:label>
                     <input id="sl_img" type="file" wire:model="image" accept="image/*" class="block w-full cursor-pointer text-xs text-ink file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-hairline file:bg-mist file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-primary" />
                     <div wire:loading wire:target="image" class="mt-1 text-xs text-primary">Mengunggah gambar slide...</div>
                     <flux:error name="image" />
                 </flux:field>
 
                 <flux:field>
-                    <flux:label for="sl_alt">Teks Alternatif Gambar (Alt Text Wajib WCAG)</flux:label>
+                    <flux:label for="sl_alt">Teks Alternatif (Alt Text) *</flux:label>
                     <flux:input id="sl_alt" wire:model="image_alt" required placeholder="Deskripsi visual banner untuk pembaca layar" />
                     <flux:error name="image_alt" />
                 </flux:field>
 
                 <div class="grid gap-3 sm:grid-cols-2">
                     <flux:field>
-                        <flux:label for="sl_cta_lbl">Teks Tombol CTA</flux:label>
+                        <flux:label for="sl_cta_lbl">Label Tombol CTA</flux:label>
                         <flux:input id="sl_cta_lbl" wire:model="cta_label" placeholder="Lihat Layanan" />
                     </flux:field>
                     <flux:field>
-                        <flux:label for="sl_cta_url">URL Tombol CTA (Non-Video)</flux:label>
+                        <flux:label for="sl_cta_url">URL Tujuan CTA</flux:label>
                         <flux:input id="sl_cta_url" wire:model="cta_url" placeholder="/halaman/layanan/standar-pelayanan" />
                         <flux:error name="cta_url" />
                     </flux:field>
@@ -89,7 +89,7 @@
         </div>
 
         <!-- Daftar Slide -->
-        <div class="rounded-lg border border-hairline bg-white p-5 lg:col-span-7">
+        <div class="studio-card p-5 lg:col-span-7">
             <h2 class="border-b border-hairline pb-3 font-serif text-lg font-bold text-ink">Daftar Slide Beranda ({{ $sliders->count() }})</h2>
             @if ($sliders->isEmpty())
                 <p class="py-10 text-center text-sm text-ink-muted">Belum ada slide tersimpan.</p>
