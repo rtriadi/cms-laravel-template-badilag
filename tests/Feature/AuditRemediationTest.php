@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\PublicComplianceController;
 use App\Livewire\Admin\AuditAndBackupManager;
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\DocumentManager;
@@ -12,6 +13,7 @@ use App\Models\CriteriaItem;
 use App\Models\Document;
 use App\Models\MenuItem;
 use App\Models\Page;
+use App\Models\PageVisit;
 use App\Models\Post;
 use App\Models\Redirect;
 use App\Models\SatkerSetting;
@@ -531,4 +533,146 @@ test('CMS settings manages Tautan Instansi, Sosial Media, and Access CCTV Online
         ->assertSee('https://www.instagram.com/pengadilan_agama_gorontalo/')
         ->assertSee('https://www.tiktok.com/@pengadilanagamagtlo')
         ->assertSee('https://www.youtube.com/@pengadilanagamagorontalo9342');
+});
+
+test('SafeHtml preserves safe TinyMCE editorial styles while stripping dangerous CSS declarations', function (): void {
+    $raw = '<p style="text-align: center; position: fixed; z-index: 9999;"><strong>Judul Tengah</strong></p>'
+        .'<p style="text-align: center;"><img src="/storage/editor-media/foto.webp" width="500" height="330" style="display: block; margin-left: auto; margin-right: auto; background-image: url(javascript:alert(1));"></p>'
+        .'<p style="text-align: justify; text-indent: 2.5em; color: #111827; font-size: 15px;">Paragraf rata kiri-kanan dengan alinea menjorok.</p>'
+        .'<p style="text-indent: -9999px;">Indent negatif dibuang</p>'
+        .'<div style="position: fixed; top: 0;">Berbahaya</div>';
+
+    $clean = SafeHtml::cleanBody($raw);
+
+    expect($clean)
+        ->toContain('style="text-align: center;"')
+        ->toContain('style="text-align: justify; text-indent: 2.5em; color: #111827; font-size: 15px;"')
+        ->not->toContain('-9999px')
+        ->not->toContain('position:')
+        ->not->toContain('z-index')
+        ->not->toContain('background-image')
+        ->not->toContain('javascript:')
+        ->toContain('<div>Berbahaya</div>');
+});
+
+test('post detail uses two-column layout with right sidebar for related posts, latest posts, and categories', function (): void {
+    SatkerSetting::factory()->create(['is_setup_completed' => true]);
+
+    $main = Post::factory()->create([
+        'title' => 'Berita Utama Diskusi Hukum',
+        'slug' => 'berita-utama-diskusi-hukum',
+        'category' => 'berita',
+        'body' => '<p style="text-indent: 2.5em; text-align: justify;">Paragraf alinea pertama.</p>',
+        'is_published' => true,
+        'published_at' => now()->subHour(),
+    ]);
+
+    Post::factory()->create([
+        'title' => 'Berita Terkait Kategori Sama',
+        'slug' => 'berita-terkait-kategori-sama',
+        'category' => 'berita',
+        'featured_image_path' => 'posts/terkait-thumb.webp',
+        'is_published' => true,
+        'published_at' => now()->subHours(2),
+    ]);
+
+    Post::factory()->create([
+        'title' => 'Pengumuman Terbaru Lintas Kategori',
+        'slug' => 'pengumuman-terbaru-lintas-kategori',
+        'category' => 'pengumuman',
+        'is_published' => true,
+        'published_at' => now()->subMinutes(30),
+    ]);
+
+    $this->get(route('public.posts.show', ['slug' => $main->slug]))
+        ->assertOk()
+        ->assertSee('lg:grid-cols-12', false)
+        ->assertSee('lg:col-span-8', false)
+        ->assertSee('lg:col-span-4', false)
+        ->assertSee('style="text-indent: 2.5em; text-align: justify;"', false)
+        ->assertSee('Publikasi Terkait')
+        ->assertSee('Berita Terkait Kategori Sama')
+        ->assertSee('Publikasi Terbaru')
+        ->assertSee('Pengumuman Terbaru Lintas Kategori')
+        ->assertSee('Kategori Publikasi');
+});
+
+test('visitor stats renders Indonesian dates, human-readable page titles, and 14-day chart without raw path clutter', function (): void {
+    SatkerSetting::factory()->create([
+        'is_setup_completed' => true,
+        'nama_satker' => 'Pengadilan Agama Gorontalo',
+    ]);
+
+    Page::factory()->create([
+        'slug' => 'layanan-hukum/jadwal-sidang',
+        'title' => 'Jadwal Persidangan Harian',
+        'is_published' => true,
+    ]);
+
+    Post::factory()->create([
+        'slug' => 'berita-diskusi-hukum-wakaf',
+        'title' => 'PA Gorontalo Gelar Diskusi Hukum Wakaf',
+        'is_published' => true,
+        'published_at' => now()->subDay(),
+    ]);
+
+    PageVisit::query()->create([
+        'visit_date' => now()->toDateString(),
+        'path' => '/',
+        'visits_count' => 1250,
+    ]);
+    PageVisit::query()->create([
+        'visit_date' => now()->toDateString(),
+        'path' => '/halaman/layanan-hukum/jadwal-sidang',
+        'visits_count' => 84,
+    ]);
+    PageVisit::query()->create([
+        'visit_date' => now()->subDay()->toDateString(),
+        'path' => '/publikasi/berita-diskusi-hukum-wakaf',
+        'visits_count' => 62,
+    ]);
+
+    PublicComplianceController::flushCache();
+
+    $this->get(route('public.visitor-stats'))
+        ->assertOk()
+        ->assertSee('Statistik Pengunjung Portal')
+        ->assertSee('Grafik Kunjungan 14 Hari Terakhir')
+        ->assertSee('Beranda Portal')
+        ->assertSee('Jadwal Persidangan Harian')
+        ->assertSee('PA Gorontalo Gelar Diskusi Hukum Wakaf')
+        ->assertDontSee('privacy-first analytics');
+});
+
+test('SIPP embed includes modal sandbox permissions, reload button, and contextual cross-site notice only when cross-site', function (): void {
+    SatkerSetting::factory()->create([
+        'is_setup_completed' => true,
+        'sipp_url' => 'https://sipp.pa-gorontalo.go.id',
+    ]);
+
+    Page::factory()->create([
+        'slug' => 'layanan-hukum/jadwal-sidang-uji',
+        'title' => 'Jadwal Persidangan Harian',
+        'is_published' => true,
+        'blocks' => [[
+            'type' => 'embed_fallback',
+            'heading' => 'Jadwal Persidangan Harian',
+            'source_key' => 'sipp_jadwal',
+            'fallback_mode' => 'court_schedule',
+        ]],
+    ]);
+
+    // Cross-site HTTP (lokal/staging): tampilkan peringatan cookie lintas-domain + tombol Muat Ulang Embed
+    $this->get('http://localhost/halaman/layanan-hukum/jadwal-sidang-uji')
+        ->assertOk()
+        ->assertSee('allow-modals allow-popups-to-escape-sandbox', false)
+        ->assertSee('Muat Ulang Embed')
+        ->assertSee('Catatan Tampilan Embed SIPP:');
+
+    // Same-site HTTPS (produksi satu domain induk): sembunyikan banner lintas-domain, tetap sediakan tombol Muat Ulang Embed
+    $this->get('https://pa-gorontalo.go.id/halaman/layanan-hukum/jadwal-sidang-uji')
+        ->assertOk()
+        ->assertSee('allow-modals allow-popups-to-escape-sandbox', false)
+        ->assertSee('Muat Ulang Embed')
+        ->assertDontSee('Catatan Tampilan Embed SIPP:');
 });
