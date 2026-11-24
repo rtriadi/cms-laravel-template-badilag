@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CaseStatistic;
 use App\Models\CourtSchedule;
 use App\Models\Document;
+use App\Models\MenuItem;
 use App\Models\Official;
 use App\Models\Page;
 use App\Models\Post;
@@ -32,6 +33,7 @@ class PublicPageController extends Controller
             : $page->title;
 
         $selectedYear = $request->integer('tahun');
+        $docSearch = mb_substr(trim((string) $request->query('cari_dok', '')), 0, 100);
         $forceFallback = $request->boolean('fallback');
         $requestedSimtepaTab = (string) $request->query('simtepa_tab', '');
         $rawBlocks = is_array($page->blocks) ? $page->blocks : [];
@@ -47,6 +49,7 @@ class PublicPageController extends Controller
         $blocks = array_map(function (array $block) use (
             $satker,
             $selectedYear,
+            $docSearch,
             $requestedSimtepaTab,
             &$documentsByCollection,
             &$yearsByCollection,
@@ -93,14 +96,21 @@ class PublicPageController extends Controller
                         ->pluck('year')
                         ->all();
 
+                    $escapedDocSearch = str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $docSearch);
+
                     $documentsByCollection[$col] = Document::query()
                         ->where('collection_type', $col)
                         ->where('is_published', true)
                         ->when($selectedYear > 0, fn ($q) => $q->where('year', $selectedYear))
+                        ->when($docSearch !== '', function ($q) use ($escapedDocSearch): void {
+                            $like = "%{$escapedDocSearch}%";
+                            $q->where(fn ($sub) => $sub->where('title', 'like', $like)->orWhere('status_label', 'like', $like));
+                        })
                         ->orderByDesc('year')
                         ->orderByDesc('month')
                         ->orderByDesc('id')
-                        ->get();
+                        ->paginate(20, ['*'], 'hal_'.$col)
+                        ->withQueryString();
                 }
             }
 
@@ -171,11 +181,12 @@ class PublicPageController extends Controller
         $sectionPrefix = str_contains($cleanSlug, '/') ? explode('/', $cleanSlug)[0] : '';
         $sectionLabels = [
             'profil' => 'Profil Pengadilan',
-            'layanan-hukum' => 'Layanan Hukum & Kepaniteraan',
-            'transparansi' => 'Transparansi Kinerja & Anggaran (SAKIP)',
-            'layanan-publik' => 'Layanan Publik & PPID',
+            'layanan-hukum' => 'Layanan Hukum',
+            'transparansi' => 'Transparansi',
+            'layanan-publik' => 'Layanan Publik',
         ];
-        $sectionLabel = $sectionLabels[$sectionPrefix] ?? 'Informasi & Layanan';
+        $sectionLabel = $this->resolveMenuSectionLabel($page, $activeTingkat)
+            ?? ($sectionLabels[$sectionPrefix] ?? 'Informasi & Layanan');
 
         $relatedSectionPages = $sectionPrefix !== ''
             ? Page::query()
@@ -205,11 +216,49 @@ class PublicPageController extends Controller
             'yearsByCollection' => $yearsByCollection,
             'postsByCategory' => $postsByCategory,
             'selectedYear' => $selectedYear,
+            'docSearch' => $docSearch,
             'forceFallback' => $forceFallback,
             'officials' => $officials,
             'orgOfficials' => $orgOfficials,
             'schedules' => $schedules,
             'statistics' => $statistics,
         ]);
+    }
+
+    private function resolveMenuSectionLabel(Page $page, string $tingkat): ?string
+    {
+        $headerMenus = MenuItem::cachedPublicMenus($tingkat)['header'];
+        $targetPath = '/halaman/'.trim($page->slug, '/');
+
+        foreach ($headerMenus as $topMenu) {
+            if ($this->menuBranchContainsPage($topMenu, $page->id, $targetPath)) {
+                return $topMenu->title;
+            }
+        }
+
+        return null;
+    }
+
+    private function menuBranchContainsPage(MenuItem $item, int $pageId, string $targetPath): bool
+    {
+        if ($item->page_id === $pageId) {
+            return true;
+        }
+
+        $url = $item->resolvedUrl();
+        if ($url !== '#' && ! str_starts_with($url, 'http')) {
+            $norm = '/'.ltrim((string) parse_url($url, PHP_URL_PATH), '/');
+            if ($norm === $targetPath) {
+                return true;
+            }
+        }
+
+        foreach ($item->children as $child) {
+            if ($this->menuBranchContainsPage($child, $pageId, $targetPath)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

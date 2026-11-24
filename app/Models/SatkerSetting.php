@@ -31,6 +31,8 @@ use Spatie\Activitylog\Support\LogOptions;
     'telepon',
     'email',
     'website_url',
+    'pta_nama',
+    'pta_url',
     'logo_path',
     'favicon_path',
     'foto_gedung_path',
@@ -42,6 +44,21 @@ use Spatie\Activitylog\Support\LogOptions;
     'simtepa_struktur_url',
     'skm_url',
     'spak_url',
+    'survei_periode',
+    'nilai_skm',
+    'nilai_spak',
+    'nilai_spkp',
+    'video_profil_url',
+    'video_ptsp_url',
+    'video_kebijakan_ma_url',
+    'cctv_aco_url',
+    'cctv_aco_label',
+    'social_facebook_url',
+    'social_instagram_url',
+    'social_tiktok_url',
+    'social_youtube_url',
+    'social_x_url',
+    'related_links',
     'is_setup_completed',
 ])]
 class SatkerSetting extends Model
@@ -79,6 +96,7 @@ class SatkerSetting extends Model
             'is_tingkat_locked' => 'boolean',
             'is_setup_completed' => 'boolean',
             'tahun_berdiri' => 'integer',
+            'related_links' => 'array',
         ];
     }
 
@@ -95,16 +113,25 @@ class SatkerSetting extends Model
         });
 
         static::saved(function (): void {
+            self::forgetMemo();
             Cache::forget(self::CACHE_KEY);
             PublicHomeController::flushCache();
             PublicComplianceController::flushCache();
         });
 
         static::deleted(function (): void {
+            self::forgetMemo();
             Cache::forget(self::CACHE_KEY);
             PublicHomeController::flushCache();
             PublicComplianceController::flushCache();
         });
+    }
+
+    public static function forgetMemo(): void
+    {
+        if (app()->bound(self::CACHE_KEY)) {
+            app()->forgetInstance(self::CACHE_KEY);
+        }
     }
 
     public function getActivitylogOptions(): LogOptions
@@ -118,10 +145,19 @@ class SatkerSetting extends Model
 
     public static function current(): ?self
     {
+        if (app()->bound(self::CACHE_KEY)) {
+            $memo = app()->make(self::CACHE_KEY);
+
+            return $memo instanceof self ? $memo : null;
+        }
+
         $cached = Cache::get(self::CACHE_KEY);
 
         if (is_array($cached)) {
-            return (new static)->newFromBuilder($cached);
+            $hydrated = (new static)->newFromBuilder($cached);
+            app()->instance(self::CACHE_KEY, $hydrated);
+
+            return $hydrated;
         }
 
         if ($cached !== null) {
@@ -132,6 +168,7 @@ class SatkerSetting extends Model
 
         if ($setting !== null) {
             Cache::forever(self::CACHE_KEY, $setting->getAttributes());
+            app()->instance(self::CACHE_KEY, $setting);
         }
 
         return $setting;
@@ -375,16 +412,35 @@ class SatkerSetting extends Model
 
         if ($sourceKey === 'simtepa_struktur') {
             $directStruktur = SafeHtml::cleanUrl($this->simtepa_struktur_url);
-            $tabs = $this->simtepaCategoryTabs(true);
 
-            if ($directStruktur !== null && preg_match('/([a-f0-9]{32})/i', $directStruktur) !== 1) {
-                return [
-                    'embed_url' => $directStruktur,
-                    'tabs' => [],
-                ];
+            if ($directStruktur !== null) {
+                $isProfilShareUrl = preg_match('#/share/profil_[a-z_]+/(?:html|json)/[a-f0-9]{32}#i', $directStruktur) === 1;
+
+                if (! $isProfilShareUrl) {
+                    return [
+                        'embed_url' => $directStruktur,
+                        'tabs' => [],
+                    ];
+                }
+
+                $tabs = $this->simtepaCategoryTabs(true);
+                if ($tabs !== []) {
+                    return [
+                        'embed_url' => $tabs[0]['html_url'],
+                        'tabs' => $tabs,
+                    ];
+                }
             }
 
-            if ($directStruktur !== null && $tabs !== []) {
+            return [
+                'embed_url' => $directStruktur,
+                'tabs' => [],
+            ];
+        }
+
+        if ($sourceKey === 'simtepa_struktur_tabs') {
+            $tabs = $this->simtepaCategoryTabs(true);
+            if ($tabs !== []) {
                 return [
                     'embed_url' => $tabs[0]['html_url'],
                     'tabs' => $tabs,
@@ -392,7 +448,7 @@ class SatkerSetting extends Model
             }
 
             return [
-                'embed_url' => $directStruktur,
+                'embed_url' => SafeHtml::cleanUrl($this->simtepa_pegawai_url),
                 'tabs' => [],
             ];
         }
@@ -408,5 +464,79 @@ class SatkerSetting extends Model
             'embed_url' => null,
             'tabs' => [],
         ];
+    }
+
+    /**
+     * Return configured official social media channels with sanitized URLs.
+     *
+     * @return list<array{key: string, label: string, description: string, url: string}>
+     */
+    public function socialChannels(): array
+    {
+        $satkerLabel = $this->nama_satker !== '' ? $this->nama_satker : 'Satuan Kerja';
+        $definitions = [
+            ['key' => 'facebook', 'field' => 'social_facebook_url', 'label' => 'Facebook', 'description' => "Akun Facebook resmi {$satkerLabel}"],
+            ['key' => 'instagram', 'field' => 'social_instagram_url', 'label' => 'Instagram', 'description' => "Akun Instagram resmi {$satkerLabel}"],
+            ['key' => 'tiktok', 'field' => 'social_tiktok_url', 'label' => 'TikTok', 'description' => "Akun TikTok resmi {$satkerLabel}"],
+            ['key' => 'youtube', 'field' => 'social_youtube_url', 'label' => 'YouTube', 'description' => "Kanal YouTube resmi {$satkerLabel}"],
+            ['key' => 'x', 'field' => 'social_x_url', 'label' => 'X (Twitter)', 'description' => "Akun X resmi {$satkerLabel}"],
+        ];
+
+        $channels = [];
+        foreach ($definitions as $def) {
+            $clean = SafeHtml::cleanUrl($this->{$def['field']});
+            if ($clean === null) {
+                continue;
+            }
+
+            $channels[] = [
+                'key' => $def['key'],
+                'label' => $def['label'],
+                'description' => $def['description'],
+                'url' => $clean,
+            ];
+        }
+
+        return $channels;
+    }
+
+    /**
+     * Return sanitized institutional partner links configured in CMS settings.
+     *
+     * @return list<array{code: string, title: string, subtitle: string, url: string}>
+     */
+    public function resolvedRelatedLinks(): array
+    {
+        if (! is_array($this->related_links)) {
+            return [];
+        }
+
+        $items = [];
+        foreach ($this->related_links as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $title = trim((string) ($row['title'] ?? ''));
+            $url = SafeHtml::cleanUrl(isset($row['url']) ? (string) $row['url'] : null);
+
+            if ($title === '' || $url === null) {
+                continue;
+            }
+
+            $code = strtoupper(trim((string) ($row['code'] ?? '')));
+            if ($code === '') {
+                $code = strtoupper(mb_substr(preg_replace('/[^A-Za-z0-9]/', '', $title) ?: 'LINK', 0, 6));
+            }
+
+            $items[] = [
+                'code' => mb_substr($code, 0, 12),
+                'title' => $title,
+                'subtitle' => trim((string) ($row['subtitle'] ?? '')),
+                'url' => $url,
+            ];
+        }
+
+        return $items;
     }
 }

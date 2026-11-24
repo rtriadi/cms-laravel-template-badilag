@@ -20,8 +20,7 @@ class HandleRedirectsMiddleware
             $path = '/'.ltrim($request->path(), '/');
 
             if ($path !== '/') {
-                $map = Redirect::cachedMap();
-                $matched = $map[$path] ?? null;
+                $matched = Redirect::findForPath($path);
 
                 if ($matched !== null) {
                     Redirect::query()->whereKey($matched['id'])->increment('hits');

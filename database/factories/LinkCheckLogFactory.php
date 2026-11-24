@@ -19,7 +19,7 @@ class LinkCheckLogFactory extends Factory
     {
         return [
             'source_type' => 'criteria',
-            'source_label' => '1.a.2.1 SIPP',
+            'source_label' => '1.a.2.a SIPP',
             'url' => 'https://example.go.id',
             'http_status' => 200,
             'is_broken' => false,

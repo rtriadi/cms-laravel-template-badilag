@@ -44,6 +44,28 @@ class Redirect extends Model
     }
 
     /**
+     * Perform a fast unique-indexed point lookup for a single normalized path without loading the entire redirect table.
+     *
+     * @return array{id: int, to_path: string, status_code: int}|null
+     */
+    public static function findForPath(string $path): ?array
+    {
+        $row = static::query()
+            ->where('from_path', $path)
+            ->first(['id', 'to_path', 'status_code']);
+
+        if ($row === null) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $row->id,
+            'to_path' => (string) $row->to_path,
+            'status_code' => (int) $row->status_code,
+        ];
+    }
+
+    /**
      * @return array<string, array{id: int, to_path: string, status_code: int}>
      */
     public static function cachedMap(): array

@@ -133,7 +133,7 @@ class SinovaHealthCheckService
         $activeTingkat = $tingkat ?? $satker?->tingkat ?? 'pertama';
 
         $groups = CriteriaGroup::query()
-            ->with(['items.linkedPage', 'items.linkedMenu'])
+            ->with(['items.linkedPage:id,slug,title,is_published', 'items.linkedMenu'])
             ->orderBy('sort_order')
             ->get();
 

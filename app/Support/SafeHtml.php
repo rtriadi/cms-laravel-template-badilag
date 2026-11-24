@@ -253,8 +253,27 @@ class SafeHtml
                 if (! self::sanitizeImageElement($child)) {
                     $parent->removeChild($child);
                 }
+            } elseif ($tag === 'table') {
+                self::wrapResponsiveTable($child);
             }
         }
+    }
+
+    private static function wrapResponsiveTable(DOMElement $table): void
+    {
+        $parent = $table->parentNode;
+        if (! $parent instanceof DOMElement || $table->ownerDocument === null) {
+            return;
+        }
+
+        if (strtolower($parent->tagName) === 'div' && str_contains($parent->getAttribute('class'), 'prose-table-wrap')) {
+            return;
+        }
+
+        $wrapper = $table->ownerDocument->createElement('div');
+        $wrapper->setAttribute('class', 'prose-table-wrap');
+        $parent->insertBefore($wrapper, $table);
+        $wrapper->appendChild($table);
     }
 
     private static function sanitizeAnchorElement(DOMElement $element): void

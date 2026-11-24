@@ -15,6 +15,18 @@ return [
         'secondary' => '#ff9900',
     ],
 
+    'service_hours' => [
+        'mon_thu_open' => env('SATKER_HOURS_MON_THU_OPEN', '08:00'),
+        'mon_thu_close' => env('SATKER_HOURS_MON_THU_CLOSE', '16:30'),
+        'fri_open' => env('SATKER_HOURS_FRI_OPEN', '08:00'),
+        'fri_close' => env('SATKER_HOURS_FRI_CLOSE', '17:00'),
+        'timezone_label' => env('SATKER_TIMEZONE_LABEL', match (env('APP_TIMEZONE', 'Asia/Makassar')) {
+            'Asia/Makassar' => 'WITA',
+            'Asia/Jayapura' => 'WIT',
+            default => 'WIB',
+        }),
+    ],
+
     'jenis_badan' => [
         'PA' => 'Pengadilan Agama',
         'PTA' => 'Pengadilan Tinggi Agama',

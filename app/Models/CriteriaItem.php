@@ -101,7 +101,7 @@ class CriteriaItem extends Model
             return SafeHtml::cleanUrl($this->manual_url);
         }
 
-        if ($satker !== null && $this->code === '1.a.2.1' && filled($satker->sipp_url)) {
+        if ($satker !== null && in_array($this->code, ['1.a.2.a', '1.a.2.1'], true) && filled($satker->sipp_url)) {
             return SafeHtml::cleanUrl($satker->sipp_url);
         }
 

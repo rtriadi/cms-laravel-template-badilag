@@ -171,7 +171,7 @@ class PublicComplianceController extends Controller
             $posts = Post::query()
                 ->publishedActive()
                 ->orderByDesc('updated_at')
-                ->limit(1000)
+                ->limit(49000)
                 ->get(['slug', 'updated_at']);
 
             $satkerLastMod = $satker?->updated_at;

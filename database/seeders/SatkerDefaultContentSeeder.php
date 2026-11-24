@@ -81,7 +81,7 @@ class SatkerDefaultContentSeeder extends Seeder
             [
                 'slug' => 'profil/visi-misi',
                 'title' => 'Visi dan Misi {{satker.nama}}',
-                'criteria_code' => '1.b.p.1',
+                'criteria_code' => '1.b.1',
                 'category_tag' => 'berkala',
                 'tingkat_scope' => 'all',
                 'blocks' => [
@@ -92,7 +92,7 @@ class SatkerDefaultContentSeeder extends Seeder
             [
                 'slug' => 'profil/tupoksi',
                 'title' => 'Tugas Pokok dan Fungsi',
-                'criteria_code' => '1.b.p.2',
+                'criteria_code' => '1.b.p.a',
                 'category_tag' => 'berkala',
                 'tingkat_scope' => 'all',
                 'blocks' => [
@@ -108,7 +108,7 @@ class SatkerDefaultContentSeeder extends Seeder
             [
                 'slug' => 'profil/wilayah-yurisdiksi',
                 'title' => 'Wilayah Yurisdiksi {{satker.nama}}',
-                'criteria_code' => '1.b.p.3',
+                'criteria_code' => '1.b.p.b',
                 'category_tag' => 'berkala',
                 'tingkat_scope' => 'all',
                 'blocks' => [
@@ -125,7 +125,7 @@ class SatkerDefaultContentSeeder extends Seeder
             [
                 'slug' => 'profil/struktur-organisasi',
                 'title' => 'Struktur Organisasi',
-                'criteria_code' => '1.b.p.4',
+                'criteria_code' => '1.b.p.c',
                 'category_tag' => 'berkala',
                 'tingkat_scope' => 'all',
                 'blocks' => [
@@ -141,7 +141,7 @@ class SatkerDefaultContentSeeder extends Seeder
             [
                 'slug' => 'profil/alamat-kontak',
                 'title' => 'Alamat dan Kontak Pengadilan',
-                'criteria_code' => '1.b.1',
+                'criteria_code' => '1.b.p.d',
                 'category_tag' => 'berkala',
                 'tingkat_scope' => 'all',
                 'blocks' => [
@@ -151,7 +151,7 @@ class SatkerDefaultContentSeeder extends Seeder
             [
                 'slug' => 'profil/pejabat-pegawai',
                 'title' => 'Profil Pejabat dan Pegawai',
-                'criteria_code' => '1.b.3.1',
+                'criteria_code' => '1.b.3.a',
                 'category_tag' => 'berkala',
                 'tingkat_scope' => 'all',
                 'blocks' => [
@@ -168,7 +168,7 @@ class SatkerDefaultContentSeeder extends Seeder
             [
                 'slug' => 'layanan-hukum/sipp',
                 'title' => 'Sistem Informasi Penelusuran Perkara (SIPP)',
-                'criteria_code' => '1.a.2.1',
+                'criteria_code' => '1.a.2.a',
                 'category_tag' => 'setiap_saat',
                 'tingkat_scope' => 'all',
                 'blocks' => [
@@ -184,7 +184,7 @@ class SatkerDefaultContentSeeder extends Seeder
             [
                 'slug' => 'layanan-hukum/jadwal-sidang',
                 'title' => 'Jadwal Persidangan Harian',
-                'criteria_code' => '1.a.2.2',
+                'criteria_code' => '1.a.2.b',
                 'category_tag' => 'berkala',
                 'tingkat_scope' => 'all',
                 'blocks' => [
@@ -200,7 +200,7 @@ class SatkerDefaultContentSeeder extends Seeder
             [
                 'slug' => 'layanan-hukum/statistik-perkara',
                 'title' => 'Statistik Perkara Bulanan',
-                'criteria_code' => '1.a.2.3',
+                'criteria_code' => '1.a.2.c',
                 'category_tag' => 'setiap_saat',
                 'tingkat_scope' => 'all',
                 'blocks' => [
@@ -216,7 +216,7 @@ class SatkerDefaultContentSeeder extends Seeder
             [
                 'slug' => 'layanan-hukum/panggilan-ghaib',
                 'title' => 'Panggilan Ghaib',
-                'criteria_code' => '1.a.2.4',
+                'criteria_code' => '1.a.2.d',
                 'category_tag' => 'berkala',
                 'tingkat_scope' => 'all',
                 'blocks' => $isBanding
@@ -230,7 +230,7 @@ class SatkerDefaultContentSeeder extends Seeder
             [
                 'slug' => 'layanan-hukum/laporan-biaya-perkara',
                 'title' => 'Laporan Penggunaan Biaya Perkara',
-                'criteria_code' => '1.a.2.5',
+                'criteria_code' => '1.a.2.e',
                 'category_tag' => 'berkala',
                 'tingkat_scope' => 'all',
                 'blocks' => [
@@ -240,7 +240,7 @@ class SatkerDefaultContentSeeder extends Seeder
             [
                 'slug' => 'layanan-hukum/sisa-panjar',
                 'title' => 'Laporan Pengembalian Sisa Panjar Perkara',
-                'criteria_code' => '1.a.2.6',
+                'criteria_code' => '1.a.2.f',
                 'category_tag' => 'berkala',
                 'tingkat_scope' => 'pertama',
                 'blocks' => [
@@ -250,7 +250,7 @@ class SatkerDefaultContentSeeder extends Seeder
             [
                 'slug' => 'layanan-hukum/ecourt',
                 'title' => 'Layanan e-Court Mahkamah Agung RI',
-                'criteria_code' => '1.b.2.1',
+                'criteria_code' => '1.b.2.a',
                 'category_tag' => 'berkala',
                 'tingkat_scope' => 'all',
                 'blocks' => [
@@ -266,7 +266,7 @@ class SatkerDefaultContentSeeder extends Seeder
             [
                 'slug' => 'layanan-hukum/direktori-putusan',
                 'title' => 'Direktori Putusan Satuan Kerja',
-                'criteria_code' => '1.b.2.2',
+                'criteria_code' => '1.b.2.b',
                 'category_tag' => 'setiap_saat',
                 'tingkat_scope' => 'all',
                 'blocks' => [
@@ -282,7 +282,7 @@ class SatkerDefaultContentSeeder extends Seeder
             [
                 'slug' => 'layanan-hukum/prosedur-berperkara',
                 'title' => 'Prosedur Berperkara',
-                'criteria_code' => '1.b.2.3',
+                'criteria_code' => '1.b.2.c',
                 'category_tag' => 'berkala',
                 'tingkat_scope' => 'all',
                 'blocks' => [
@@ -301,7 +301,7 @@ class SatkerDefaultContentSeeder extends Seeder
             [
                 'slug' => 'layanan-hukum/biaya-berperkara',
                 'title' => 'Biaya Proses Berperkara',
-                'criteria_code' => '1.b.2.4',
+                'criteria_code' => '1.b.2.d',
                 'category_tag' => 'berkala',
                 'tingkat_scope' => 'all',
                 'blocks' => [
@@ -318,15 +318,15 @@ class SatkerDefaultContentSeeder extends Seeder
                 ],
             ],
             // Kesekretariatan & Informasi Umum
-            ['slug' => 'transparansi/rencana-aksi-kinerja', 'title' => 'Rencana Aksi Kinerja (5 Tahun Terakhir)', 'criteria_code' => '1.a.1.1', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'renaksi', 'heading' => 'Daftar Dokumen Rencana Aksi Kinerja']]],
-            ['slug' => 'transparansi/laporan-tahunan', 'title' => 'Laporan Pelaksanaan Kegiatan / Laporan Tahunan', 'criteria_code' => '1.a.1.2', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'laporan_tahunan', 'heading' => 'Laporan Tahunan & Pelaksanaan Kegiatan']]],
-            ['slug' => 'transparansi/lhkpn', 'title' => 'Laporan Harta Kekayaan Penyelenggara Negara (LHKPN)', 'criteria_code' => '1.a.3.1', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'lhkpn', 'heading' => 'Daftar Pejabat & Ikhtisar Kekayaan LHKPN (Min. 2 Tahun Terakhir)']]],
-            ['slug' => 'transparansi/dipa', 'title' => 'Daftar Isian Pelaksanaan Anggaran (DIPA)', 'criteria_code' => '1.a.3.2', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'dipa', 'heading' => 'DIPA, Rencana Penggunaan Anggaran (RPD), dan Realisasi DIPA']]],
-            ['slug' => 'transparansi/lra', 'title' => 'Laporan Realisasi Anggaran (LRA)', 'criteria_code' => '1.a.3.3', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'lra', 'heading' => 'Dokumen Laporan Realisasi Anggaran']]],
+            ['slug' => 'transparansi/rencana-aksi-kinerja', 'title' => 'Rencana Aksi Kinerja (5 Tahun Terakhir)', 'criteria_code' => '1.a.1.a', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'renaksi', 'heading' => 'Daftar Dokumen Rencana Aksi Kinerja']]],
+            ['slug' => 'transparansi/laporan-tahunan', 'title' => 'Laporan Pelaksanaan Kegiatan / Laporan Tahunan', 'criteria_code' => '1.a.1.b', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'laporan_tahunan', 'heading' => 'Laporan Tahunan & Pelaksanaan Kegiatan']]],
+            ['slug' => 'transparansi/lhkpn', 'title' => 'Laporan Harta Kekayaan Penyelenggara Negara (LHKPN)', 'criteria_code' => '1.a.3.a', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'lhkpn', 'heading' => 'Daftar Pejabat & Ikhtisar Kekayaan LHKPN (Min. 2 Tahun Terakhir)']]],
+            ['slug' => 'transparansi/dipa', 'title' => 'Daftar Isian Pelaksanaan Anggaran (DIPA)', 'criteria_code' => '1.a.3.b', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'dipa', 'heading' => 'DIPA, Rencana Penggunaan Anggaran (RPD), dan Realisasi DIPA']]],
+            ['slug' => 'transparansi/lra', 'title' => 'Laporan Realisasi Anggaran (LRA)', 'criteria_code' => '1.a.3.c', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'lra', 'heading' => 'Dokumen Laporan Realisasi Anggaran']]],
             [
                 'slug' => 'transparansi/calk',
                 'title' => 'Catatan Atas Laporan Keuangan (CALK) & Daftar Aset BMN',
-                'criteria_code' => '1.a.3.4',
+                'criteria_code' => '1.a.3.d',
                 'category_tag' => 'berkala',
                 'tingkat_scope' => 'all',
                 'blocks' => [
@@ -334,18 +334,18 @@ class SatkerDefaultContentSeeder extends Seeder
                     ['type' => 'document_list', 'collection_type' => 'aset_bmn', 'heading' => 'Ringkasan Daftar Aset dan Inventaris (BMN)'],
                 ],
             ],
-            ['slug' => 'transparansi/pengadaan-barang-jasa', 'title' => 'Rencana Umum Pengadaan Barang dan Jasa (PBJ)', 'criteria_code' => '1.a.3.5', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'pbj', 'heading' => 'Rencana Umum Pengadaan Barang dan Jasa']]],
-            ['slug' => 'transparansi/renstra', 'title' => 'Rencana Strategis (Renstra)', 'criteria_code' => '1.a.3.6', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'renstra', 'heading' => 'Rancangan, Dokumen Utama, dan Reviu Renstra']]],
-            ['slug' => 'transparansi/rkt', 'title' => 'Rencana Kinerja Tahunan (RKT)', 'criteria_code' => '1.a.3.7', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'rkt', 'heading' => 'Dokumen Rencana Kinerja Tahunan']]],
-            ['slug' => 'transparansi/renaksi-berjalan', 'title' => 'Rencana Aksi Kinerja Tahun Berjalan', 'criteria_code' => '1.a.3.8', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'renaksi', 'heading' => 'Dokumen Rencana Aksi Kinerja Tahun Saat Ini']]],
-            ['slug' => 'transparansi/perjanjian-kinerja', 'title' => 'Perjanjian Kinerja (PK)', 'criteria_code' => '1.a.3.9', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'pk', 'heading' => 'Dokumen Perjanjian Kinerja']]],
-            ['slug' => 'transparansi/iku', 'title' => 'Indikator Kinerja Utama (IKU) dan Reviu IKU', 'criteria_code' => '1.a.3.10', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'iku', 'heading' => 'Dokumen IKU dan Reviu IKU']]],
-            ['slug' => 'transparansi/lkjip', 'title' => 'Laporan Kinerja Instansi Pemerintah (LKjIP)', 'criteria_code' => '1.a.3.11', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'lkjip', 'heading' => 'Dokumen LKjIP']]],
+            ['slug' => 'transparansi/pengadaan-barang-jasa', 'title' => 'Rencana Umum Pengadaan Barang dan Jasa (PBJ)', 'criteria_code' => '1.a.3.e', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'pbj', 'heading' => 'Rencana Umum Pengadaan Barang dan Jasa']]],
+            ['slug' => 'transparansi/renstra', 'title' => 'Rencana Strategis (Renstra)', 'criteria_code' => '1.a.3.f', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'renstra', 'heading' => 'Rancangan, Dokumen Utama, dan Reviu Renstra']]],
+            ['slug' => 'transparansi/rkt', 'title' => 'Rencana Kinerja Tahunan (RKT)', 'criteria_code' => '1.a.3.g', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'rkt', 'heading' => 'Dokumen Rencana Kinerja Tahunan']]],
+            ['slug' => 'transparansi/renaksi-berjalan', 'title' => 'Rencana Aksi Kinerja Tahun Berjalan', 'criteria_code' => '1.a.3.h', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'renaksi', 'heading' => 'Dokumen Rencana Aksi Kinerja Tahun Saat Ini']]],
+            ['slug' => 'transparansi/perjanjian-kinerja', 'title' => 'Perjanjian Kinerja (PK)', 'criteria_code' => '1.a.3.i', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'pk', 'heading' => 'Dokumen Perjanjian Kinerja']]],
+            ['slug' => 'transparansi/iku', 'title' => 'Indikator Kinerja Utama (IKU) dan Reviu IKU', 'criteria_code' => '1.a.3.j', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'iku', 'heading' => 'Dokumen IKU dan Reviu IKU']]],
+            ['slug' => 'transparansi/lkjip', 'title' => 'Laporan Kinerja Instansi Pemerintah (LKjIP)', 'criteria_code' => '1.a.3.k', 'category_tag' => 'berkala', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'lkjip', 'heading' => 'Dokumen LKjIP']]],
             // Layanan Publik & Pengaduan
             [
                 'slug' => 'layanan-publik/laporan-akses-informasi',
                 'title' => 'Layanan Informasi Publik (PPID), DIP, SOP & Laporan Akses',
-                'criteria_code' => '1.a.4.1.1',
+                'criteria_code' => '1.a.4.1.a',
                 'category_tag' => 'setiap_saat',
                 'tingkat_scope' => 'all',
                 'blocks' => [
@@ -364,12 +364,12 @@ class SatkerDefaultContentSeeder extends Seeder
                     ['type' => 'document_list', 'collection_type' => 'biaya_informasi', 'heading' => 'SK Standar Biaya Perolehan Salinan Informasi & Formulir Permohonan/Keberatan'],
                 ],
             ],
-            ['slug' => 'layanan-publik/rekapitulasi-pengaduan', 'title' => 'Laporan Rekapitulasi Pengaduan Masyarakat', 'criteria_code' => '1.a.4.2.1', 'category_tag' => 'setiap_saat', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'rekap_pengaduan', 'heading' => 'Rekapitulasi Pengaduan dan Tindak Lanjut (Inisial Pelapor)']]],
-            ['slug' => 'layanan-publik/hukuman-disiplin', 'title' => 'Hukuman Disiplin Hasil Pengawasan', 'criteria_code' => '1.a.4.3.1', 'category_tag' => 'setiap_saat', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'hukuman_disiplin', 'heading' => 'Daftar Hukuman Disiplin Hasil Pengawasan']]],
+            ['slug' => 'layanan-publik/rekapitulasi-pengaduan', 'title' => 'Laporan Rekapitulasi Pengaduan Masyarakat', 'criteria_code' => '1.a.4.2.a', 'category_tag' => 'setiap_saat', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'rekap_pengaduan', 'heading' => 'Rekapitulasi Pengaduan dan Tindak Lanjut (Inisial Pelapor)']]],
+            ['slug' => 'layanan-publik/hukuman-disiplin', 'title' => 'Hukuman Disiplin Hasil Pengawasan', 'criteria_code' => '1.a.4.3.a', 'category_tag' => 'setiap_saat', 'tingkat_scope' => 'all', 'blocks' => [['type' => 'document_list', 'collection_type' => 'hukuman_disiplin', 'heading' => 'Daftar Hukuman Disiplin Hasil Pengawasan']]],
             [
                 'slug' => 'layanan-publik/survei-pelayanan',
                 'title' => 'Survei Pelayanan Masyarakat (SKM, SPAK, SPKP)',
-                'criteria_code' => '1.a.4.4.1',
+                'criteria_code' => null,
                 'category_tag' => 'berkala',
                 'tingkat_scope' => 'all',
                 'blocks' => [
@@ -380,7 +380,7 @@ class SatkerDefaultContentSeeder extends Seeder
             [
                 'slug' => 'layanan-publik/standar-maklumat-pelayanan',
                 'title' => 'Standar dan Maklumat Pelayanan Pengadilan',
-                'criteria_code' => '1.b.4.1',
+                'criteria_code' => '1.b.4.a',
                 'category_tag' => 'berkala',
                 'tingkat_scope' => 'all',
                 'blocks' => [
@@ -499,7 +499,7 @@ class SatkerDefaultContentSeeder extends Seeder
                 continue;
             }
 
-            if ($item->linked_page_id === null) {
+            if ($item->linked_page_id === null || ! Page::query()->whereKey($item->linked_page_id)->exists()) {
                 $item->linked_page_id = $page->id;
                 $item->save();
             }
@@ -524,12 +524,12 @@ class SatkerDefaultContentSeeder extends Seeder
                 'type' => 'group',
                 'sort_order' => 2,
                 'children' => [
-                    ['title' => 'Visi & Misi', 'slug' => 'profil/visi-misi', 'criteria_code' => '1.b.p.1'],
-                    ['title' => 'Tugas Pokok & Fungsi', 'slug' => 'profil/tupoksi', 'criteria_code' => '1.b.p.2'],
-                    ['title' => 'Wilayah Yurisdiksi', 'slug' => 'profil/wilayah-yurisdiksi', 'criteria_code' => '1.b.p.3'],
-                    ['title' => 'Struktur Organisasi', 'slug' => 'profil/struktur-organisasi', 'criteria_code' => '1.b.p.4'],
-                    ['title' => 'Profil Pejabat & Pegawai', 'slug' => 'profil/pejabat-pegawai', 'criteria_code' => '1.b.3.1'],
-                    ['title' => 'Alamat & Kontak Pengadilan', 'slug' => 'profil/alamat-kontak', 'criteria_code' => '1.b.1'],
+                    ['title' => 'Visi & Misi', 'slug' => 'profil/visi-misi', 'criteria_code' => '1.b.1'],
+                    ['title' => 'Tugas Pokok & Fungsi', 'slug' => 'profil/tupoksi', 'criteria_code' => '1.b.p.a'],
+                    ['title' => 'Wilayah Yurisdiksi', 'slug' => 'profil/wilayah-yurisdiksi', 'criteria_code' => '1.b.p.b'],
+                    ['title' => 'Struktur Organisasi', 'slug' => 'profil/struktur-organisasi', 'criteria_code' => '1.b.p.c'],
+                    ['title' => 'Profil Pejabat & Pegawai', 'slug' => 'profil/pejabat-pegawai', 'criteria_code' => '1.b.3.a'],
+                    ['title' => 'Alamat & Kontak Pengadilan', 'slug' => 'profil/alamat-kontak', 'criteria_code' => '1.b.p.d'],
                 ],
             ],
             [
@@ -537,16 +537,16 @@ class SatkerDefaultContentSeeder extends Seeder
                 'type' => 'group',
                 'sort_order' => 3,
                 'children' => [
-                    ['title' => 'SIPP Penelusuran Perkara', 'slug' => 'layanan-hukum/sipp', 'criteria_code' => '1.a.2.1'],
-                    ['title' => 'Jadwal Persidangan', 'slug' => 'layanan-hukum/jadwal-sidang', 'criteria_code' => '1.a.2.2'],
-                    ['title' => 'Statistik Perkara', 'slug' => 'layanan-hukum/statistik-perkara', 'criteria_code' => '1.a.2.3'],
-                    ['title' => 'e-Court Mahkamah Agung', 'slug' => 'layanan-hukum/ecourt', 'criteria_code' => '1.b.2.1'],
-                    ['title' => 'Direktori Putusan', 'slug' => 'layanan-hukum/direktori-putusan', 'criteria_code' => '1.b.2.2'],
-                    ['title' => 'Prosedur Berperkara', 'slug' => 'layanan-hukum/prosedur-berperkara', 'criteria_code' => '1.b.2.3'],
-                    ['title' => 'Biaya Proses Berperkara', 'slug' => 'layanan-hukum/biaya-berperkara', 'criteria_code' => '1.b.2.4'],
-                    ['title' => 'Panggilan Ghaib', 'slug' => 'layanan-hukum/panggilan-ghaib', 'criteria_code' => '1.a.2.4'],
-                    ['title' => 'Laporan Biaya Perkara', 'slug' => 'layanan-hukum/laporan-biaya-perkara', 'criteria_code' => '1.a.2.5'],
-                    ['title' => 'Pengembalian Sisa Panjar', 'slug' => 'layanan-hukum/sisa-panjar', 'criteria_code' => '1.a.2.6', 'tingkat_scope' => 'pertama'],
+                    ['title' => 'SIPP Penelusuran Perkara', 'slug' => 'layanan-hukum/sipp', 'criteria_code' => '1.a.2.a'],
+                    ['title' => 'Jadwal Persidangan', 'slug' => 'layanan-hukum/jadwal-sidang', 'criteria_code' => '1.a.2.b'],
+                    ['title' => 'Statistik Perkara', 'slug' => 'layanan-hukum/statistik-perkara', 'criteria_code' => '1.a.2.c'],
+                    ['title' => 'e-Court Mahkamah Agung', 'slug' => 'layanan-hukum/ecourt', 'criteria_code' => '1.b.2.a'],
+                    ['title' => 'Direktori Putusan', 'slug' => 'layanan-hukum/direktori-putusan', 'criteria_code' => '1.b.2.b'],
+                    ['title' => 'Prosedur Berperkara', 'slug' => 'layanan-hukum/prosedur-berperkara', 'criteria_code' => '1.b.2.c'],
+                    ['title' => 'Biaya Proses Berperkara', 'slug' => 'layanan-hukum/biaya-berperkara', 'criteria_code' => '1.b.2.d'],
+                    ['title' => 'Panggilan Ghaib', 'slug' => 'layanan-hukum/panggilan-ghaib', 'criteria_code' => '1.a.2.d'],
+                    ['title' => 'Laporan Biaya Perkara', 'slug' => 'layanan-hukum/laporan-biaya-perkara', 'criteria_code' => '1.a.2.e'],
+                    ['title' => 'Pengembalian Sisa Panjar', 'slug' => 'layanan-hukum/sisa-panjar', 'criteria_code' => '1.a.2.f', 'tingkat_scope' => 'pertama'],
                     ['title' => 'Hak Pencari Keadilan (Prodeo & Posbakum)', 'slug' => 'layanan-hukum/hak-pencari-keadilan'],
                 ],
             ],
@@ -555,19 +555,19 @@ class SatkerDefaultContentSeeder extends Seeder
                 'type' => 'group',
                 'sort_order' => 4,
                 'children' => [
-                    ['title' => 'Rencana Strategis (Renstra)', 'slug' => 'transparansi/renstra', 'criteria_code' => '1.a.3.6'],
-                    ['title' => 'Rencana Kinerja Tahunan (RKT)', 'slug' => 'transparansi/rkt', 'criteria_code' => '1.a.3.7'],
-                    ['title' => 'Perjanjian Kinerja (PK)', 'slug' => 'transparansi/perjanjian-kinerja', 'criteria_code' => '1.a.3.9'],
-                    ['title' => 'IKU & Reviu IKU', 'slug' => 'transparansi/iku', 'criteria_code' => '1.a.3.10'],
-                    ['title' => 'Laporan Kinerja (LKjIP)', 'slug' => 'transparansi/lkjip', 'criteria_code' => '1.a.3.11'],
-                    ['title' => 'Rencana Aksi Kinerja (5 Tahun)', 'slug' => 'transparansi/rencana-aksi-kinerja', 'criteria_code' => '1.a.1.1'],
-                    ['title' => 'Rencana Aksi Tahun Berjalan', 'slug' => 'transparansi/renaksi-berjalan', 'criteria_code' => '1.a.3.8'],
-                    ['title' => 'Laporan Pelaksanaan Kegiatan', 'slug' => 'transparansi/laporan-tahunan', 'criteria_code' => '1.a.1.2'],
-                    ['title' => 'DIPA, RPD & Realisasi', 'slug' => 'transparansi/dipa', 'criteria_code' => '1.a.3.2'],
-                    ['title' => 'Laporan Realisasi Anggaran (LRA)', 'slug' => 'transparansi/lra', 'criteria_code' => '1.a.3.3'],
-                    ['title' => 'Catatan Atas Laporan Keuangan (CALK)', 'slug' => 'transparansi/calk', 'criteria_code' => '1.a.3.4'],
-                    ['title' => 'Pengadaan Barang & Jasa (PBJ)', 'slug' => 'transparansi/pengadaan-barang-jasa', 'criteria_code' => '1.a.3.5'],
-                    ['title' => 'LHKPN Pejabat', 'slug' => 'transparansi/lhkpn', 'criteria_code' => '1.a.3.1'],
+                    ['title' => 'Rencana Strategis (Renstra)', 'slug' => 'transparansi/renstra', 'criteria_code' => '1.a.3.f'],
+                    ['title' => 'Rencana Kinerja Tahunan (RKT)', 'slug' => 'transparansi/rkt', 'criteria_code' => '1.a.3.g'],
+                    ['title' => 'Perjanjian Kinerja (PK)', 'slug' => 'transparansi/perjanjian-kinerja', 'criteria_code' => '1.a.3.i'],
+                    ['title' => 'IKU & Reviu IKU', 'slug' => 'transparansi/iku', 'criteria_code' => '1.a.3.j'],
+                    ['title' => 'Laporan Kinerja (LKjIP)', 'slug' => 'transparansi/lkjip', 'criteria_code' => '1.a.3.k'],
+                    ['title' => 'Rencana Aksi Kinerja (5 Tahun)', 'slug' => 'transparansi/rencana-aksi-kinerja', 'criteria_code' => '1.a.1.a'],
+                    ['title' => 'Rencana Aksi Tahun Berjalan', 'slug' => 'transparansi/renaksi-berjalan', 'criteria_code' => '1.a.3.h'],
+                    ['title' => 'Laporan Pelaksanaan Kegiatan', 'slug' => 'transparansi/laporan-tahunan', 'criteria_code' => '1.a.1.b'],
+                    ['title' => 'DIPA, RPD & Realisasi', 'slug' => 'transparansi/dipa', 'criteria_code' => '1.a.3.b'],
+                    ['title' => 'Laporan Realisasi Anggaran (LRA)', 'slug' => 'transparansi/lra', 'criteria_code' => '1.a.3.c'],
+                    ['title' => 'Catatan Atas Laporan Keuangan (CALK)', 'slug' => 'transparansi/calk', 'criteria_code' => '1.a.3.d'],
+                    ['title' => 'Pengadaan Barang & Jasa (PBJ)', 'slug' => 'transparansi/pengadaan-barang-jasa', 'criteria_code' => '1.a.3.e'],
+                    ['title' => 'LHKPN Pejabat', 'slug' => 'transparansi/lhkpn', 'criteria_code' => '1.a.3.a'],
                 ],
             ],
             [
@@ -575,11 +575,11 @@ class SatkerDefaultContentSeeder extends Seeder
                 'type' => 'group',
                 'sort_order' => 5,
                 'children' => [
-                    ['title' => 'Standar & Maklumat Pelayanan', 'slug' => 'layanan-publik/standar-maklumat-pelayanan', 'criteria_code' => '1.b.4.1'],
-                    ['title' => 'Laporan Akses Informasi (PPID)', 'slug' => 'layanan-publik/laporan-akses-informasi', 'criteria_code' => '1.a.4.1.1'],
-                    ['title' => 'Laporan Rekapitulasi Pengaduan', 'slug' => 'layanan-publik/rekapitulasi-pengaduan', 'criteria_code' => '1.a.4.2.1'],
-                    ['title' => 'Hukuman Disiplin Pengawasan', 'slug' => 'layanan-publik/hukuman-disiplin', 'criteria_code' => '1.a.4.3.1'],
-                    ['title' => 'Survei Pelayanan Masyarakat', 'slug' => 'layanan-publik/survei-pelayanan', 'criteria_code' => '1.a.4.4.1'],
+                    ['title' => 'Standar & Maklumat Pelayanan', 'slug' => 'layanan-publik/standar-maklumat-pelayanan', 'criteria_code' => '1.b.4.a'],
+                    ['title' => 'Laporan Akses Informasi (PPID)', 'slug' => 'layanan-publik/laporan-akses-informasi', 'criteria_code' => '1.a.4.1.a'],
+                    ['title' => 'Laporan Rekapitulasi Pengaduan', 'slug' => 'layanan-publik/rekapitulasi-pengaduan', 'criteria_code' => '1.a.4.2.a'],
+                    ['title' => 'Hukuman Disiplin Pengawasan', 'slug' => 'layanan-publik/hukuman-disiplin', 'criteria_code' => '1.a.4.3.a'],
+                    ['title' => 'Survei Pelayanan Masyarakat', 'slug' => 'layanan-publik/survei-pelayanan'],
                     ['title' => 'Pengaduan SIWAS MARI', 'slug' => 'layanan-publik/pengaduan-siwas'],
                 ],
             ],
@@ -595,6 +595,8 @@ class SatkerDefaultContentSeeder extends Seeder
                     ['title' => 'Artikel Layanan & Bantuan Hukum', 'type' => 'category', 'collection_slug' => 'layanan_hukum'],
                     ['title' => 'Inovasi Layanan', 'type' => 'category', 'collection_slug' => 'inovasi'],
                     ['title' => 'Opini & Gagasan Aparatur', 'type' => 'category', 'collection_slug' => 'opini'],
+                    ['title' => 'Galeri Infografis', 'type' => 'category', 'collection_slug' => 'infografis'],
+                    ['title' => 'Informasi Serta Merta', 'type' => 'category', 'collection_slug' => 'serta_merta'],
                 ],
             ],
         ];
@@ -634,11 +636,19 @@ class SatkerDefaultContentSeeder extends Seeder
                     $child->sort_order = $childIndex + 1;
                     $child->criteria_code = $childDef['criteria_code'] ?? null;
                     $child->tingkat_scope = $scope;
+                } elseif (
+                    $child->type === 'page'
+                    && $page !== null
+                    && ($child->page_id === null || ! Page::query()->whereKey($child->page_id)->exists())
+                ) {
+                    $child->page_id = $page->id;
                 }
 
                 $child->is_visible = $isVisible;
                 $child->save();
             }
         }
+
+        MenuItem::flushPublicCache();
     }
 }

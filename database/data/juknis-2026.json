@@ -10,18 +10,18 @@
             "sort_order": 1,
             "items": [
                 {
-                    "code": "1.a.1.1",
+                    "code": "1.a.1.a",
                     "name": "Rencana Aksi Kinerja",
-                    "description": "Daftar dan tautan dokumen Rencana Aksi Kinerja 5 tahun terakhir (atau sejak berdiri jika kurang dari 5 tahun).",
+                    "description": "Daftar dan tautan ke dokumen Rencana Aksi Kinerja 5 tahun terakhir (atau sejak berdiri jika kurang dari 5 tahun).",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "transparansi/rencana-aksi-kinerja",
                     "sort_order": 1
                 },
                 {
-                    "code": "1.a.1.2",
-                    "name": "Laporan Pelaksanaan Kegiatan / Tahunan",
-                    "description": "Daftar dan tautan Laporan Tahunan atau Laporan Pelaksanaan Kegiatan 5 tahun terakhir (atau sejak berdiri).",
+                    "code": "1.a.1.b",
+                    "name": "Laporan Pelaksanaan Kegiatan",
+                    "description": "Daftar dan tautan ke dokumen Laporan Tahunan 5 tahun terakhir (atau sejak berdiri).",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "transparansi/laporan-tahunan",
@@ -37,25 +37,25 @@
             "sort_order": 2,
             "items": [
                 {
-                    "code": "1.a.2.1",
+                    "code": "1.a.2.a",
                     "name": "Sistem Informasi Penelusuran Perkara (SIPP)",
-                    "description": "Tautan menuju aplikasi SIPP website satuan kerja (Tk. I) atau SIPP Banding Mahkamah Agung RI (Tk. Banding).",
+                    "description": "Tautan menuju aplikasi SIPP web satuan kerja (Tk. I) atau SIPP Banding Mahkamah Agung RI (Tk. Banding).",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "layanan-hukum/sipp",
                     "sort_order": 1
                 },
                 {
-                    "code": "1.a.2.2",
-                    "name": "Agenda / Jadwal Persidangan",
-                    "description": "Jadwal persidangan per hari (embed SIPP dengan cadangan jadwal manual).",
+                    "code": "1.a.2.b",
+                    "name": "Agenda/Jadwal Persidangan",
+                    "description": "Jadwal persidangan per hari untuk PT Pertama; aplikasi/tools untuk PT Banding.",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "layanan-hukum/jadwal-sidang",
                     "sort_order": 2
                 },
                 {
-                    "code": "1.a.2.3",
+                    "code": "1.a.2.c",
                     "name": "Statistik Perkara",
                     "description": "Statistik jumlah perkara per bulan: sisa bulan lalu, masuk, putus, dan sisa saat ini.",
                     "tingkat_scope": "all",
@@ -64,16 +64,16 @@
                     "sort_order": 3
                 },
                 {
-                    "code": "1.a.2.4",
+                    "code": "1.a.2.d",
                     "name": "Panggilan Ghaib",
-                    "description": "Daftar panggilan ghaib beserta tautan relaas (Tk. I) atau penjelasan panggilan ghaib Tk. I (Tk. Banding).",
+                    "description": "Daftar panggilan ghaib: nama pihak, nomor perkara, tanggal sidang, tautan relaas (Tk. I) atau penjelasan panggilan ghaib Tk. I (Tk. Banding).",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "layanan-hukum/panggilan-ghaib",
                     "sort_order": 4
                 },
                 {
-                    "code": "1.a.2.5",
+                    "code": "1.a.2.e",
                     "name": "Laporan Penggunaan Biaya Perkara",
                     "description": "Rincian penggunaan biaya perkara per bulan.",
                     "tingkat_scope": "all",
@@ -82,9 +82,9 @@
                     "sort_order": 5
                 },
                 {
-                    "code": "1.a.2.6",
+                    "code": "1.a.2.f",
                     "name": "Laporan Pengembalian Sisa Panjar Perkara",
-                    "description": "Khusus Pengadilan Tingkat Pertama: rincian pengembalian sisa panjar perkara per bulan.",
+                    "description": "Rincian pengembalian sisa panjar perkara per bulan (PT Pertama saja).",
                     "tingkat_scope": "pertama",
                     "item_type": "link",
                     "default_slug": "layanan-hukum/sisa-panjar",
@@ -100,25 +100,25 @@
             "sort_order": 3,
             "items": [
                 {
-                    "code": "1.a.3.1",
-                    "name": "Laporan Harta Kekayaan Penyelenggara Negara (LHKPN)",
-                    "description": "Daftar pejabat beserta tahun LHKPN terakhir dan tautan dokumen Ikhtisar Kekayaan minimal 2 tahun terakhir.",
+                    "code": "1.a.3.a",
+                    "name": "Laporan Harta Kekayaan Penyelenggara Negara (LHKP)",
+                    "description": "Daftar nama pejabat + tahun LHKPN terakhir + tautan dokumen Ikhtisar Kekayaan minimal 2 tahun terakhir.",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "transparansi/lhkpn",
                     "sort_order": 1
                 },
                 {
-                    "code": "1.a.3.2",
+                    "code": "1.a.3.b",
                     "name": "Daftar Isian Pelaksanaan Anggaran (DIPA)",
-                    "description": "Dokumen DIPA, Rencana Penggunaan Anggaran (RPD), dan Realisasi DIPA.",
+                    "description": "DIPA, Rencana Penggunaan Anggaran (RPD), dan Realisasi DIPA.",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "transparansi/dipa",
                     "sort_order": 2
                 },
                 {
-                    "code": "1.a.3.3",
+                    "code": "1.a.3.c",
                     "name": "Laporan Realisasi Anggaran (LRA)",
                     "description": "Dokumen Laporan Realisasi Anggaran (LRA).",
                     "tingkat_scope": "all",
@@ -127,7 +127,7 @@
                     "sort_order": 3
                 },
                 {
-                    "code": "1.a.3.4",
+                    "code": "1.a.3.d",
                     "name": "Catatan Atas Laporan Keuangan (CALK)",
                     "description": "Dokumen Catatan Atas Laporan Keuangan (CALK).",
                     "tingkat_scope": "all",
@@ -136,35 +136,35 @@
                     "sort_order": 4
                 },
                 {
-                    "code": "1.a.3.5",
-                    "name": "Pengadaan Barang dan Jasa (PBJ)",
-                    "description": "Rencana Umum Pengadaan Barang dan Jasa (RUP PBJ).",
+                    "code": "1.a.3.e",
+                    "name": "Pengadaan Barang dan Jasa",
+                    "description": "Rencana Umum Pengadaan Barang dan Jasa (PBJ).",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "transparansi/pengadaan-barang-jasa",
                     "sort_order": 5
                 },
                 {
-                    "code": "1.a.3.6",
+                    "code": "1.a.3.f",
                     "name": "Rencana Strategis (Renstra)",
-                    "description": "Rancangan Renstra, Renstra, atau Reviu Renstra minimal 5 tahun terakhir (atau tahun berjalan untuk satker baru).",
+                    "description": "Rancangan Renstra / Renstra / Reviu Renstra (min 5 tahun terakhir).",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "transparansi/renstra",
                     "sort_order": 6
                 },
                 {
-                    "code": "1.a.3.7",
+                    "code": "1.a.3.g",
                     "name": "Rencana Kinerja Tahunan (RKT)",
-                    "description": "RKT minimal 5 tahun terakhir (atau tahun saat ini untuk satker baru).",
+                    "description": "RKT minimal 5 tahun terakhir.",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "transparansi/rkt",
                     "sort_order": 7
                 },
                 {
-                    "code": "1.a.3.8",
-                    "name": "Rencana Aksi Kinerja (Tahun Berjalan)",
+                    "code": "1.a.3.h",
+                    "name": "Rencana Aksi Kinerja",
                     "description": "Daftar dan tautan dokumen Rencana Aksi Kinerja minimal tahun saat ini.",
                     "tingkat_scope": "all",
                     "item_type": "link",
@@ -172,27 +172,27 @@
                     "sort_order": 8
                 },
                 {
-                    "code": "1.a.3.9",
+                    "code": "1.a.3.i",
                     "name": "Perjanjian Kinerja (PK)",
-                    "description": "Perjanjian Kinerja minimal 5 tahun terakhir (atau tahun saat ini untuk satker baru).",
+                    "description": "PK minimal 5 tahun terakhir.",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "transparansi/perjanjian-kinerja",
                     "sort_order": 9
                 },
                 {
-                    "code": "1.a.3.10",
+                    "code": "1.a.3.j",
                     "name": "Indikator Kinerja Utama (IKU) dan Reviu IKU",
-                    "description": "IKU atau Reviu IKU minimal 5 tahun terakhir (atau tahun saat ini untuk satker baru).",
+                    "description": "IKU / Reviu IKU minimal 5 tahun terakhir.",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "transparansi/iku",
                     "sort_order": 10
                 },
                 {
-                    "code": "1.a.3.11",
+                    "code": "1.a.3.k",
                     "name": "Laporan Kinerja Instansi Pemerintah (LKjIP)",
-                    "description": "LKjIP minimal 5 tahun terakhir (atau minimal 1 tahun untuk satker berusia 1 tahun).",
+                    "description": "LKjIP minimal 5 tahun terakhir.",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "transparansi/lkjip",
@@ -208,9 +208,9 @@
             "sort_order": 4,
             "items": [
                 {
-                    "code": "1.a.4.1.1",
-                    "name": "Laporan Akses Informasi (PPID)",
-                    "description": "Jumlah permohonan diterima, waktu pemenuhan, dikabulkan sebagian/seluruhnya, ditolak, dan alasan penolakan.",
+                    "code": "1.a.4.1.a",
+                    "name": "Laporan Akses Informasi",
+                    "description": "Jumlah permohonan, waktu pemenuhan, jumlah dikabulkan/ditolak, dan alasan penolakan.",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "layanan-publik/laporan-akses-informasi",
@@ -226,9 +226,9 @@
             "sort_order": 5,
             "items": [
                 {
-                    "code": "1.a.4.2.1",
+                    "code": "1.a.4.2.a",
                     "name": "Laporan Rekapitulasi Pengaduan",
-                    "description": "Inisial pelapor, jenis pelanggaran, deskripsi singkat, tindak lanjut/status pemeriksaan, dan hukuman disiplin.",
+                    "description": "Inisial pelapor, jenis pelanggaran, deskripsi, tindak lanjut, dan hukuman disiplin.",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "layanan-publik/rekapitulasi-pengaduan",
@@ -244,9 +244,9 @@
             "sort_order": 6,
             "items": [
                 {
-                    "code": "1.a.4.3.1",
+                    "code": "1.a.4.3.a",
                     "name": "Hukuman Disiplin Hasil Pengawasan",
-                    "description": "Inisial nama, jenis pelanggaran, deskripsi singkat, status pemeriksaan Pengadilan/Bawas, dan hukuman disiplin.",
+                    "description": "Inisial nama, jenis pelanggaran, deskripsi, tindak lanjut, dan hukuman disiplin.",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "layanan-publik/hukuman-disiplin",
@@ -262,12 +262,12 @@
             "sort_order": 7,
             "items": [
                 {
-                    "code": "1.a.4.4.1",
-                    "name": "Survei Pelayanan Masyarakat & Statistik Kunjungan",
-                    "description": "Memuat nilai dan laporan SKM, SPAK, SPKP serta tautan ke statistik kunjungan website.",
+                    "code": "1.a.4.4.a",
+                    "name": "Statistik Kunjungan Website",
+                    "description": "Statistik pengunjung website satuan kerja dengan rentang waktu tertentu.",
                     "tingkat_scope": "all",
                     "item_type": "link",
-                    "default_slug": "layanan-publik/survei-pelayanan",
+                    "default_route": "/statistik-pengunjung",
                     "sort_order": 1
                 }
             ]
@@ -281,11 +281,11 @@
             "items": [
                 {
                     "code": "1.b.1",
-                    "name": "Alamat dan Kontak Pengadilan",
-                    "description": "Alamat lengkap (jalan, desa/kelurahan, kecamatan, provinsi, kode pos), telepon, email, URL resmi, dan foto gedung kantor.",
+                    "name": "Visi dan Misi Pengadilan",
+                    "description": "Halaman yang memuat Visi dan Misi Pengadilan.",
                     "tingkat_scope": "all",
-                    "item_type": "item",
-                    "default_slug": "profil/alamat-kontak",
+                    "item_type": "link",
+                    "default_slug": "profil/visi-misi",
                     "sort_order": 1
                 }
             ]
@@ -298,34 +298,34 @@
             "sort_order": 9,
             "items": [
                 {
-                    "code": "1.b.2.1",
-                    "name": "e-Court Mahkamah Agung RI",
-                    "description": "Informasi definisi e-Court Mahkamah Agung RI (landing page) dan tautan menuju e-Court.",
+                    "code": "1.b.2.a",
+                    "name": "e-Court",
+                    "description": "Informasi/definisi e-Court + tautan ke e-Court MA RI.",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "layanan-hukum/ecourt",
                     "sort_order": 1
                 },
                 {
-                    "code": "1.b.2.2",
+                    "code": "1.b.2.b",
                     "name": "Direktori Putusan",
-                    "description": "Tautan langsung menuju Direktori Putusan Mahkamah Agung RI khusus satuan kerja.",
+                    "description": "Tautan ke Direktori Putusan MA RI langsung untuk satuan kerja tersebut.",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "layanan-hukum/direktori-putusan",
                     "sort_order": 2
                 },
                 {
-                    "code": "1.b.2.3",
+                    "code": "1.b.2.c",
                     "name": "Prosedur Berperkara",
-                    "description": "Alur Tingkat Pertama, Banding, Kasasi, Peninjauan Kembali, Pengambilan Produk Pengadilan, dan Gugatan Sederhana.",
+                    "description": "Prosedur: Tingkat Pertama, Banding, Kasasi, PK, Pengambilan Produk, dan Gugatan Sederhana.",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "layanan-hukum/prosedur-berperkara",
                     "sort_order": 3
                 },
                 {
-                    "code": "1.b.2.4",
+                    "code": "1.b.2.d",
                     "name": "Biaya Proses Berperkara",
                     "description": "Rincian biaya proses berperkara / panjar dan radius panggilan.",
                     "tingkat_scope": "all",
@@ -343,9 +343,9 @@
             "sort_order": 10,
             "items": [
                 {
-                    "code": "1.b.3.1",
+                    "code": "1.b.3.a",
                     "name": "Profil Pejabat dan Pegawai",
-                    "description": "Daftar dan profil pejabat, pegawai, serta tenaga honorer (embed SIMTEPA dengan cadangan lokal tanpa data pribadi NIP/Tgl Lahir).",
+                    "description": "Daftar nama pejabat, pegawai, dan tenaga honorer + profil singkat dari SIMTEPA (tanpa data pribadi NIP/Tgl Lahir).",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "profil/pejabat-pegawai",
@@ -361,9 +361,9 @@
             "sort_order": 11,
             "items": [
                 {
-                    "code": "1.b.4.1",
+                    "code": "1.b.4.a",
                     "name": "Standar dan Maklumat Pelayanan Pengadilan",
-                    "description": "Standar Pelayanan Pengadilan, Maklumat Pelayanan, serta layanan kelompok rentan/disabilitas.",
+                    "description": "Standar dan Maklumat Pelayanan Pengadilan serta layanan kelompok rentan/disabilitas.",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "layanan-publik/standar-maklumat-pelayanan",
@@ -379,39 +379,39 @@
             "sort_order": 12,
             "items": [
                 {
-                    "code": "1.b.p.1",
-                    "name": "Visi dan Misi Pengadilan",
-                    "description": "Visi dan Misi resmi satuan kerja.",
-                    "tingkat_scope": "all",
-                    "item_type": "link",
-                    "default_slug": "profil/visi-misi",
-                    "sort_order": 1
-                },
-                {
-                    "code": "1.b.p.2",
+                    "code": "1.b.p.a",
                     "name": "Tugas Pokok dan Fungsi Pengadilan",
                     "description": "Uraian tugas pokok dan fungsi sesuai tingkat peradilan.",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "profil/tupoksi",
-                    "sort_order": 2
+                    "sort_order": 1
                 },
                 {
-                    "code": "1.b.p.3",
+                    "code": "1.b.p.b",
                     "name": "Wilayah Yurisdiksi",
-                    "description": "Daftar kecamatan (Tk. I) atau kabupaten/kota (Tk. Banding) beserta peta wilayah yurisdiksi.",
+                    "description": "Nama-nama wilayah yurisdiksi + peta geografis.",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "profil/wilayah-yurisdiksi",
-                    "sort_order": 3
+                    "sort_order": 2
                 },
                 {
-                    "code": "1.b.p.4",
+                    "code": "1.b.p.c",
                     "name": "Struktur Organisasi",
-                    "description": "Diagram struktur organisasi, nama pejabat, dan nama jabatan (staf dan tenaga honorer tidak perlu ditampilkan).",
+                    "description": "Diagram struktur organisasi + nama pejabat + jabatan (staf dan tenaga honorer tidak perlu ditampilkan).",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_slug": "profil/struktur-organisasi",
+                    "sort_order": 3
+                },
+                {
+                    "code": "1.b.p.d",
+                    "name": "Alamat dan Kontak Pengadilan",
+                    "description": "Alamat lengkap (jalan, desa/kelurahan, kecamatan, provinsi, kode pos), telepon, email, URL resmi, dan foto gedung kantor.",
+                    "tingkat_scope": "all",
+                    "item_type": "link",
+                    "default_slug": "profil/alamat-kontak",
                     "sort_order": 4
                 }
             ]
@@ -425,8 +425,8 @@
             "items": [
                 {
                     "code": "2.a.1",
-                    "name": "Responsivitas Tampilan Smartphone & Tablet",
-                    "description": "Tampilan beranda dan seluruh halaman utama menyesuaikan sempurna pada smartphone dan tablet.",
+                    "name": "Mobile Responsiveness",
+                    "description": "Tampilan website menyesuaikan dengan sempurna saat dibuka melalui smartphone atau tablet.",
                     "tingkat_scope": "all",
                     "item_type": "link",
                     "default_route": "/",
@@ -443,8 +443,8 @@
             "items": [
                 {
                     "code": "2.b.1",
-                    "name": "Widget Aksesibilitas & Pernyataan WCAG",
-                    "description": "Tersedia pembaca layar (TTS id-ID), mode kontras tinggi, dan perbesar teks hingga 200%.",
+                    "name": "Aksesibilitas (Ramah Disabilitas / WCAG Compliance)",
+                    "description": "Website memiliki fitur pembaca layar (screen reader TTS id-ID), mode kontras tinggi, dan opsi perbesar teks (zoom-in hingga 200%).",
                     "tingkat_scope": "all",
                     "item_type": "item",
                     "default_route": "/aksesibilitas",
@@ -461,8 +461,8 @@
             "items": [
                 {
                     "code": "2.c.1",
-                    "name": "Pencarian Internal & Menu Hierarkis",
-                    "description": "Kolom pencarian internal aktif dan struktur menu konsolidasi 6 menu utama yang tidak membingungkan.",
+                    "name": "Navigasi & Pencarian (Searchability)",
+                    "description": "Terdapat kolom pencarian internal yang berfungsi baik dan menu yang hierarkis (tidak membingungkan masyarakat awam).",
                     "tingkat_scope": "all",
                     "item_type": "item",
                     "default_route": "/cari",
@@ -479,8 +479,8 @@
             "items": [
                 {
                     "code": "3.a.1",
-                    "name": "HTTPS Valid, Login MFA & Versi CMS/PHP Non-EOL",
-                    "description": "Halaman Status Sistem mendokumentasikan versi CMS dan PHP mutakhir serta status MFA/SSL.",
+                    "name": "Keamanan Website (Security)",
+                    "description": "Tersedia SSL/HTTPS yang valid, penggunaan MFA pada halaman login, serta versi CMS dan PHP mutakhir non-EOL.",
                     "tingkat_scope": "all",
                     "item_type": "item",
                     "default_route": "/status-sistem",
@@ -497,8 +497,8 @@
             "items": [
                 {
                     "code": "3.b.1",
-                    "name": "Waktu Muat Halaman Pertama < 5 Detik",
-                    "description": "Beranda ringan dengan gambar WebP/lazy-load dan caching penuh agar waktu muat < 5 detik.",
+                    "name": "Kecepatan Akses (Page Load Speed)",
+                    "description": "Waktu muat halaman pertama kali: <5 detik (10), 5-15 detik (5), >15 detik (0).",
                     "tingkat_scope": "all",
                     "item_type": "item",
                     "default_route": "/",
@@ -515,8 +515,8 @@
             "items": [
                 {
                     "code": "3.c.1",
-                    "name": "Peta Situs & Nol Tautan Rusak (404)",
-                    "description": "Tidak ada dead link atau error 404 pada menu utama, terdokumentasi di peta situs dan audit tautan.",
+                    "name": "Validitas Tautan (Broken Links)",
+                    "description": "Penilaian terhadap tidak adanya dead link atau halaman error 404 pada menu-menu utama.",
                     "tingkat_scope": "all",
                     "item_type": "item",
                     "default_route": "/peta-situs",
@@ -526,4 +526,3 @@
         }
     ]
 }
-

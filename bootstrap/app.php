@@ -50,8 +50,8 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $middleware->append(SecurityHeadersMiddleware::class);
+        $middleware->append(HandleRedirectsMiddleware::class);
         $middleware->web(append: [
-            HandleRedirectsMiddleware::class,
             EnsureSetupCompletedMiddleware::class,
             TrackPageVisitMiddleware::class,
         ]);
