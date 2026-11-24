@@ -87,7 +87,7 @@ it('excludes pegawai from org_chart health readiness and blocks SSRF targets in 
         'is_active' => true,
     ]);
 
-    $orgItem = CriteriaItem::query()->where('code', '1.b.p.4')->firstOrFail();
+    $orgItem = CriteriaItem::query()->where('code', '1.b.p.c')->firstOrFail();
     $checked = app(SinovaHealthCheckService::class)->checkItem($orgItem, $satker, probeExternal: false);
 
     expect($checked->health_status)->toBe('warning');

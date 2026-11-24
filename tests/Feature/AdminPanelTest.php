@@ -91,7 +91,7 @@ it('enforces RBAC permissions across roles', function (): void {
 it('supports SINOVA manual URL overrides, health checks, and CSV export', function (): void {
     seedAdminTestEnvironment();
     $superAdmin = makeAdminWithRole('super_admin');
-    $item = CriteriaItem::query()->where('code', '1.a.2.1')->firstOrFail();
+    $item = CriteriaItem::query()->where('code', '1.a.2.a')->firstOrFail();
 
     $this->actingAs($superAdmin);
 
@@ -218,7 +218,7 @@ it('previews and applies SINOVA JSON criteria update while preserving existing m
     $superAdmin = makeAdminWithRole('super_admin');
     $this->actingAs($superAdmin);
 
-    $item = CriteriaItem::query()->where('code', '1.a.2.1')->firstOrFail();
+    $item = CriteriaItem::query()->where('code', '1.a.2.a')->firstOrFail();
     $item->update([
         'manual_url' => 'https://custom-sipp.example.test',
         'use_manual_url' => true,
@@ -235,7 +235,7 @@ it('previews and applies SINOVA JSON criteria update while preserving existing m
                 'sort_order' => 2,
                 'items' => [
                     [
-                        'code' => '1.a.2.1',
+                        'code' => '1.a.2.a',
                         'name' => 'SIPP Diperbarui',
                         'tingkat_scope' => 'all',
                         'item_type' => 'external_app',
@@ -251,7 +251,7 @@ it('previews and applies SINOVA JSON criteria update while preserving existing m
         ->set('jsonInput', $payload)
         ->call('previewImport')
         ->assertHasNoErrors()
-        ->assertSet('previewDiff.updated_items', ['1.a.2.1'])
+        ->assertSet('previewDiff.updated_items', ['1.a.2.a'])
         ->call('applyImport')
         ->assertHasNoErrors();
 

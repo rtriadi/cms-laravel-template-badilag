@@ -221,12 +221,12 @@ it('renders publications, search results, compliance routes, xml sitemap, and co
     $this->get('/halaman/layanan-hukum/sipp')
         ->assertOk()
         ->assertDontSee('Kriteria SINOVA')
-        ->assertDontSee('1.a.2.1');
+        ->assertDontSee('1.a.2.a');
 
     $this->get(route('home'))
         ->assertOk()
-        ->assertDontSee('1.a.2.1')
-        ->assertDontSee('1.a.2.2');
+        ->assertDontSee('1.a.2.a')
+        ->assertDontSee('1.a.2.b');
 
     $statusResp = $this->get(route('public.system-status'));
     $statusResp->assertOk()

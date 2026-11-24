@@ -16,7 +16,11 @@ it('seeds all 18 sinova criteria groups and items from juknis-2026.json', functi
 
     expect(CriteriaGroup::query()->count())->toBe(18)
         ->and(CriteriaItem::query()->count())->toBe(40)
-        ->and(CriteriaItem::query()->where('code', '1.a.2.6')->first()?->tingkat_scope)->toBe('pertama');
+        ->and(CriteriaItem::query()->where('item_type', 'link')->count())->toBe(35)
+        ->and(CriteriaItem::query()->where('code', '1.a.2.f')->first()?->tingkat_scope)->toBe('pertama')
+        ->and(CriteriaItem::query()->where('code', '1.b.1')->first()?->name)->toBe('Visi dan Misi Pengadilan')
+        ->and(CriteriaItem::query()->where('code', '1.b.p.d')->first()?->name)->toBe('Alamat dan Kontak Pengadilan')
+        ->and(CriteriaItem::query()->where('code', '1.a.4.4.a')->first()?->default_route)->toBe('/statistik-pengunjung');
 });
 
 it('adapts default content non-destructively between tingkat pertama and banding', function (): void {
@@ -40,7 +44,7 @@ it('adapts default content non-destructively between tingkat pertama and banding
 it('previews diff and preserves manual urls when re-importing criteria json', function (): void {
     $this->seed(SinovaCriteriaSeeder::class);
 
-    $item = CriteriaItem::query()->where('code', '1.a.2.1')->firstOrFail();
+    $item = CriteriaItem::query()->where('code', '1.a.2.a')->firstOrFail();
     $item->update([
         'manual_url' => 'https://sipp.pa-bandung.go.id',
         'use_manual_url' => true,
@@ -48,7 +52,7 @@ it('previews diff and preserves manual urls when re-importing criteria json', fu
 
     $payload = json_decode((string) file_get_contents(database_path('data/juknis-2026.json')), true, 512, JSON_THROW_ON_ERROR);
     $payload['groups'][0]['items'][] = [
-        'code' => '1.a.1.3',
+        'code' => '1.a.1.c',
         'name' => 'Kriteria Baru Uji Coba',
         'tingkat_scope' => 'all',
         'item_type' => 'link',
@@ -58,11 +62,11 @@ it('previews diff and preserves manual urls when re-importing criteria json', fu
     $importer = app(SinovaCriteriaImporter::class);
     $diff = $importer->previewDiff($payload);
 
-    expect($diff['added_items'])->toContain('1.a.1.3');
+    expect($diff['added_items'])->toContain('1.a.1.c');
 
     $importer->import($payload);
 
-    expect(CriteriaItem::query()->where('code', '1.a.1.3')->exists())->toBeTrue()
+    expect(CriteriaItem::query()->where('code', '1.a.1.c')->exists())->toBeTrue()
         ->and($item->fresh()->manual_url)->toBe('https://sipp.pa-bandung.go.id')
         ->and($item->fresh()->use_manual_url)->toBeTrue();
 });
