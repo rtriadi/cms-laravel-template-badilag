@@ -4,7 +4,7 @@
         type="button"
         aria-expanded="false"
         aria-controls="a11y-panel"
-        class="pub-btn inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border-2 border-white bg-obsidian px-4 py-2.5 text-xs font-bold text-white shadow-lg hover:bg-primary"
+        class="pub-btn hidden min-h-11 cursor-pointer items-center gap-2 rounded-full border-2 border-white bg-obsidian px-4 py-2.5 text-xs font-bold text-white shadow-lg hover:bg-primary lg:inline-flex"
     >
         <svg class="size-4 shrink-0 text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="12" cy="4.5" r="2"></circle>

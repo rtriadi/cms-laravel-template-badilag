@@ -80,6 +80,7 @@
             </div>
         </div>
 
+        @php $iframeHeight = $fallbackMode === 'org_chart' ? 720 : 580; @endphp
         <iframe
             src="{{ $embedUrl }}"
             data-simtepa-iframe
@@ -88,8 +89,8 @@
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
             referrerpolicy="no-referrer-when-downgrade"
             width="100%"
-            height="580"
-            class="h-[580px] w-full rounded border border-hairline bg-white"
+            height="{{ $iframeHeight }}"
+            class="{{ $fallbackMode === 'org_chart' ? 'h-[720px]' : 'h-[580px]' }} w-full rounded border border-hairline bg-white"
         ></iframe>
     </div>
 @else

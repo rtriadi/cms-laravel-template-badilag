@@ -2,7 +2,7 @@
     $statsDesc = 'Statistik kunjungan harian dan halaman terpopuler portal resmi ' . ($satker?->nama_satker ?? 'Peradilan Agama') . ' dengan pencatatan agregat ramah privasi tanpa cookie pelacak.';
 @endphp
 <x-layouts.public title="Statistik Pengunjung Portal" :description="$statsDesc" :canonical="route('public.visitor-stats')">
-    <div class="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <header class="rounded-xl border border-emerald-900 border-b-4 border-b-gold bg-obsidian p-6 text-white shadow-xs sm:p-8">
             <span class="inline-block rounded bg-gold px-2.5 py-0.5 font-mono text-2xs font-bold text-ink uppercase">Analitik Ramah Privasi</span>
             <h1 class="mt-2 font-serif text-2xl font-bold text-white sm:text-3xl">Statistik Pengunjung Portal</h1>

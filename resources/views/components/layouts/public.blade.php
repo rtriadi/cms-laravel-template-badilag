@@ -56,6 +56,14 @@
     $orgId = $homeUrl . '#organization';
     $websiteId = $homeUrl . '#website';
 
+    $serviceHours = config('satker.service_hours', []);
+    $monThuOpen = (string) ($serviceHours['mon_thu_open'] ?? '08:00');
+    $monThuClose = (string) ($serviceHours['mon_thu_close'] ?? '16:30');
+    $friOpen = (string) ($serviceHours['fri_open'] ?? '08:00');
+    $friClose = (string) ($serviceHours['fri_close'] ?? '17:00');
+    $tzLabel = (string) ($serviceHours['timezone_label'] ?? 'WITA');
+    $fmtJam = static fn (string $hhmm): string => str_replace(':', '.', $hhmm);
+
     $orgSchema = array_filter([
         '@type' => ['Courthouse', 'GovernmentOrganization'],
         '@id' => $orgId,
@@ -82,14 +90,14 @@
             [
                 '@type' => 'OpeningHoursSpecification',
                 'dayOfWeek' => ['Monday', 'Tuesday', 'Wednesday', 'Thursday'],
-                'opens' => '08:00',
-                'closes' => '16:30',
+                'opens' => $monThuOpen,
+                'closes' => $monThuClose,
             ],
             [
                 '@type' => 'OpeningHoursSpecification',
                 'dayOfWeek' => ['Friday'],
-                'opens' => '08:00',
-                'closes' => '17:00',
+                'opens' => $friOpen,
+                'closes' => $friClose,
             ],
         ],
     ], static fn (mixed $v): bool => $v !== null && $v !== []);
@@ -253,8 +261,8 @@
 
     <!-- Main Identity, Search Trigger & Action Header -->
     <header class="sticky top-0 z-30 border-b border-hairline bg-white/95 backdrop-blur-sm shadow-2xs lg:static lg:bg-white">
-        <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6 lg:px-8">
-            <a href="{{ route('home') }}" class="flex min-w-0 items-center gap-3.5">
+        <div class="mx-auto flex max-w-7xl items-center justify-between gap-2.5 px-4 py-3 sm:gap-4 sm:px-6 sm:py-3.5 lg:px-8">
+            <a href="{{ route('home') }}" class="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3.5">
                 @if ($satker?->logo_path && $logoImgAttrs)
                     <img
                         src="{{ $logoImgAttrs['src'] }}"
@@ -263,11 +271,11 @@
                         width="48"
                         height="48"
                         decoding="async"
-                        class="h-12 w-12 shrink-0 rounded-lg border border-hairline bg-white object-contain p-1 shadow-2xs"
+                        class="h-10 w-10 shrink-0 rounded-lg border border-hairline bg-white object-contain p-1 shadow-2xs sm:h-12 sm:w-12"
                     />
                 @else
-                    <div aria-hidden="true" class="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 border-gold bg-obsidian text-gold shadow-2xs">
-                        <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <div aria-hidden="true" class="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-gold bg-obsidian text-gold shadow-2xs sm:h-12 sm:w-12">
+                        <svg class="size-5 sm:size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 3v18" />
                             <path d="M5 7h14" />
                             <path d="M8 21h8" />
@@ -278,19 +286,19 @@
                 @endif
 
                 <div class="min-w-0">
-                    <p class="truncate font-serif text-lg leading-tight font-bold text-ink sm:text-xl">
+                    <p class="line-clamp-2 font-serif text-sm leading-snug font-bold text-ink sm:truncate sm:text-xl sm:leading-tight">
                         {{ $satkerName }}
                     </p>
-                    <p class="mt-0.5 truncate text-xs font-medium text-ink-muted">
+                    <p class="mt-0.5 truncate text-[11px] font-medium text-ink-muted sm:text-xs">
                         {{ $tingkatLabel }}
                         @if ($satker?->kode_satker)
-                            &middot; Kode Satker: <span class="font-mono">{{ $satker->kode_satker }}</span>
+                            <span class="hidden sm:inline">&middot; Kode Satker: <span class="font-mono">{{ $satker->kode_satker }}</span></span>
                         @endif
                     </p>
                 </div>
             </a>
 
-            <div class="flex shrink-0 items-center gap-2">
+            <div class="flex shrink-0 items-center gap-1.5 sm:gap-2">
                 <!-- Desktop Search Command Button (opens Ctrl+K Search Overlay) -->
                 <button
                     type="button"
@@ -309,20 +317,20 @@
                     <kbd class="hidden rounded border border-hairline bg-white px-1.5 py-0.5 font-mono text-2xs font-semibold text-ink lg:inline">Ctrl K</kbd>
                 </button>
 
-                <!-- Mobile Search Button (>=44px touch target) -->
+                <!-- Mobile Search Button (>=44x44px touch target) -->
                 <button
                     type="button"
                     data-open-public-search
                     aria-expanded="false"
                     aria-controls="public-search-modal"
                     aria-label="Buka pencarian portal"
-                    class="pub-btn inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-hairline bg-ivory px-3 text-xs font-bold text-ink hover:bg-primary-soft sm:hidden"
+                    class="pub-btn inline-flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-hairline bg-ivory text-xs font-bold text-ink hover:bg-primary-soft sm:hidden"
                 >
                     <svg class="size-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <circle cx="11" cy="11" r="8"></circle>
                         <path stroke-linecap="round" d="m21 21-4.35-4.35"></path>
                     </svg>
-                    <span>Cari</span>
+                    <span class="sr-only">Cari</span>
                 </button>
 
                 <!-- Desktop e-Court Action Pill -->
@@ -563,8 +571,35 @@
                     @if ($satker?->email)
                         <div><dt class="inline font-semibold">Surel:</dt> <dd class="inline">{{ $satker->email }}</dd></div>
                     @endif
-                    <div class="mt-2"><dt class="inline font-semibold text-amber-300">Jam Kerja:</dt> <dd class="inline font-mono text-2xs text-amber-200">Senin - Kamis 08.00-16.30 | Jumat 08.00-17.00</dd></div>
+                    <div class="mt-2 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                        <dt class="shrink-0 font-semibold text-amber-300">Jam Kerja:</dt>
+                        <dd class="font-mono text-2xs leading-relaxed text-amber-200">
+                            <span class="whitespace-nowrap">Senin - Kamis {{ $fmtJam($monThuOpen) }}-{{ $fmtJam($monThuClose) }}</span>
+                            <span aria-hidden="true" class="mx-1 text-amber-300/60">|</span>
+                            <span class="whitespace-nowrap">Jumat {{ $fmtJam($friOpen) }}-{{ $fmtJam($friClose) }} {{ $tzLabel }}</span>
+                        </dd>
+                    </div>
                 </dl>
+                @php $footerSocials = $satker?->socialChannels() ?? []; @endphp
+                @if ($footerSocials !== [])
+                    <div class="mt-4">
+                        <p class="font-mono text-2xs font-bold tracking-wider text-amber-300 uppercase">Sosial Media Resmi</p>
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            @foreach ($footerSocials as $fSoc)
+                                <a
+                                    href="{{ $fSoc['url'] }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    aria-label="{{ $fSoc['description'] }}"
+                                    class="inline-flex min-h-10 items-center gap-1.5 rounded-md border border-white/20 bg-white/10 px-2.5 text-2xs font-semibold text-white hover:border-gold hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+                                >
+                                    <span>{{ $fSoc['label'] }}</span>
+                                    <span aria-hidden="true">&nearr;</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <div>
@@ -602,6 +637,14 @@
                             Direktorat Jenderal Badilag MARI
                         </a>
                     </li>
+                    @php $safePtaUrl = \App\Support\SafeHtml::cleanUrl($satker?->pta_url); @endphp
+                    @if ($safePtaUrl)
+                        <li>
+                            <a href="{{ $safePtaUrl }}" target="_blank" rel="noopener noreferrer" class="hover:underline">
+                                {{ $satker->pta_nama ?: 'Pengadilan Tinggi Agama (Tingkat Banding)' }}
+                            </a>
+                        </li>
+                    @endif
                     <li>
                         <a href="{{ \App\Support\SafeHtml::cleanUrl($satker?->sipp_url) ?? 'https://sipp.mahkamahagung.go.id' }}" target="_blank" rel="noopener noreferrer" class="hover:underline">
                             Penelusuran Perkara (SIPP)
@@ -622,12 +665,22 @@
                             Pengawasan &amp; Pengaduan (SIWAS MARI)
                         </a>
                     </li>
-                    @php $safeSkmUrl = \App\Support\SafeHtml::cleanUrl($satker?->skm_url); @endphp
+                    @php
+                        $safeSkmUrl = \App\Support\SafeHtml::cleanUrl($satker?->skm_url);
+                        $safeFooterCctvUrl = \App\Support\SafeHtml::cleanUrl($satker?->cctv_aco_url);
+                    @endphp
                     <li>
                         <a href="{{ $safeSkmUrl ?? route('public.page', ['slug' => 'layanan-publik/survei-pelayanan']) }}" @if($safeSkmUrl) target="_blank" rel="noopener noreferrer" @endif class="hover:underline">
                             Survei Kepuasan &amp; Anti Korupsi (SI SURTI / SKM &amp; SPAK)
                         </a>
                     </li>
+                    @if ($safeFooterCctvUrl)
+                        <li>
+                            <a href="{{ $safeFooterCctvUrl }}" target="_blank" rel="noopener noreferrer" class="hover:underline">
+                                {{ $satker?->cctv_aco_label ?: 'Access CCTV Online (ACO)' }}
+                            </a>
+                        </li>
+                    @endif
                 </ul>
             </div>
         </div>

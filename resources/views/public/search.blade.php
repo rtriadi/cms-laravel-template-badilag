@@ -4,7 +4,7 @@
     :canonical="route('public.search')"
     robots="noindex, follow"
 >
-    <div class="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <header class="rounded-xl border border-emerald-900 border-b-4 border-b-gold bg-obsidian p-6 text-white shadow-xs sm:p-8">
             <span class="inline-block rounded bg-gold px-2.5 py-0.5 font-mono text-2xs font-bold text-ink uppercase">Direktori Pencarian Portal</span>
             <h1 class="mt-2 font-serif text-2xl font-bold text-white sm:text-3xl">Pencarian Informasi &amp; Dokumen</h1>
@@ -86,9 +86,14 @@
                                             @endif
                                         </p>
                                     </div>
-                                    @if ($doc->file_path)
-                                        <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" rel="noopener noreferrer" class="pub-btn inline-flex min-h-11 items-center rounded bg-primary px-3 font-semibold text-white hover:bg-primary-hover">Unduh PDF</a>
-                                    @endif
+                                    <div class="flex shrink-0 flex-wrap items-center gap-2">
+                                        @if ($doc->file_path)
+                                            <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" rel="noopener noreferrer" class="pub-btn inline-flex min-h-11 items-center rounded bg-primary px-3 font-semibold text-white hover:bg-primary-hover">Unduh PDF</a>
+                                        @endif
+                                        @if ($doc->external_url && \App\Support\SafeHtml::cleanUrl($doc->external_url))
+                                            <a href="{{ \App\Support\SafeHtml::cleanUrl($doc->external_url) }}" target="_blank" rel="noopener noreferrer" class="pub-btn inline-flex min-h-11 items-center rounded border border-primary bg-white px-3 font-semibold text-primary hover:bg-primary-soft">Buka Tautan</a>
+                                        @endif
+                                    </div>
                                 </li>
                             @endforeach
                         </ul>

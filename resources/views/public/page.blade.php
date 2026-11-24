@@ -119,14 +119,14 @@
         <!-- 2-Column Authoritative Judicial Editorial Layout (8/4) -->
         <div class="mt-6 grid gap-6 lg:grid-cols-12">
             <!-- Main Content Column (8 Columns) -->
-            <article class="space-y-6 lg:col-span-8">
+            <article class="min-w-0 space-y-6 lg:col-span-8">
                 @forelse ($blocks as $block)
                     @php $type = $block['type'] ?? 'richtext'; @endphp
                     <section
                         id="bagian-{{ $loop->iteration }}"
                         @if (empty($block['heading'])) aria-label="Bagian {{ $loop->iteration }}" @endif
                         @class([
-                            'scroll-mt-24 space-y-4 rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-6 shadow-2xs sm:p-7',
+                            'min-w-0 scroll-mt-24 space-y-4 overflow-x-clip rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-5 shadow-2xs sm:p-7',
                             'pub-reveal' => ! $loop->first,
                         ])
                         @if (! $loop->first) style="--stagger-delay: {{ min(240, ($loop->index - 1) * 45) }}ms" @endif
@@ -159,6 +159,7 @@
                                 'documents' => $documentsByCollection[$block['collection_type'] ?? 'lkjip'] ?? collect(),
                                 'years' => $yearsByCollection[$block['collection_type'] ?? 'lkjip'] ?? [],
                                 'selectedYear' => $selectedYear,
+                                'docSearch' => $docSearch ?? '',
                             ])
                         @elseif ($type === 'embed_fallback')
                             @include('public.blocks.embed-fallback', [
@@ -185,7 +186,7 @@
             </article>
 
             <!-- Contextual Sticky Sidebar (4 Columns) -->
-            <aside aria-label="Navigasi Bagian dan Informasi Layanan" class="lg:col-span-4">
+            <aside aria-label="Navigasi Bagian dan Informasi Layanan" class="min-w-0 lg:col-span-4">
                 <div class="space-y-5 lg:sticky lg:top-20">
                     @if ($headingBlocks->count() > 1)
                         <nav aria-label="Daftar Isi Halaman Ini" class="pub-reveal rounded-xl border border-hairline border-t-4 border-t-gold bg-white p-5 shadow-2xs">
@@ -246,10 +247,15 @@
                         <p class="mt-1.5 leading-relaxed text-ink-body">
                             Pelayanan Terpadu Satu Pintu (PTSP) dan Pos Bantuan Hukum (Posbakum) siap melayani masyarakat pencari keadilan.
                         </p>
+                        @php
+                            $sh = config('satker.service_hours', []);
+                            $fmtH = static fn (string $v): string => str_replace(':', '.', $v);
+                            $shTz = (string) ($sh['timezone_label'] ?? 'WITA');
+                        @endphp
                         <div class="mt-3 rounded-lg border border-emerald-200 bg-white p-3 font-mono text-2xs text-ink">
                             <p class="font-bold text-primary-deep">Jam Pelayanan PTSP:</p>
-                            <p class="mt-1">Senin - Kamis: 08.00 - 16.30</p>
-                            <p>Jumat: 08.00 - 17.00</p>
+                            <p class="mt-1">Senin - Kamis: {{ $fmtH((string) ($sh['mon_thu_open'] ?? '08:00')) }} - {{ $fmtH((string) ($sh['mon_thu_close'] ?? '16:30')) }} {{ $shTz }}</p>
+                            <p>Jumat: {{ $fmtH((string) ($sh['fri_open'] ?? '08:00')) }} - {{ $fmtH((string) ($sh['fri_close'] ?? '17:00')) }} {{ $shTz }}</p>
                             @if ($satker?->telepon)
                                 <p class="mt-1.5 border-t border-hairline pt-1.5">Telp: {{ $satker->telepon }}</p>
                             @endif

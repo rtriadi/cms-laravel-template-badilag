@@ -7,10 +7,6 @@
     $postOgImage = $post->featured_image_path ? asset('storage/' . $post->featured_image_path) : null;
     $postSchemaImage = $postOgImage
         ?: ($satker?->foto_gedung_path ? asset('storage/' . $satker->foto_gedung_path) : ($satker?->logo_path ? asset('storage/' . $satker->logo_path) : null));
-    $articleImgSizes = '(max-width: 1024px) calc(100vw - 32px), 896px';
-    $featuredImgAttrs = $post->featured_image_path
-        ? \App\Services\ImageOptimizerService::responsiveAttributes($post->featured_image_path, [400, 480, 720, 800], $articleImgSizes, null, 1000)
-        : null;
     $publishedIso = ($post->published_at ?? $post->created_at)?->toAtomString();
     $modifiedIso = ($post->updated_at ?? $post->published_at ?? $post->created_at)?->toAtomString();
     $categoryLabel = $categories[$post->category] ?? $post->category;
@@ -72,9 +68,6 @@
     :og-image="$postOgImage"
     :og-image-path="$post->featured_image_path"
     :og-image-alt="$post->featured_image_alt ?: $post->title"
-    :preload-image="$featuredImgAttrs['src'] ?? null"
-    :preload-image-srcset="$featuredImgAttrs['srcset'] ?? null"
-    :preload-image-sizes="$featuredImgAttrs['sizes'] ?? null"
     :published-at="$publishedIso"
     :modified-at="$modifiedIso"
     :json-ld="$postSchemas"
@@ -84,7 +77,7 @@
         <div data-read-progress class="pub-progress-bar h-full w-full bg-gold"></div>
     </div>
 
-    <div class="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <!-- Institutional Judicial Hero Banner -->
         <header class="relative overflow-hidden rounded-xl border border-emerald-900 border-b-4 border-b-gold bg-obsidian p-6 text-white shadow-xs sm:p-8">
             <svg aria-hidden="true" class="pub-crest-float pointer-events-none absolute -top-8 -right-8 size-56 text-white/6 sm:size-68" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
@@ -100,11 +93,11 @@
                 </nav>
 
                 <div class="flex flex-wrap items-start justify-between gap-4">
-                    <div class="max-w-3xl space-y-2">
+                    <div class="max-w-4xl space-y-2">
                         <span class="inline-block rounded bg-gold px-2.5 py-0.5 font-mono text-2xs font-bold text-ink uppercase">
                             {{ $categoryLabel }}
                         </span>
-                        <h1 class="font-serif text-2xl leading-tight font-bold text-white sm:text-3xl">
+                        <h1 class="font-serif text-2xl leading-tight font-bold text-white sm:text-3xl lg:text-4xl">
                             {{ $post->title }}
                         </h1>
                     </div>
@@ -155,20 +148,7 @@
             </div>
         </header>
 
-        <article class="rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-6 shadow-2xs sm:p-8">
-            @if ($post->featured_image_path && $featuredImgAttrs)
-                <img
-                    src="{{ $featuredImgAttrs['src'] }}"
-                    @if ($featuredImgAttrs['srcset']) srcset="{{ $featuredImgAttrs['srcset'] }}" sizes="{{ $featuredImgAttrs['sizes'] }}" @endif
-                    alt="{{ $post->featured_image_alt ?: $post->title }}"
-                    width="820"
-                    height="440"
-                    fetchpriority="high"
-                    decoding="async"
-                    class="mb-6 max-h-96 w-full rounded-lg object-cover"
-                />
-            @endif
-
+        <article class="min-w-0 overflow-x-clip rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-5 shadow-2xs sm:p-8">
             <div class="prose max-w-none space-y-4 text-sm leading-relaxed text-ink-body">
                 {!! \App\Support\SafeHtml::cleanBody($post->body) !!}
             </div>
