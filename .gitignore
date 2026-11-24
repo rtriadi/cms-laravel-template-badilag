@@ -21,7 +21,6 @@
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
-/database/data/legacy-pa-gorontalo/
 /storage/*.key
 /storage/pail
 /vendor
@@ -29,6 +28,15 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Legacy PA Gorontalo Joomla migration seeders, commands & data (excluded for fresh installations)
+/database/data/legacy-pa-gorontalo/
+/database/seeders/PaGorontaloMigrationSeeder.php
+/database/seeders/LegacyPaGorontalo/
+/app/Console/Commands/MigrateJoomlaCommand.php
+/app/Console/Commands/PrepareJoomlaMigrationCommand.php
+/app/Services/LegacyMigration/PaGorontaloMigrationExtractor.php
+/tests/Feature/PaGorontaloMigrationSeederTest.php
 
 # AI Assistants, Agents, Skills, MCP & Graphify
 /.agents/
