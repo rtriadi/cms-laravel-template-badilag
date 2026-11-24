@@ -1,13 +1,18 @@
 # SatkerCMS
 
-**CMS Website Profil Resmi Satuan Kerja Peradilan Agama dan Mahkamah Syar'iyah** (Tingkat Pertama dan Tingkat Banding) yang dirancang selaras dengan **SK Dirjen Badilag Nomor 2722/DJA/SK.TI1/X/2026** (Penilaian SINOVA) serta **SK KMA Nomor 2-144/KMA/SK/VIII/2022** tentang Standar Pelayanan Informasi Publik di Pengadilan.
+**CMS Website Profil Resmi Satuan Kerja Peradilan Agama dan Mahkamah Syar'iyah** (Tingkat Pertama dan Tingkat Banding) yang dirancang selaras dengan **SK Dirjen Badilag Nomor 2722/DJA/SK.TI1/X/2026** (Penilaian **SINOVA**: 18 grup, 40 kriteria), **SK KMA Nomor 2-144/KMA/SK/VIII/2022** (Standar Pelayanan Informasi Publik / PPID), serta **Pedoman Pengawasan PTA/Bawas**.
 
 ![Versi](https://img.shields.io/badge/Versi-v1.0.0--dev-056e4f?style=flat-square)
+![Pembuat](https://img.shields.io/badge/Pembuat-Rahmat%20Triadi%2C%20S.Kom.-063b2b?style=flat-square)
 ![PHP](https://img.shields.io/badge/PHP-8.4%20%7C%208.5-777BB4?style=flat-square&logo=php&logoColor=white)
 ![Laravel](https://img.shields.io/badge/Laravel-13.x-FF2D20?style=flat-square&logo=laravel&logoColor=white)
 ![Livewire](https://img.shields.io/badge/Livewire-4.x%20%2B%20Flux%20UI-FB70A9?style=flat-square)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
 ![Lisensi](https://img.shields.io/badge/Lisensi-MIT-111827?style=flat-square)
+
+> **Buku Panduan Lengkap SatkerCMS (Instalasi, Pengelolaan Konten, Evaluasi SINOVA 40 Kriteria, & Pemeliharaan):**
+> - Baca langsung di GitHub: **[panduan/PANDUAN-LENGKAP-SATKERCMS.md](panduan/PANDUAN-LENGKAP-SATKERCMS.md)**
+> - Unduh versi siap cetak (PDF): **[panduan/PANDUAN-LENGKAP-SATKERCMS.pdf](panduan/PANDUAN-LENGKAP-SATKERCMS.pdf)**
 
 ---
 
@@ -30,29 +35,34 @@
 | Informasi | Detail |
 | :--- | :--- |
 | **Nama Aplikasi** | SatkerCMS |
+| **Pembuat Aplikasi** | **Rahmat Triadi, S.Kom.** |
 | **Versi Saat Ini** | `v1.0.0-dev` (tercatat pada `config/satker.php` dan halaman `/status-sistem`) |
+| **Dasar Regulasi** | SK Dirjen Badilag No. 2722/DJA/SK.TI1/X/2026 (SINOVA 40 kriteria), SK KMA No. 2-144/KMA/SK/VIII/2022 (PPID), dan Pedoman Pengawasan PTA/Bawas |
 | **Target Instansi** | Pengadilan Agama (`PA`), Pengadilan Tinggi Agama (`PTA`), Mahkamah Syar'iyah (`MS`), dan Mahkamah Syar'iyah Aceh (`MS_ACEH`) |
-| **Identitas Warna** | Hijau Utama `#056e4f` & Aksen Emas `#ff9900` (kontras ramah WCAG 2.2 AA) |
-| **Stack Utama** | PHP 8.5 (minimal 8.3, disarankan 8.4/8.5 non-EOL), Laravel 13, Livewire 4, Flux UI Free, Tailwind CSS v4, TinyMCE 8 GPL (self-hosted), Laravel Fortify (wajib 2FA TOTP), Pest 4 |
+| **Identitas Warna** | Hijau Utama `#056e4f`, Obsidian `#063b2b`, & Aksen Emas `#ff9900` (teks gelap demi kontras WCAG 2.2 AA) |
+| **Stack Utama** | PHP 8.5 (minimal 8.3, disarankan 8.4/8.5 non-EOL), Laravel 13, Livewire 4, Flux UI Free, Tailwind CSS v4, TinyMCE 8 GPL (self-hosted), Laravel Fortify (wajib 2FA TOTP), Pest 4 (`110` pengujian otomatis) |
 
 ---
 
 ## 2. Fitur Utama
 
 ### Portal Publik (Masyarakat)
-- **Beranda Informatif & Responsif:** Header 2 tingkat dengan navigasi sticky 6 menu, Hero Carousel (dibatasi 3 sampai 5 slide tanpa video/streaming), 3 KPI layanan, **6 Pilar Layanan Utama Pencari Keadilan** (SIPP, Jadwal Sidang, e-Court, Prodeo & Posbakum, Biaya Berperkara, SIWAS & PPID), Berita & Inovasi, Pengumuman Resmi berkalender, serta Direktori SAKIP.
-- **Halaman Dalam Editorial 2 Kolom (8/4):** Hero banner per halaman, Daftar Isi otomatis, menu navigasi halaman serumpun, kartu jam layanan PTSP, serta keterangan waktu publik (`Diunggah:` dan `Terakhir diperbarui:`) pada halaman, berita, dan dokumen PDF.
+- **Beranda Clean Civic Editorial v4 & Tata Letak Seragam (`max-w-7xl`):** Utility bar tipis dengan pita emas 3px dan **1 baris sticky navbar putih bersih** (logo, 6 menu utama, pencarian cepat `Ctrl+K`, tombol `e-Court MARI`), **Full-Width Visual Banner Slider** (3–5 slide HD `1280x720` ber-scrim kontras AAA) dengan **Integrated Citizen Action Dock** tepat menempel di bawahnya (SIPP, Jadwal Sidang, e-Court, Prodeo/Posbakum, dan Cari), lalu disusun ringkas dalam **5 seksi editorial lapang**: Layanan Hukum `01-06` + Jam PTSP & Agenda Sidang/Survei, Berita Majalah Asimetris & Pengumuman, Pita Gelap Transparansi SAKIP (8 dokumen utama), serta Penutup Terpadu (Tautan Instansi, Access CCTV Online / ACO, Sosial Media, dan Aksesibilitas WCAG).
+- **Kelengkapan Halaman Depan Pedoman Pengawasan (Bagian A-6):** Kartu capaian **Indeks Survei Pelayanan (SKM, SPAK, SPKP)**, tautan resmi **PTA / Tingkat Banding**, kartu tautan ringan **Video Profil, Video PTSP, dan Video Kebijakan MA** (non-embed agar muat halaman tetap di bawah 5 detik), **Tautan Instansi Terkait** dinamis, **Sosial Media Resmi** (Facebook, Instagram, TikTok, YouTube, X), serta akses cepat ringan **Access CCTV Online (ACO) Badilag**.
+- **Halaman Dalam Editorial & Direktori Publikasi:** Hero banner seragam, Daftar Isi otomatis, menu navigasi halaman serumpun, kartu jam layanan PTSP, paginasi ringkas berbahasa Indonesia, penghitung jumlah dilihat, komentar publik termoderasi beserta balasan resmi, serta keterangan waktu publik (`Diunggah:` dan `Terakhir diperbarui:`).
 - **Integrasi Aplikasi MARI + Mode Cadangan Lokal:**
   - **SIPP:** Otomatis memetakan jadwal sidang (`/list_jadwal_sidang`), daftar perkara (`/`), dan statistik perkara (`/statistik_perkara`).
-  - **SIMTEPA:** Mendukung 7 tab kategori *Share Data Profil* (Ketua, Wakil Ketua, Hakim, Kepaniteraan, Kesekretariatan, Fungsional, Pelaksana) format HTML & JSON dari satu token satker, lengkap dengan mode cadangan tabel lokal tanpa ekspos data pribadi (NIP/kontak pribadi).
-- **Aksesibilitas WCAG 2.2 AA:** Widget aksesibilitas bawaan (pembaca suara TTS Bahasa Indonesia `id-ID`, kontras tinggi, perbesar teks hingga 200%, mode disleksia, sorot tautan, kurangi gerakan).
+  - **SIMTEPA:** Mendukung **Bagan Struktur Organisasi Langsung** (`/share/struktur_organisasi/{token}`), **Profil Pegawai 7 Tab** (Ketua, Wakil Ketua, Hakim, Kepaniteraan, Kesekretariatan, Fungsional, Pelaksana), **Struktur Pejabat 6 Tab**, dan 7 kategori satuan lengkap dengan mode cadangan tabel lokal tanpa ekspos data pribadi (NIP/tanggal lahir/kontak pribadi).
+- **Aksesibilitas WCAG 2.2 AA:** Widget aksesibilitas bawaan (pembaca suara TTS Bahasa Indonesia `id-ID`, kontras tinggi, perbesar teks hingga 200%, skala abu-abu, garis bawah tautan, navigasi keyboard).
 - **SEO Publik Siap Indeks Google & WhatsApp:** Canonical URL, Open Graph (`og:*`), Twitter Card, Favicon dinamis, Structured Data JSON-LD (`Courthouse` + `GovernmentOrganization`, `WebSite` + `SearchAction`, `BreadcrumbList`, `NewsArticle`), `/sitemap.xml` sesuai tingkat peradilan, `/robots.txt` dinamis, dan Redirect 301 otomatis saat slug halaman diubah.
-- **Optimasi Kecepatan:** Bundel CSS publik terpisah (~11 KB gzip), konversi gambar upload otomatis ke **WebP** via PHP GD, deduplikasi DOM menu navigasi mobile, caching menu & beranda otomatis.
+- **Optimasi Kecepatan:** Bundel CSS publik terpisah, konversi gambar upload otomatis ke **WebP** via PHP GD, deduplikasi DOM menu navigasi mobile, caching menu & beranda otomatis.
 
 ### Panel Admin CMS (`/panel-admin`)
-- **Studio Konten 2-Mode:** Pemisahan tampilan *Direktori* dan *Studio Editor & Page Builder* (Halaman Website, Berita/Artikel/Pengumuman, Arsip Dokumen PDF, Slider Beranda, Menu Navigasi 3 tingkat, Data Cadangan Kepaniteraan/Pegawai).
-- **Editor Teks Lengkap (TinyMCE 8 Self-Hosted):** Mendukung tabel, format artikel, serta unggah langsung gambar (otomatis WebP) dan lampiran dokumen PDF.
-- **Keamanan & Kepatuhan:** Login admin dilengkapi CAPTCHA lokal + wajib **2FA TOTP** (Google Authenticator/Authy), 6 peran RBAC standar (`super_admin`, `admin_konten`, `operator_kepaniteraan`, `operator_kesekretariatan`, `operator_ppid_humas`, `penilai_internal`), log aktivitas (`spatie/laravel-activitylog`), header keamanan HTTP (`SecurityHeadersMiddleware`), dan pemantau kelengkapan link SINOVA internal.
+- **Studio Konten 2-Mode & 7 Blok Page Builder:** Pemisahan tampilan *Direktori* dan *Studio Editor* untuk Halaman Website (blok Teks Kaya, Daftar Dokumen PDF, Daftar Publikasi, Embed SIPP/SIMTEPA + Cadangan, Portal Eksternal, Peta Yurisdiksi, dan Alamat & Foto Gedung), Publikasi (termasuk **tanggal kedaluwarsa tayang** otomatis), Moderasi Komentar, Arsip Dokumen PDF, Slider Beranda, Menu Navigasi 3 tingkat, serta Data Cadangan Kepaniteraan/Pegawai.
+- **3-Tab Studio TinyMCE 8 Self-Hosted (`Editor` | `Code` | `Preview`):** Mendukung penyuntingan visual, kode HTML langsung, pratinjau instan, tabel, serta unggah gambar (otomatis WebP) dan dokumen PDF.
+- **Pengaturan Satker 6 Seksi:** Identitas & Logo/Gedung, Alamat & Kontak, Integrasi SIPP & SIMTEPA (termasuk URL Bagan Struktur Organisasi), Pengawasan & Beranda (PTA, Indeks SKM/SPAK/SPKP, Video), Tautan Instansi Dinamis (maks. 20) / Sosial Media Resmi / Access CCTV Online (ACO), dan Ubah Tingkat Peradilan dengan konfirmasi ganda Super Admin.
+- **Hub Link SINOVA 2026 & Audit Sistem:** Pemetaan resmi **18 grup & 40 kriteria SINOVA** (`1.a.1.a` s.d. `3.c.1`: 35 URL + 5 non-URL), ekspor CSV siap lapor, manajemen/impor JSON kriteria juknis masa depan (`/panel-admin/kriteria`), audit tautan rusak (*broken link*), daftar Redirect 301, backup ZIP terenkripsi (`spatie/laravel-backup`) dengan tombol **Jalankan Backup Database** dan **Unduh** arsip di panel, serta log aktivitas (`spatie/laravel-activitylog`).
+- **Keamanan Berlapis:** Login admin dengan CAPTCHA lokal + wajib **2FA TOTP** (Google Authenticator/Authy), reset 2FA akun lain oleh **Super Admin** langsung dari menu Pengguna & Peran, 6 peran RBAC standar (`super_admin`, `admin_konten`, `operator_kepaniteraan`, `operator_kesekretariatan`, `operator_ppid_humas`, `penilai_internal`), sanitasi HTML (`SafeHtml`), dan header keamanan HTTP (`SecurityHeadersMiddleware`).
 
 ---
 
@@ -72,7 +82,7 @@
 
 ```bash
 # 1. Clone repositori
-git clone https://github.com/<username>/<repo-satkercms>.git satkercms
+git clone https://github.com/rtriadi/cms-laravel-template-badilag.git satkercms
 cd satkercms
 
 # 2. Instal dependensi PHP & Frontend
@@ -88,8 +98,11 @@ php artisan key:generate
 php artisan migrate
 php artisan storage:link
 
-# 5. Jalankan server lokal
+# 5. Jalankan server lokal (pilih salah satu)
 php artisan serve
+# atau jalankan Laravel + Vite bersamaan:
+composer run dev
+# atau khusus Windows, jalankan ganda run-app.bat / .\run-app.ps1
 ```
 
 Buka `http://127.0.0.1:8000` di browser. Aplikasi otomatis mengarahkan ke halaman **Setup Wizard (`/setup`)**.
@@ -161,7 +174,7 @@ $app->handleRequest(Request::capture());
 > **Penting:** Baris `$app->usePublicPath(__DIR__);` wajib ada pada Opsi B agar Laravel membaca `public_html/build/manifest.json` dan `public_html/storage` dengan benar.
 
 ### Langkah 4: Konfigurasi File `.env` Produksi
-Salin `.env.example` menjadi `.env` di folder inti Laravel (`/home/<user>/satkercms/.env` atau `/home/<user>/satkercms_core/.env`), lalu sesuaikan nilai berikut:
+Salin `.env.production.example` (template produksi yang sudah `APP_DEBUG=false`, `SESSION_SECURE_COOKIE=true`, dan `MAIL_MAILER=smtp`) menjadi `.env` di folder inti Laravel (`/home/<user>/satkercms/.env` atau `/home/<user>/satkercms_core/.env`), lalu sesuaikan nilai berikut:
 
 ```env
 APP_NAME="Pengadilan Agama Contoh"
@@ -191,11 +204,12 @@ SESSION_DRIVER=file
 SESSION_ENCRYPT=true
 SESSION_SECURE_COOKIE=true
 QUEUE_CONNECTION=database
-LOG_LEVEL=error
 MAIL_MAILER=smtp
 TRUSTED_PROXIES=127.0.0.1
 TRUSTED_HOSTS=^(?:www\.)?pa-contoh\.go\.id$
 BACKUP_ARCHIVE_PASSWORD=GantiPasswordArsipBackupKuat!
+# Opsional: direktori bin MySQL jika mysqldump tidak berada di PATH peladen
+# MYSQL_DUMP_BINARY_PATH=/usr/bin
 ```
 
 > **Catatan:** Jika Anda belum memiliki `APP_KEY`, Anda dapat menjalankan `php artisan key:generate --show` di komputer lokal lalu menyalin string `base64:...` tersebut ke `.env` server.
@@ -280,7 +294,7 @@ sudo mysql -e "FLUSH PRIVILEGES;"
 sudo mkdir -p /var/www/satkercms
 sudo chown -R $USER:www-data /var/www/satkercms
 
-git clone https://github.com/<username>/<repo-satkercms>.git /var/www/satkercms
+git clone https://github.com/rtriadi/cms-laravel-template-badilag.git /var/www/satkercms
 cd /var/www/satkercms
 
 composer install --no-dev --optimize-autoloader
@@ -291,7 +305,7 @@ npm run build
 ### Langkah 4: Konfigurasi `.env`, Migrasi, & Hak Akses
 
 ```bash
-cp .env.example .env
+cp .env.production.example .env
 php artisan key:generate
 nano .env
 ```
@@ -324,6 +338,8 @@ MAIL_MAILER=smtp
 TRUSTED_PROXIES=127.0.0.1
 TRUSTED_HOSTS=^(?:www\.)?pa-contoh\.go\.id$
 BACKUP_ARCHIVE_PASSWORD=GantiPasswordArsipBackupKuat!
+# Opsional: direktori bin MySQL jika mysqldump tidak berada di PATH peladen
+# MYSQL_DUMP_BINARY_PATH=/usr/bin
 ```
 
 Lalu jalankan migrasi, symlink storage, cache produksi, dan set permission:
@@ -447,7 +463,7 @@ Setelah instalasi di Shared Hosting atau VPS berhasil, buka domain Anda (`https:
 Saat pertama kali dibuka, aplikasi otomatis mengarahkan ke **`/setup`** yang terdiri dari **4 langkah**:
 1. **Langkah 1 (Identitas & Tingkat Peradilan):** Isi Nama Satker, Jenis Badan (`PA`, `PTA`, `MS`, `MS_ACEH`), Tingkat (`Tingkat Pertama` / `Tingkat Banding`), Kode Satker, dan Tahun Berdiri.
 2. **Langkah 2 (Alamat & Kontak Resmi):** Isi alamat lengkap, desa/kelurahan, kecamatan, kabupaten/kota, provinsi, kode pos, telepon, email, dan URL website resmi.
-3. **Langkah 3 (Tautan Integrasi MARI):** Masukkan URL **SIPP** (`https://sipp.pa-satker.go.id/`), e-Court, Direktori Putusan, SIWAS, **URL atau Token 32 karakter SIMTEPA** (otomatis membentuk 7 tab profil Ketua s.d. Pelaksana), serta tautan Survei SKM/SPAK (SI SURTI).
+3. **Langkah 3 (Tautan Integrasi MARI):** Masukkan URL **SIPP** (`https://sipp.pa-satker.go.id/`), e-Court, Direktori Putusan, SIWAS, **URL atau Token 32 karakter SIMTEPA** (otomatis membentuk 7 tab profil Ketua s.d. Pelaksana), serta tautan Survei Pelayanan (SKM/SPAK/SPKP).
 4. **Langkah 4 (Akun Super Admin):** Buat akun `super_admin` pertama.
 
 Ketika tombol **Selesai** ditekan, sistem otomatis:
@@ -463,32 +479,34 @@ Ketika tombol **Selesai** ditekan, sistem otomatis:
 4. Setelah 2FA aktif, seluruh menu Dashboard Admin terbuka penuh.
 
 ### C. Pengisian Konten Awal yang Disarankan
-1. **Pengaturan Satker (`/panel-admin/pengaturan`):** Unggah Logo Resmi Satker dan Foto Gedung (otomatis dikonversi ke WebP ringan).
-2. **Slider Beranda (`/panel-admin/slider`):** Sesuaikan 3 sampai 5 slide utama (dilarang memakai video/streaming).
-3. **Halaman Website (`/panel-admin/halaman`):** Lengkapi konten teks (TinyMCE mendukung unggah gambar & PDF) dan Deskripsi SEO Google.
-4. **Arsip Dokumen PDF (`/panel-admin/dokumen`):** Unggah dokumen SAKIP (LKjIP, Renstra, RKT, PK, IKU, DIPA, LRA, CALK, LHKPN, PBJ), 7 SOP PPID, dan laporan kepaniteraan.
-5. **Verifikasi Kepatuhan:** Periksa **`/panel-admin/link-sinova`** dan halaman publik **`/status-sistem`**.
+1. **Pengaturan Satker (`/panel-admin/pengaturan`):** Unggah Logo Resmi Satker dan Foto Gedung (otomatis dikonversi ke WebP ringan), lengkapi URL SIPP & SIMTEPA (termasuk URL Bagan Struktur Organisasi), isi data Pengawasan (PTA, Nilai SKM/SPAK/SPKP, Video Profil/PTSP/Kebijakan MA), serta atur Tautan Instansi Terkait, Sosial Media Resmi, dan Access CCTV Online (ACO).
+2. **Slider Beranda (`/panel-admin/slider`):** Sesuaikan 3 sampai 5 slide utama rasio 16:9 (`1280x720`, dilarang memakai video/streaming).
+3. **Halaman Website (`/panel-admin/halaman`):** Lengkapi konten teks menggunakan 3-Tab Studio TinyMCE (`Editor` | `Code` | `Preview`) dan Deskripsi SEO Google.
+4. **Arsip Dokumen PDF (`/panel-admin/dokumen`):** Unggah dokumen SAKIP (LKjIP, Renstra, RKT, Renaksi, PK, IKU, DIPA, LRA, CALK, LHKPN, PBJ), 7 SOP PPID, dan laporan kepaniteraan.
+5. **Verifikasi Kepatuhan:** Periksa **`/panel-admin/link-sinova`** (40 kriteria resmi SINOVA 2026: 35 URL + 5 non-URL) dan halaman publik **`/status-sistem`**.
 
 ### D. Daftar Rute & Peran RBAC Standar
 
 | Rute | Keterangan |
 | :--- | :--- |
-| `/` | Beranda portal publik |
+| `/` | Beranda portal publik (Slider, Layanan, Survei Pengawasan, Berita, Tautan Instansi, Medsos, ACO CCTV) |
 | `/halaman/{slug}` | Halaman profil, layanan hukum, transparansi SAKIP, dan PPID |
 | `/publikasi` | Direktori berita, pengumuman, inovasi, dan artikel bantuan hukum |
+| `/cari` | Pencarian internal lintas halaman, publikasi, dan dokumen PDF (`Ctrl+K`) |
 | `/panel-admin` | Panel Admin CMS (dapat diubah melalui `ADMIN_PATH` di `.env`) |
 | `/status-sistem` | Status versi PHP, Laravel, CMS, dan kepatuhan keamanan publik |
+| `/statistik-pengunjung` | Statistik kunjungan website publik dengan rentang waktu |
 | `/aksesibilitas` | Pernyataan dan panduan fitur aksesibilitas WCAG 2.2 AA |
 | `/peta-situs` & `/sitemap.xml` | Peta situs HTML untuk pengunjung & XML untuk mesin pencari |
 | `/robots.txt` | Aturan perayapan bot mesin pencari dinamis |
 
 **6 Peran Standar (`spatie/laravel-permission`):**
-- `super_admin` (akses penuh + perubahan tingkat peradilan + manajemen pengguna)
-- `admin_konten` (kelola halaman, menu, slider, publikasi, audit)
-- `operator_kepaniteraan` (kelola jadwal sidang cadangan, statistik perkara, dokumen kepaniteraan)
-- `operator_kesekretariatan` (kelola data pegawai cadangan, dokumen SAKIP, DIPA, LRA, CALK, BMN)
-- `operator_ppid_humas` (kelola berita, pengumuman, informasi serta merta, dokumen PPID)
-- `penilai_internal` (akses baca dashboard kepatuhan dan audit tautan)
+- `super_admin` (akses penuh + perubahan tingkat peradilan + manajemen pengguna + impor kriteria)
+- `admin_konten` (kelola halaman, menu, slider, publikasi, komentar, pengaturan satker, audit)
+- `operator_kepaniteraan` (kelola jadwal sidang cadangan, statistik perkara, panggilan ghaib, dokumen kepaniteraan)
+- `operator_kesekretariatan` (kelola data pegawai cadangan, dokumen SAKIP, DIPA, LRA, CALK, LHKPN, PBJ)
+- `operator_ppid_humas` (kelola berita, pengumuman, informasi serta merta, moderasi komentar, dokumen PPID)
+- `penilai_internal` (akses baca dashboard kepatuhan, Link SINOVA, dan audit tautan)
 
 ---
 
@@ -504,13 +522,20 @@ php artisan cms:update
 # Konversi & perkecil seluruh gambar eksisting (slider, logo, gedung, berita) ke WebP
 php artisan satker:optimize-media
 
+# Jalankan backup database & berkas terenkripsi (spatie/laravel-backup)
+php artisan backup:run
+
+# Tampilkan jadwal pemeliharaan otomatis (backup harian 02:00, pembersihan arsip 03:00,
+# pemangkasan log aktivitas mingguan) yang dijalankan cron `schedule:run`
+php artisan schedule:list
+
 # Bangun ulang cache produksi setelah mengubah .env atau update kode
 php artisan optimize
 
 # Bersihkan seluruh cache jika terjadi kendala tampilan/konfigurasi
 php artisan optimize:clear
 
-# Jalankan seluruh pengujian otomatis (Pest)
+# Jalankan seluruh pengujian otomatis (116 pengujian Pest)
 php artisan test
 ```
 
@@ -569,6 +594,8 @@ php artisan test
 
 ---
 
-## Lisensi
+## Pembuat Aplikasi & Lisensi
 
-SatkerCMS dirilis di bawah lisensi [MIT](https://opensource.org/licenses/MIT).
+- **Pembuat Aplikasi:** **Rahmat Triadi, S.Kom.**
+- **Dokumentasi Lengkap:** [Panduan Markdown](panduan/PANDUAN-LENGKAP-SATKERCMS.md) | [Panduan PDF Siap Cetak](panduan/PANDUAN-LENGKAP-SATKERCMS.pdf)
+- **Lisensi:** SatkerCMS dirilis di bawah lisensi [MIT](https://opensource.org/licenses/MIT).
