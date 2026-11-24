@@ -60,20 +60,42 @@ class PublicPostController extends Controller
         $approvedCommentsCount = $post->approvedComments()->count();
 
         $related = Post::query()
-            ->select(['id', 'title', 'slug', 'category', 'views_count', 'published_at', 'created_at'])
+            ->select(['id', 'title', 'slug', 'category', 'featured_image_path', 'featured_image_alt', 'views_count', 'published_at', 'created_at'])
             ->withCount('approvedComments')
             ->publishedActive()
             ->where('id', '!=', $post->id)
             ->where('category', $post->category)
             ->orderByDesc('published_at')
-            ->limit(3)
+            ->orderByDesc('id')
+            ->limit(5)
             ->get();
+
+        $excludedIds = array_merge([$post->id], $related->pluck('id')->all());
+
+        $latestPosts = Post::query()
+            ->select(['id', 'title', 'slug', 'category', 'views_count', 'published_at', 'created_at'])
+            ->publishedActive()
+            ->whereNotIn('id', $excludedIds)
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->limit(4)
+            ->get();
+
+        $categoryCounts = Post::query()
+            ->publishedActive()
+            ->selectRaw('category, COUNT(*) as aggregate')
+            ->groupBy('category')
+            ->pluck('aggregate', 'category')
+            ->map(static fn (mixed $v): int => (int) $v)
+            ->all();
 
         return view('public.posts.show', [
             'post' => $post,
             'comments' => $comments,
             'approvedCommentsCount' => $approvedCommentsCount,
             'related' => $related,
+            'latestPosts' => $latestPosts,
+            'categoryCounts' => $categoryCounts,
             'categories' => Post::categoryLabels(),
             'satker' => SatkerSetting::current(),
         ]);

@@ -194,7 +194,7 @@
             </div>
 
             <div class="pt-2">
-                {{ $posts->links() }}
+                {{ $posts->links('pagination::tailwind') }}
             </div>
         @endif
     </div>

@@ -47,6 +47,7 @@ class PublicPageController extends Controller
         $needsStatistics = false;
 
         $blocks = array_map(function (array $block) use (
+            $request,
             $satker,
             $selectedYear,
             $docSearch,
@@ -136,6 +137,9 @@ class PublicPageController extends Controller
                 $block['resolved_embed_url'] = $activeEmbedUrl;
                 $block['resolved_embed_tabs'] = $resolvedSource['tabs'];
                 $block['active_simtepa_tab'] = $activeTabKey !== '' ? $activeTabKey : ($resolvedSource['tabs'][0]['key'] ?? '');
+                $isSippEmbed = str_starts_with($sourceKey, 'sipp')
+                    || (is_string($activeEmbedUrl) && str_contains(strtolower((string) parse_url($activeEmbedUrl, PHP_URL_HOST)), 'sipp'));
+                $block['is_cross_site_sipp'] = $isSippEmbed && $this->isCrossSiteEmbed($request, $activeEmbedUrl);
 
                 match ($fallbackMode) {
                     'org_chart' => $needsOrgChart = true,
@@ -260,5 +264,54 @@ class PublicPageController extends Controller
         }
 
         return false;
+    }
+
+    private function isCrossSiteEmbed(Request $request, ?string $embedUrl): bool
+    {
+        if ($embedUrl === null || trim($embedUrl) === '') {
+            return false;
+        }
+
+        $parts = parse_url($embedUrl);
+        if (! is_array($parts) || empty($parts['host'])) {
+            return false;
+        }
+
+        $embedScheme = strtolower((string) ($parts['scheme'] ?? 'https'));
+        $requestScheme = $request->isSecure() ? 'https' : strtolower($request->getScheme());
+
+        if ($embedScheme !== $requestScheme) {
+            return true;
+        }
+
+        $embedSite = $this->registrableSite((string) $parts['host']);
+        $requestSite = $this->registrableSite($request->getHost());
+
+        return $embedSite === '' || $requestSite === '' || $embedSite !== $requestSite;
+    }
+
+    private function registrableSite(string $host): string
+    {
+        $clean = rtrim(strtolower(trim($host, '[]')), '.');
+        if ($clean === '' || filter_var($clean, FILTER_VALIDATE_IP) !== false) {
+            return $clean;
+        }
+
+        $labels = explode('.', $clean);
+        $count = count($labels);
+        if ($count <= 2) {
+            return $clean;
+        }
+
+        $twoLevelPublicSuffixes = [
+            'go.id', 'ac.id', 'or.id', 'co.id', 'sch.id', 'web.id', 'my.id', 'net.id', 'biz.id', 'mil.id', 'desa.id',
+        ];
+        $lastTwo = $labels[$count - 2].'.'.$labels[$count - 1];
+
+        if (in_array($lastTwo, $twoLevelPublicSuffixes, true)) {
+            return $labels[$count - 3].'.'.$lastTwo;
+        }
+
+        return $lastTwo;
     }
 }

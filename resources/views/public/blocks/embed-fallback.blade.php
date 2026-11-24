@@ -3,6 +3,7 @@
     $embedTabs = is_array($block['resolved_embed_tabs'] ?? null) ? $block['resolved_embed_tabs'] : [];
     $activeTabKey = (string) ($block['active_simtepa_tab'] ?? ($embedTabs[0]['key'] ?? ''));
     $fallbackMode = $block['fallback_mode'] ?? 'officials_table';
+    $isCrossSiteSipp = (bool) ($block['is_cross_site_sipp'] ?? false);
     $showFallback = $forceFallback || empty($embedUrl);
     $activeJsonUrl = null;
     foreach ($embedTabs as $t) {
@@ -51,6 +52,13 @@
         <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
             <span class="font-semibold text-primary">Tampilan Langsung Aplikasi Eksternal Aktif</span>
             <div class="flex flex-wrap items-center gap-2">
+                <button
+                    type="button"
+                    data-simtepa-reload-btn
+                    class="pub-btn inline-flex min-h-10 cursor-pointer items-center rounded border border-hairline bg-white px-3 font-semibold text-ink hover:border-primary hover:bg-primary-soft hover:text-primary"
+                >
+                    Muat Ulang Embed
+                </button>
                 <a
                     href="{{ request()->fullUrlWithQuery(['fallback' => 1]) }}"
                     class="pub-btn inline-flex min-h-10 items-center rounded border border-primary bg-white px-3 font-semibold text-primary hover:bg-primary-soft"
@@ -80,13 +88,20 @@
             </div>
         </div>
 
+        @if ($isCrossSiteSipp)
+            <div role="note" class="rounded-lg border border-amber-300 bg-amber-50 px-3.5 py-2.5 text-xs leading-relaxed text-ink">
+                <strong>Catatan Tampilan Embed SIPP:</strong>
+                Situs sedang diakses melalui domain atau protokol berbeda dari server SIPP, sehingga browser memblokir cookie sesi lintas-domain saat jendela <strong>Detil</strong> dibuka (tampak layar gelap kosong). Gunakan <strong>Buka Halaman Sumber</strong> untuk membuka detil perkara penuh, atau klik <strong>Muat Ulang Embed</strong> untuk memulihkan tampilan. Pada server produksi HTTPS satu domain induk dengan SIPP, fitur detil di dalam embed bekerja normal.
+            </div>
+        @endif
+
         @php $iframeHeight = $fallbackMode === 'org_chart' ? 720 : 580; @endphp
         <iframe
             src="{{ $embedUrl }}"
             data-simtepa-iframe
             title="{{ $block['heading'] ?? 'Integrasi Data Eksternal' }}"
             loading="lazy"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-popups-to-escape-sandbox"
             referrerpolicy="no-referrer-when-downgrade"
             width="100%"
             height="{{ $iframeHeight }}"

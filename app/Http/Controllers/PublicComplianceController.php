@@ -6,6 +6,7 @@ use App\Models\Page;
 use App\Models\PageVisit;
 use App\Models\Post;
 use App\Models\SatkerSetting;
+use App\Support\Tanggal;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\View\View;
@@ -23,6 +24,7 @@ class PublicComplianceController extends Controller
         Cache::forget('public_sitemap_html.pertama');
         Cache::forget('public_sitemap_html.banding');
         Cache::forget('public_visitor_stats');
+        Cache::forget('public_visitor_stats_v2');
     }
 
     public function accessibility(): View
@@ -46,13 +48,25 @@ class PublicComplianceController extends Controller
 
     public function visitorStats(): View
     {
-        $stats = Cache::get('public_visitor_stats');
+        $satker = SatkerSetting::current();
+        $stats = Cache::get('public_visitor_stats_v2');
 
         if (! is_array($stats) || ! isset($stats['totalVisits'], $stats['last30Days'], $stats['dailyStats'], $stats['topPaths'])) {
+            $today = now()->toDateString();
             $totalVisits = (int) PageVisit::query()->sum('visits_count');
-            $last30Days = (int) PageVisit::query()
-                ->where('visit_date', '>=', now()->subDays(30)->toDateString())
+            $todayVisits = (int) PageVisit::query()
+                ->where('visit_date', $today)
                 ->sum('visits_count');
+            $last7Days = (int) PageVisit::query()
+                ->where('visit_date', '>=', now()->subDays(6)->toDateString())
+                ->sum('visits_count');
+            $last30Days = (int) PageVisit::query()
+                ->where('visit_date', '>=', now()->subDays(29)->toDateString())
+                ->sum('visits_count');
+
+            $earliestRaw = PageVisit::query()->min('visit_date');
+            $earliestDate = $earliestRaw ? Carbon::parse((string) $earliestRaw) : null;
+            $hasLegacyArchive = $earliestDate !== null && $earliestDate->year < now()->year;
 
             $dailyStats = PageVisit::query()
                 ->selectRaw('visit_date, SUM(visits_count) as total')
@@ -60,40 +74,117 @@ class PublicComplianceController extends Controller
                 ->orderByDesc('visit_date')
                 ->limit(14)
                 ->get()
-                ->map(fn (PageVisit $row): array => [
-                    'visit_date' => $row->visit_date instanceof CarbonInterface
-                        ? $row->visit_date->format('Y-m-d')
-                        : (string) $row->visit_date,
-                    'total' => (int) $row->getAttribute('total'),
-                ])
+                ->map(function (PageVisit $row): array {
+                    $dateObj = $row->visit_date instanceof CarbonInterface
+                        ? $row->visit_date
+                        : Carbon::parse((string) $row->visit_date);
+
+                    return [
+                        'visit_date' => $dateObj->format('Y-m-d'),
+                        'label_full' => Tanggal::format($dateObj, 'l, d M Y'),
+                        'label_short' => Tanggal::format($dateObj, 'd M'),
+                        'total' => (int) $row->getAttribute('total'),
+                    ];
+                })
                 ->all();
 
-            $topPaths = PageVisit::query()
+            $rawTopRows = PageVisit::query()
                 ->selectRaw('path, SUM(visits_count) as total')
                 ->groupBy('path')
                 ->orderByDesc('total')
-                ->limit(15)
-                ->get()
-                ->map(fn (PageVisit $row): array => [
-                    'path' => (string) $row->path,
-                    'total' => (int) $row->getAttribute('total'),
-                ])
+                ->limit(12)
+                ->get();
+
+            $pageSlugs = [];
+            $postSlugs = [];
+            foreach ($rawTopRows as $row) {
+                $p = (string) $row->path;
+                if (str_starts_with($p, '/halaman/')) {
+                    $pageSlugs[] = trim(substr($p, strlen('/halaman/')), '/');
+                } elseif (str_starts_with($p, '/publikasi/')) {
+                    $postSlugs[] = trim(substr($p, strlen('/publikasi/')), '/');
+                }
+            }
+
+            $pageTitles = $pageSlugs !== []
+                ? Page::query()->whereIn('slug', array_unique($pageSlugs))->pluck('title', 'slug')->all()
+                : [];
+            $postTitles = $postSlugs !== []
+                ? Post::query()->whereIn('slug', array_unique($postSlugs))->pluck('title', 'slug')->all()
+                : [];
+
+            $staticMap = [
+                '/' => ['Beranda Portal', 'Halaman Utama'],
+                '/publikasi' => ['Daftar Berita & Publikasi Resmi', 'Publikasi'],
+                '/statistik-pengunjung' => ['Statistik Pengunjung Portal', 'Transparansi'],
+                '/status-sistem' => ['Informasi Status Sistem', 'Transparansi'],
+                '/peta-situs' => ['Peta Situs Portal', 'Navigasi'],
+                '/aksesibilitas' => ['Panduan Aksesibilitas', 'Aksesibilitas'],
+                '/cari' => ['Pencarian Informasi Portal', 'Pencarian'],
+            ];
+
+            $topPaths = $rawTopRows
+                ->map(function (PageVisit $row) use ($pageTitles, $postTitles, $staticMap, $satker, $hasLegacyArchive): array {
+                    $path = (string) $row->path;
+                    $total = (int) $row->getAttribute('total');
+                    $title = $path;
+                    $category = 'Halaman Portal';
+                    $note = null;
+
+                    if (isset($staticMap[$path])) {
+                        [$title, $category] = $staticMap[$path];
+                        if ($path === '/' && $hasLegacyArchive) {
+                            $note = 'Termasuk akumulasi arsip kunjungan website lama';
+                        }
+                    } elseif (str_starts_with($path, '/halaman/')) {
+                        $slug = trim(substr($path, strlen('/halaman/')), '/');
+                        $rawTitle = $pageTitles[$slug] ?? str($slug)->afterLast('/')->replace('-', ' ')->title()->toString();
+                        $title = $satker !== null ? $satker->replacePlaceholders($rawTitle) : $rawTitle;
+                        $category = 'Halaman Layanan';
+                    } elseif (str_starts_with($path, '/publikasi/')) {
+                        $slug = trim(substr($path, strlen('/publikasi/')), '/');
+                        $title = $postTitles[$slug] ?? str($slug)->replace('-', ' ')->title()->toString();
+                        $category = 'Berita & Publikasi';
+                    }
+
+                    return [
+                        'path' => $path,
+                        'title' => $title,
+                        'category' => $category,
+                        'note' => $note,
+                        'total' => $total,
+                    ];
+                })
                 ->all();
+
+            $avgDaily14 = count($dailyStats) > 0
+                ? (int) round(array_sum(array_column($dailyStats, 'total')) / count($dailyStats))
+                : 0;
 
             $stats = [
                 'totalVisits' => $totalVisits,
+                'todayVisits' => $todayVisits,
+                'last7Days' => $last7Days,
                 'last30Days' => $last30Days,
+                'avgDaily14' => $avgDaily14,
+                'earliestLabel' => $earliestDate ? Tanggal::format($earliestDate, 'F Y') : null,
+                'hasLegacyArchive' => $hasLegacyArchive,
                 'dailyStats' => $dailyStats,
                 'topPaths' => $topPaths,
             ];
 
-            Cache::put('public_visitor_stats', $stats, 120);
+            Cache::put('public_visitor_stats_v2', $stats, 120);
         }
 
         return view('public.visitor-stats', [
-            'satker' => SatkerSetting::current(),
+            'satker' => $satker,
             'totalVisits' => (int) $stats['totalVisits'],
+            'todayVisits' => (int) ($stats['todayVisits'] ?? 0),
+            'last7Days' => (int) ($stats['last7Days'] ?? 0),
             'last30Days' => (int) $stats['last30Days'],
+            'avgDaily14' => (int) ($stats['avgDaily14'] ?? 0),
+            'earliestLabel' => $stats['earliestLabel'] ?? null,
+            'hasLegacyArchive' => (bool) ($stats['hasLegacyArchive'] ?? false),
             'dailyStats' => collect($stats['dailyStats'])->map(fn (array $row): object => (object) $row),
             'topPaths' => collect($stats['topPaths'])->map(fn (array $row): object => (object) $row),
         ]);

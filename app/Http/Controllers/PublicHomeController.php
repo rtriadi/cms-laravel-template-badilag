@@ -98,12 +98,12 @@ class PublicHomeController extends Controller
                     ->where('slug', 'like', 'transparansi/%')
                     ->whereIn('tingkat_scope', ['all', $activeTingkat])
                     ->orderBy('criteria_code')
-                    ->limit(6)
+                    ->limit(8)
                     ->get()
                     ->map(fn (Page $page): array => $page->getAttributes())
                     ->all(),
                 'servicePages' => Page::query()
-                    ->select(['id', 'title', 'slug', 'criteria_code'])
+                    ->select(['id', 'title', 'slug', 'summary', 'criteria_code'])
                     ->where('is_published', true)
                     ->where('slug', 'like', 'layanan-hukum/%')
                     ->whereIn('tingkat_scope', ['all', $activeTingkat])
@@ -224,7 +224,7 @@ class PublicHomeController extends Controller
                 [
                     'label' => 'Survei Kepuasan (SKM, SPAK & SPKP)',
                     'url' => route('public.page', ['slug' => 'layanan-publik/survei-pelayanan']),
-                    'tag' => 'SI SURTI',
+                    'tag' => 'Survei',
                 ],
             ];
 
@@ -239,6 +239,7 @@ class PublicHomeController extends Controller
             'todaySchedules' => $todaySchedules,
             'hasUpcomingSchedules' => (bool) $cached['hasUpcomingSchedules'],
             'shortcuts' => $shortcuts,
+            'hasCustomShortcuts' => $customShortcuts->isNotEmpty(),
         ]);
     }
 }

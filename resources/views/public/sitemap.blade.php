@@ -19,16 +19,16 @@
         <div class="grid gap-6 md:grid-cols-2">
             <section class="rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-6 shadow-2xs">
                 <h2 class="border-b border-hairline pb-3 font-serif text-lg font-bold text-ink">Halaman Informasi &amp; Layanan</h2>
-                <ul class="mt-3 space-y-2 text-xs">
-                    <li><a href="{{ route('home') }}" class="font-semibold text-primary hover:underline">Beranda Utama</a></li>
-                    <li><a href="{{ route('public.posts') }}" class="font-semibold text-primary hover:underline">Berita &amp; Pengumuman Resmi</a></li>
-                    <li><a href="{{ route('public.search') }}" class="font-semibold text-primary hover:underline">Pencarian Informasi Publik</a></li>
-                    <li><a href="{{ route('public.accessibility') }}" class="font-semibold text-primary hover:underline">Pernyataan &amp; Panduan Aksesibilitas</a></li>
-                    <li><a href="{{ route('public.system-status') }}" class="font-semibold text-primary hover:underline">Status Versi &amp; Keamanan Sistem</a></li>
-                    <li><a href="{{ route('public.visitor-stats') }}" class="font-semibold text-primary hover:underline">Statistik Pengunjung Portal</a></li>
+                <ul class="mt-2 divide-y divide-hairline/60 text-xs">
+                    <li><a href="{{ route('home') }}" class="flex min-h-10 items-center py-1.5 font-semibold text-primary hover:underline">Beranda Utama</a></li>
+                    <li><a href="{{ route('public.posts') }}" class="flex min-h-10 items-center py-1.5 font-semibold text-primary hover:underline">Berita &amp; Pengumuman Resmi</a></li>
+                    <li><a href="{{ route('public.search') }}" class="flex min-h-10 items-center py-1.5 font-semibold text-primary hover:underline">Pencarian Informasi Publik</a></li>
+                    <li><a href="{{ route('public.accessibility') }}" class="flex min-h-10 items-center py-1.5 font-semibold text-primary hover:underline">Pernyataan &amp; Panduan Aksesibilitas</a></li>
+                    <li><a href="{{ route('public.system-status') }}" class="flex min-h-10 items-center py-1.5 font-semibold text-primary hover:underline">Status Versi &amp; Keamanan Sistem</a></li>
+                    <li><a href="{{ route('public.visitor-stats') }}" class="flex min-h-10 items-center py-1.5 font-semibold text-primary hover:underline">Statistik Pengunjung Portal</a></li>
                     @foreach ($pages as $pg)
-                        <li class="flex items-center justify-between gap-2 pt-1">
-                            <a href="{{ route('public.page', ['slug' => $pg->slug]) }}" class="text-primary hover:underline">{{ $pg->title }}</a>
+                        <li>
+                            <a href="{{ route('public.page', ['slug' => $pg->slug]) }}" class="flex min-h-10 items-center py-1.5 text-primary hover:underline">{{ $pg->title }}</a>
                         </li>
                     @endforeach
                 </ul>
@@ -39,10 +39,10 @@
                 @if ($posts->isEmpty())
                     <p class="py-6 text-xs text-ink-muted">Belum ada publikasi terbit.</p>
                 @else
-                    <ul class="mt-3 space-y-2 text-xs">
+                    <ul class="mt-2 divide-y divide-hairline/60 text-xs">
                         @foreach ($posts as $pst)
                             <li>
-                                <a href="{{ route('public.posts.show', ['slug' => $pst->slug]) }}" class="font-semibold text-primary hover:underline">
+                                <a href="{{ route('public.posts.show', ['slug' => $pst->slug]) }}" class="flex min-h-10 items-center py-1.5 font-semibold text-primary hover:underline">
                                     {{ $pst->title }}
                                 </a>
                             </li>

@@ -544,11 +544,11 @@ const initHeroSlider = () => {
     }
 
     const dots = Array.from(container.querySelectorAll('[data-slider-dot]'));
+    const tabs = Array.from(container.querySelectorAll('[data-slider-tab]'));
     const prevBtns = Array.from(container.querySelectorAll('[data-slider-prev]'));
     const nextBtns = Array.from(container.querySelectorAll('[data-slider-next]'));
-    const pauseBtn = container.querySelector('[data-slider-pause]');
-    const pauseLabel = container.querySelector('[data-slider-pause-label]');
-    const counterEl = container.querySelector('[data-slider-counter]');
+    const pauseBtns = Array.from(container.querySelectorAll('[data-slider-pause]'));
+    const counterEls = Array.from(container.querySelectorAll('[data-slider-counter]'));
     const captionEl = container.querySelector('[data-slider-caption]');
     const progressEl = container.querySelector('[data-slider-progress]');
 
@@ -579,16 +579,33 @@ const initHeroSlider = () => {
         }
     };
 
-    const restartProgressBar = () => {
-        if (!progressEl) {
+    const restartBar = (bar) => {
+        if (!bar) {
             return;
         }
-        progressEl.classList.remove('pub-slider-progress-bar');
-        void progressEl.offsetWidth;
+        bar.classList.remove('pub-slider-progress-bar');
+        void bar.offsetWidth;
         if (!paused && !isReducedMotionActive()) {
-            progressEl.classList.add('pub-slider-progress-bar');
-            progressEl.classList.remove('is-paused');
+            bar.classList.add('pub-slider-progress-bar');
+            bar.classList.remove('is-paused');
         }
+    };
+
+    const restartProgressBar = () => {
+        restartBar(progressEl);
+        tabs.forEach((tab, i) => {
+            const tabBar = tab.querySelector('[data-slider-tab-progress]');
+            if (!tabBar) {
+                return;
+            }
+            const active = i === index;
+            tabBar.classList.toggle('opacity-0', !active);
+            if (active) {
+                restartBar(tabBar);
+            } else {
+                tabBar.classList.remove('pub-slider-progress-bar', 'is-paused');
+            }
+        });
     };
 
     const showSlide = (nextIdx, animate = true) => {
@@ -616,10 +633,12 @@ const initHeroSlider = () => {
             }
         });
 
-        if (counterEl) {
+        if (counterEls.length > 0) {
             const cur = String(index + 1).padStart(2, '0');
             const tot = String(slides.length).padStart(2, '0');
-            counterEl.textContent = `${cur} / ${tot}`;
+            counterEls.forEach((el) => {
+                el.textContent = `${cur} / ${tot}`;
+            });
         }
 
         if (captionEl) {
@@ -641,6 +660,19 @@ const initHeroSlider = () => {
             dot.setAttribute('aria-current', active ? 'true' : 'false');
         });
 
+        tabs.forEach((tab, i) => {
+            const active = i === index;
+            tab.setAttribute('aria-current', active ? 'true' : 'false');
+            tab.classList.toggle('bg-white/10', active);
+            tab.classList.toggle('text-white', active);
+            tab.classList.toggle('text-emerald-100/75', !active);
+            const num = tab.querySelector('[data-slider-tab-num]');
+            if (num) {
+                num.classList.toggle('text-amber-300', active);
+                num.classList.toggle('text-emerald-200/70', !active);
+            }
+        });
+
         restartProgressBar();
 
         window.dispatchEvent(new CustomEvent('satker:slide-change', {
@@ -654,26 +686,29 @@ const initHeroSlider = () => {
             autoTimer = null;
         }
         progressEl?.classList.add('is-paused');
+        container.querySelectorAll('[data-slider-tab-progress]').forEach((b) => b.classList.add('is-paused'));
     };
 
     const startAuto = () => {
         stopAuto();
         if (!paused && !isReducedMotionActive() && slides.length > 1 && !document.hidden) {
             progressEl?.classList.remove('is-paused');
+            tabs[index]?.querySelector('[data-slider-tab-progress]')?.classList.remove('is-paused');
             autoTimer = window.setInterval(() => showSlide(index + 1), 7000);
         }
     };
 
     const setPaused = (value) => {
         paused = value;
-        if (pauseBtn) {
-            pauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
-            if (pauseLabel) {
-                pauseLabel.textContent = paused ? 'Putar' : 'Jeda';
+        pauseBtns.forEach((btn) => {
+            btn.setAttribute('aria-pressed', paused ? 'true' : 'false');
+            const label = btn.querySelector('[data-slider-pause-label]');
+            if (label) {
+                label.textContent = paused ? 'Putar' : 'Jeda';
             } else {
-                pauseBtn.textContent = paused ? 'Putar' : 'Jeda';
+                btn.textContent = paused ? 'Putar' : 'Jeda';
             }
-        }
+        });
         if (paused) {
             stopAuto();
         } else {
@@ -703,7 +738,16 @@ const initHeroSlider = () => {
         });
     });
 
-    pauseBtn?.addEventListener('click', () => setPaused(!paused));
+    tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+            showSlide(Number(tab.getAttribute('data-slider-tab')));
+            startAuto();
+        });
+    });
+
+    pauseBtns.forEach((btn) => {
+        btn.addEventListener('click', () => setPaused(!paused));
+    });
 
     container.addEventListener('keydown', (event) => {
         const tag = (event.target?.tagName || '').toLowerCase();
@@ -808,7 +852,21 @@ const initSimtepaTabs = () => {
         const iframe = container.querySelector('[data-simtepa-iframe]');
         const htmlLink = container.querySelector('[data-simtepa-html-link]');
         const jsonLink = container.querySelector('[data-simtepa-json-link]');
+        const reloadBtn = container.querySelector('[data-simtepa-reload-btn]');
         const buttons = Array.from(container.querySelectorAll('[data-simtepa-tab-btn]'));
+
+        if (reloadBtn && iframe) {
+            reloadBtn.addEventListener('click', () => {
+                const currentSrc = iframe.getAttribute('src');
+                if (!currentSrc) {
+                    return;
+                }
+                iframe.setAttribute('src', 'about:blank');
+                window.setTimeout(() => {
+                    iframe.setAttribute('src', currentSrc);
+                }, 40);
+            });
+        }
 
         buttons.forEach((btn) => {
             btn.addEventListener('click', (e) => {

@@ -15,6 +15,7 @@
     'publishedAt' => null,
     'modifiedAt' => null,
     'jsonLd' => [],
+    'flushFooter' => false,
 ])
 @php
     $satker = \App\Models\SatkerSetting::current();
@@ -234,17 +235,17 @@
 
     <!-- Obsidian Utility Bar -->
     <div class="bg-obsidian text-xs text-emerald-50">
-        <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2 sm:px-6 lg:px-8">
+        <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-1.5 sm:px-6 lg:px-8">
             <div class="flex min-w-0 items-center gap-3.5 whitespace-nowrap">
                 <span class="shrink-0 font-semibold text-amber-300">
                     <span class="sm:hidden">MA RI &middot; Ditjen Badilag</span>
                     <span class="hidden sm:inline">Mahkamah Agung RI &middot; Ditjen Badilag</span>
                 </span>
                 @if ($satker?->telepon)
-                    <span class="hidden shrink-0 text-emerald-100 md:inline">Telp: {{ $satker->telepon }}</span>
+                    <span class="hidden shrink-0 font-mono text-[11px] text-emerald-100 md:inline">Telp: {{ $satker->telepon }}</span>
                 @endif
                 @if ($satker?->email)
-                    <span class="hidden min-w-0 truncate text-emerald-100 lg:inline">Surel: {{ $satker->email }}</span>
+                    <span class="hidden min-w-0 truncate font-mono text-[11px] text-emerald-100 lg:inline">{{ $satker->email }}</span>
                 @endif
             </div>
             <nav aria-label="Tautan Kepatuhan Cepat" class="flex shrink-0 items-center gap-3.5 whitespace-nowrap">
@@ -256,110 +257,8 @@
         </div>
     </div>
 
-    <!-- 3px Institutional Gold Ribbon -->
-    <div class="h-[3px] w-full bg-gold shadow-sm" aria-hidden="true"></div>
-
-    <!-- Main Identity, Search Trigger & Action Header -->
-    <header class="sticky top-0 z-30 border-b border-hairline bg-white/95 backdrop-blur-sm shadow-2xs lg:static lg:bg-white">
-        <div class="mx-auto flex max-w-7xl items-center justify-between gap-2.5 px-4 py-3 sm:gap-4 sm:px-6 sm:py-3.5 lg:px-8">
-            <a href="{{ route('home') }}" class="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3.5">
-                @if ($satker?->logo_path && $logoImgAttrs)
-                    <img
-                        src="{{ $logoImgAttrs['src'] }}"
-                        @if ($logoImgAttrs['srcset']) srcset="{{ $logoImgAttrs['srcset'] }}" sizes="{{ $logoImgAttrs['sizes'] }}" @endif
-                        alt="Logo Resmi {{ $satkerName }}"
-                        width="48"
-                        height="48"
-                        decoding="async"
-                        class="h-10 w-10 shrink-0 rounded-lg border border-hairline bg-white object-contain p-1 shadow-2xs sm:h-12 sm:w-12"
-                    />
-                @else
-                    <div aria-hidden="true" class="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-gold bg-obsidian text-gold shadow-2xs sm:h-12 sm:w-12">
-                        <svg class="size-5 sm:size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 3v18" />
-                            <path d="M5 7h14" />
-                            <path d="M8 21h8" />
-                            <path d="M5 7l-3 6h6l-3-6z" />
-                            <path d="M19 7l-3 6h6l-3-6z" />
-                        </svg>
-                    </div>
-                @endif
-
-                <div class="min-w-0">
-                    <p class="line-clamp-2 font-serif text-sm leading-snug font-bold text-ink sm:truncate sm:text-xl sm:leading-tight">
-                        {{ $satkerName }}
-                    </p>
-                    <p class="mt-0.5 truncate text-[11px] font-medium text-ink-muted sm:text-xs">
-                        {{ $tingkatLabel }}
-                        @if ($satker?->kode_satker)
-                            <span class="hidden sm:inline">&middot; Kode Satker: <span class="font-mono">{{ $satker->kode_satker }}</span></span>
-                        @endif
-                    </p>
-                </div>
-            </a>
-
-            <div class="flex shrink-0 items-center gap-1.5 sm:gap-2">
-                <!-- Desktop Search Command Button (opens Ctrl+K Search Overlay) -->
-                <button
-                    type="button"
-                    data-open-public-search
-                    aria-expanded="false"
-                    aria-controls="public-search-modal"
-                    aria-label="Cari perkara, jadwal, atau dokumen"
-                    class="pub-btn hidden min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-hairline bg-ivory px-3.5 text-xs font-medium text-ink-muted hover:border-primary hover:bg-primary-soft hover:text-ink sm:inline-flex"
-                >
-                    <svg class="size-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path stroke-linecap="round" d="m21 21-4.35-4.35"></path>
-                    </svg>
-                    <span class="hidden md:inline">Cari perkara, jadwal, dokumen...</span>
-                    <span class="md:hidden">Cari</span>
-                    <kbd class="hidden rounded border border-hairline bg-white px-1.5 py-0.5 font-mono text-2xs font-semibold text-ink lg:inline">Ctrl K</kbd>
-                </button>
-
-                <!-- Mobile Search Button (>=44x44px touch target) -->
-                <button
-                    type="button"
-                    data-open-public-search
-                    aria-expanded="false"
-                    aria-controls="public-search-modal"
-                    aria-label="Buka pencarian portal"
-                    class="pub-btn inline-flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-hairline bg-ivory text-xs font-bold text-ink hover:bg-primary-soft sm:hidden"
-                >
-                    <svg class="size-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path stroke-linecap="round" d="m21 21-4.35-4.35"></path>
-                    </svg>
-                    <span class="sr-only">Cari</span>
-                </button>
-
-                <!-- Desktop e-Court Action Pill -->
-                <a
-                    href="{{ $safeEcourtUrl }}"
-                    @if (str_starts_with($safeEcourtUrl, 'http')) target="_blank" rel="noopener noreferrer" @endif
-                    class="pub-btn hidden min-h-11 shrink-0 items-center gap-1.5 rounded-lg bg-primary px-4 text-xs font-bold text-white shadow-2xs hover:bg-primary-hover lg:inline-flex"
-                >
-                    <span>e-Court MARI</span>
-                    <svg class="size-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd"></path>
-                    </svg>
-                </a>
-
-                <button
-                    id="mobile-menu-open"
-                    type="button"
-                    aria-expanded="false"
-                    aria-controls="mobile-nav-drawer"
-                    class="pub-btn inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-hairline bg-white px-3.5 text-xs font-bold text-ink hover:bg-mist lg:hidden"
-                >
-                    <svg class="size-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                    <span>Menu</span>
-                </button>
-            </div>
-        </div>
-    </header>
+    <!-- 3px Institutional Gold Motif -->
+    <div class="h-[3px] w-full bg-gold" aria-hidden="true"></div>
 
     @php
         $currentPath = '/' . ltrim(request()->path(), '/');
@@ -383,96 +282,195 @@
         };
     @endphp
 
-    <!-- Primary 6-Menu Sticky Navigation Bar (Desktop) -->
-    <nav id="desktop-primary-nav" aria-label="Navigasi Utama Website" class="sticky top-0 z-40 hidden border-b border-primary-hover bg-primary text-white shadow-xs lg:block">
-        <div class="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 sm:px-6 lg:px-8">
-            <ul class="flex flex-wrap items-center gap-1">
-                @foreach ($headerMenus as $topMenu)
-                    @php
-                        $hasChildren = $topMenu->children->isNotEmpty();
-                        $menuHref = $topMenu->resolvedUrl();
-                        $isTopActive = $isMenuActive($topMenu);
-                    @endphp
-                    <li class="relative" data-nav-group>
-                        @if ($hasChildren)
-                            <button
-                                type="button"
-                                aria-expanded="false"
-                                data-nav-trigger
-                                @class([
-                                    'pub-nav-link inline-flex min-h-12 cursor-pointer items-center gap-1.5 px-3.5 text-sm font-semibold hover:bg-primary-hover',
-                                    'is-active bg-primary-deep text-amber-300' => $isTopActive,
-                                    'text-white' => ! $isTopActive,
-                                ])
-                            >
-                                <span>{{ $topMenu->title }}</span>
-                                <svg class="pub-nav-chevron size-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"></path>
-                                </svg>
-                            </button>
-                            <div
-                                data-nav-submenu
-                                hidden
-                                class="absolute top-full left-0 z-30 max-h-[75vh] w-72 overflow-y-auto rounded-b-lg border border-hairline bg-white py-1.5 text-ink shadow-xl"
-                            >
-                                @foreach ($topMenu->children as $childMenu)
-                                    @if ($childMenu->type === 'group')
-                                        <p class="px-4 py-2 text-xs font-bold text-primary-deep uppercase">
-                                            {{ $childMenu->title }}
-                                        </p>
-                                    @else
-                                        <a
-                                            href="{{ $childMenu->resolvedUrl() }}"
-                                            @if ($childMenu->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
-                                            class="flex min-h-11 items-center px-4 py-2 text-xs font-medium text-ink hover:bg-primary-soft hover:text-primary"
-                                        >
-                                            {{ $childMenu->title }}
-                                        </a>
-                                    @endif
+    <!-- 2-Tier Clean Civic Editorial Header: Identity Row (Top) + Dedicated Navigation Bar (Bottom) -->
+    <header class="sticky top-0 z-40 border-b border-hairline bg-white/95 backdrop-blur-sm lg:static">
+        <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8 lg:py-3.5">
+            <a href="{{ route('home') }}" class="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3.5">
+                @if ($satker?->logo_path && $logoImgAttrs)
+                    <img
+                        src="{{ $logoImgAttrs['src'] }}"
+                        @if ($logoImgAttrs['srcset']) srcset="{{ $logoImgAttrs['srcset'] }}" sizes="{{ $logoImgAttrs['sizes'] }}" @endif
+                        alt="Logo Resmi {{ $satkerName }}"
+                        width="48"
+                        height="48"
+                        decoding="async"
+                        class="h-10 w-10 shrink-0 rounded-xl border border-hairline bg-white object-contain p-1 shadow-2xs sm:h-12 sm:w-12"
+                    />
+                @else
+                    <div aria-hidden="true" class="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-hairline bg-primary-soft text-primary sm:h-12 sm:w-12">
+                        <svg class="size-5 sm:size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 3v18" />
+                            <path d="M5 7h14" />
+                            <path d="M8 21h8" />
+                            <path d="M5 7l-3 6h6l-3-6z" />
+                            <path d="M19 7l-3 6h6l-3-6z" />
+                        </svg>
+                    </div>
+                @endif
 
-                                    @if ($childMenu->children->isNotEmpty())
-                                        <ul class="mb-1 ml-4 border-s-2 border-hairline ps-3">
-                                            @foreach ($childMenu->children as $grandChild)
-                                                <li>
-                                                    <a
-                                                        href="{{ $grandChild->resolvedUrl() }}"
-                                                        @if ($grandChild->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
-                                                        class="flex min-h-11 items-center px-3 py-1.5 text-xs text-ink-body hover:bg-primary-soft hover:text-primary"
-                                                    >
-                                                        {{ $grandChild->title }}
-                                                    </a>
-                                                </li>
-                                            @endforeach
-                                        </ul>
-                                    @endif
-                                @endforeach
-                            </div>
-                        @else
-                            <a
-                                href="{{ $menuHref }}"
-                                @if ($isTopActive) aria-current="page" @endif
-                                @if ($topMenu->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
-                                @class([
-                                    'pub-nav-link inline-flex min-h-12 items-center px-3.5 text-sm font-semibold hover:bg-primary-hover',
-                                    'is-active bg-primary-deep text-amber-300' => $isTopActive,
-                                    'text-white' => ! $isTopActive,
-                                ])
-                            >
-                                {{ $topMenu->title }}
-                            </a>
+                <div class="min-w-0">
+                    <p class="font-serif text-[14px] leading-snug font-bold text-ink sm:text-[18px] lg:text-[20px]">
+                        {{ $satkerName }}
+                    </p>
+                    <p class="mt-0.5 text-[11px] leading-tight font-medium text-ink-muted sm:text-xs">
+                        <span>{{ $tingkatLabel }}</span>
+                        @if ($satker?->kode_satker)
+                            <span class="hidden sm:inline">&middot; Kode Satker <span class="font-mono font-semibold text-primary-deep">{{ $satker->kode_satker }}</span></span>
                         @endif
-                    </li>
-                @endforeach
-            </ul>
-
-            <a
-                href="{{ route('public.page', ['slug' => 'layanan-hukum/hak-pencari-keadilan']) }}"
-                class="pub-btn hidden shrink-0 items-center rounded-md border border-gold/60 bg-obsidian px-3 py-1.5 font-mono text-2xs font-semibold text-amber-300 hover:bg-primary-deep xl:inline-flex"
-            >
-                PTSP &amp; Posbakum Terintegrasi
+                    </p>
+                </div>
             </a>
+
+            <div class="flex shrink-0 items-center gap-2">
+                <!-- Desktop Search Command Button (opens Ctrl+K Search Overlay) -->
+                <button
+                    type="button"
+                    data-open-public-search
+                    aria-expanded="false"
+                    aria-controls="public-search-modal"
+                    aria-label="Cari perkara, jadwal, atau dokumen"
+                    class="pub-btn hidden min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-hairline bg-ivory px-3.5 text-xs font-medium text-ink-muted hover:border-primary hover:bg-primary-soft hover:text-ink sm:inline-flex"
+                >
+                    <svg class="size-4 shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path stroke-linecap="round" d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <span class="hidden md:inline">Cari layanan, berita, dokumen...</span>
+                    <span class="md:hidden">Cari</span>
+                    <kbd class="hidden rounded border border-hairline bg-white px-1.5 py-0.5 font-mono text-[10px] font-semibold text-ink-muted lg:inline">Ctrl K</kbd>
+                </button>
+
+                <!-- Mobile Search Button (>=44x44px touch target) -->
+                <button
+                    type="button"
+                    data-open-public-search
+                    aria-expanded="false"
+                    aria-controls="public-search-modal"
+                    aria-label="Buka pencarian portal"
+                    class="pub-btn inline-flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-hairline bg-ivory text-xs font-bold text-ink hover:bg-primary-soft sm:hidden"
+                >
+                    <svg class="size-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path stroke-linecap="round" d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <span class="sr-only">Cari</span>
+                </button>
+
+                <!-- Desktop e-Court Action CTA -->
+                <a
+                    href="{{ $safeEcourtUrl }}"
+                    @if (str_starts_with($safeEcourtUrl, 'http')) target="_blank" rel="noopener noreferrer" @endif
+                    class="pub-btn hidden min-h-11 shrink-0 items-center rounded-lg bg-primary px-4 text-xs font-bold whitespace-nowrap text-white shadow-2xs hover:bg-primary-hover md:inline-flex"
+                >
+                    e-Court MARI
+                </a>
+
+                <button
+                    id="mobile-menu-open"
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls="mobile-nav-drawer"
+                    class="pub-btn inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-hairline bg-primary-soft px-3 text-xs font-bold text-primary-deep hover:border-primary lg:hidden"
+                >
+                    <svg class="size-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                    <span>Menu</span>
+                </button>
+            </div>
         </div>
-    </nav>
+    </header>
+
+    <!-- Dedicated Sticky Primary Navigation Bar (Desktop >= 1024px) -->
+    <div class="hidden border-b border-hairline bg-white/95 shadow-[0_2px_8px_-4px_rgba(2,44,32,0.08)] backdrop-blur-sm lg:sticky lg:top-0 lg:z-40 lg:block">
+        <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+            <nav id="desktop-primary-nav" aria-label="Navigasi Utama Website" class="min-w-0 flex-1">
+                <ul class="flex items-center gap-1 py-1">
+                    @foreach ($headerMenus as $topMenu)
+                        @php
+                            $hasChildren = $topMenu->children->isNotEmpty();
+                            $menuHref = $topMenu->resolvedUrl();
+                            $isTopActive = $isMenuActive($topMenu);
+                        @endphp
+                        <li class="relative" data-nav-group>
+                            @if ($hasChildren)
+                                <button
+                                    type="button"
+                                    aria-expanded="false"
+                                    data-nav-trigger
+                                    @class([
+                                        'pub-nav-link inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg px-3.5 text-[13.5px] font-semibold whitespace-nowrap hover:bg-primary-soft hover:text-primary',
+                                        'is-active text-primary' => $isTopActive,
+                                        'text-ink-body' => ! $isTopActive,
+                                    ])
+                                >
+                                    <span>{{ $topMenu->title }}</span>
+                                    <svg class="pub-nav-chevron size-3.5 shrink-0 opacity-75" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                                <div
+                                    data-nav-submenu
+                                    hidden
+                                    class="absolute top-full left-0 z-30 mt-1.5 max-h-[75vh] w-72 overflow-y-auto rounded-xl border border-hairline bg-white py-1.5 text-ink shadow-xl"
+                                >
+                                    @foreach ($topMenu->children as $childMenu)
+                                        @if ($childMenu->type === 'group')
+                                            <p class="px-4 py-2 text-xs font-bold text-primary-deep uppercase">
+                                                {{ $childMenu->title }}
+                                            </p>
+                                        @else
+                                            <a
+                                                href="{{ $childMenu->resolvedUrl() }}"
+                                                @if ($childMenu->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
+                                                class="flex min-h-11 items-center px-4 py-2 text-xs font-medium text-ink hover:bg-primary-soft hover:text-primary"
+                                            >
+                                                {{ $childMenu->title }}
+                                            </a>
+                                        @endif
+
+                                        @if ($childMenu->children->isNotEmpty())
+                                            <ul class="mb-1 ml-4 border-s-2 border-hairline ps-3">
+                                                @foreach ($childMenu->children as $grandChild)
+                                                    <li>
+                                                        <a
+                                                            href="{{ $grandChild->resolvedUrl() }}"
+                                                            @if ($grandChild->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
+                                                            class="flex min-h-11 items-center px-3 py-1.5 text-xs text-ink-body hover:bg-primary-soft hover:text-primary"
+                                                        >
+                                                            {{ $grandChild->title }}
+                                                        </a>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @else
+                                <a
+                                    href="{{ $menuHref }}"
+                                    @if ($isTopActive) aria-current="page" @endif
+                                    @if ($topMenu->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif
+                                    @class([
+                                        'pub-nav-link inline-flex min-h-11 items-center rounded-lg px-3.5 text-[13.5px] font-semibold whitespace-nowrap hover:bg-primary-soft hover:text-primary',
+                                        'is-active text-primary' => $isTopActive,
+                                        'text-ink-body' => ! $isTopActive,
+                                    ])
+                                >
+                                    {{ $topMenu->title }}
+                                </a>
+                            @endif
+                        </li>
+                    @endforeach
+                </ul>
+            </nav>
+
+            <div class="hidden shrink-0 items-center gap-2 border-l border-hairline pl-4 font-mono text-[11px] text-ink-muted xl:flex">
+                <span class="inline-block size-2 rounded-full bg-primary" aria-hidden="true"></span>
+                <span>PTSP {{ $fmtJam($monThuOpen) }}-{{ $fmtJam($monThuClose) }} {{ $tzLabel }}</span>
+            </div>
+        </div>
+    </div>
 
     <!-- Public Search Overlay Modal (Ctrl+K) -->
     <div
@@ -534,7 +532,7 @@
         aria-modal="true"
         aria-label="Menu Navigasi Utama"
         hidden
-        class="fixed inset-0 z-50 flex justify-end bg-black/50 lg:hidden"
+        class="fixed inset-0 z-50 flex justify-end bg-black/50 xl:hidden"
     >
         <div data-mobile-drawer-panel class="flex h-full w-full max-w-sm flex-col overflow-y-auto bg-white p-5 shadow-2xl">
             <div class="flex items-center justify-between border-b border-hairline pb-3">
@@ -557,7 +555,7 @@
     </main>
 
     <!-- Civic Footer (3 Columns) -->
-    <footer class="mt-12 border-t-4 border-gold bg-obsidian text-white">
+    <footer @class(['border-t-4 border-gold bg-obsidian text-white', 'mt-12' => ! $flushFooter])>
         <div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3 lg:px-8">
             <div>
                 <h2 class="font-serif text-lg font-bold text-white">{{ $satkerName }}</h2>
@@ -671,7 +669,7 @@
                     @endphp
                     <li>
                         <a href="{{ $safeSkmUrl ?? route('public.page', ['slug' => 'layanan-publik/survei-pelayanan']) }}" @if($safeSkmUrl) target="_blank" rel="noopener noreferrer" @endif class="hover:underline">
-                            Survei Kepuasan &amp; Anti Korupsi (SI SURTI / SKM &amp; SPAK)
+                            Survei Kepuasan &amp; Anti Korupsi (SKM, SPAK &amp; SPKP)
                         </a>
                     </li>
                     @if ($safeFooterCctvUrl)

@@ -151,7 +151,7 @@
 
     @if ($isPaginated && $documents->hasPages())
         <div class="pt-3">
-            {{ $documents->links() }}
+            {{ $documents->links('pagination::tailwind') }}
         </div>
     @endif
 @endif

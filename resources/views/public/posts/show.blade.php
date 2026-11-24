@@ -148,14 +148,17 @@
             </div>
         </header>
 
-        <article class="min-w-0 overflow-x-clip rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-5 shadow-2xs sm:p-8">
-            <div class="prose max-w-none space-y-4 text-sm leading-relaxed text-ink-body">
-                {!! \App\Support\SafeHtml::cleanBody($post->body) !!}
-            </div>
-        </article>
+        <div class="grid items-start gap-6 lg:grid-cols-12">
+            <!-- Main Article & Comments Column (8 Columns) -->
+            <div class="min-w-0 space-y-6 lg:col-span-8">
+                <article class="min-w-0 overflow-x-clip rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-5 shadow-2xs sm:p-7 lg:p-9">
+                    <div class="prose max-w-none text-[15px] leading-[1.8] text-ink-body">
+                        {!! \App\Support\SafeHtml::cleanBody($post->body) !!}
+                    </div>
+                </article>
 
-        <!-- Public Comments & Official Replies Section -->
-        <section id="bagian-komentar" aria-label="Komentar dan Tanggapan Masyarakat" class="scroll-mt-24 space-y-6 rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-6 shadow-2xs sm:p-8">
+                <!-- Public Comments & Official Replies Section -->
+                <section id="bagian-komentar" aria-label="Komentar dan Tanggapan Masyarakat" class="scroll-mt-24 space-y-6 rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-6 shadow-2xs sm:p-8">
             <div class="flex flex-wrap items-center justify-between gap-2 border-b border-hairline pb-4">
                 <div>
                     <span class="font-mono text-2xs font-bold text-primary uppercase">Interaksi Layanan Publik</span>
@@ -369,26 +372,128 @@
                     Kolom komentar dinonaktifkan untuk publikasi ini.
                 </div>
             @endif
-        </section>
+                </section>
+            </div>
 
-        @if ($related->isNotEmpty())
-            <aside aria-label="Publikasi Terkait" class="pub-reveal rounded-xl border border-hairline border-t-4 border-t-gold bg-white p-6 shadow-2xs" style="--stagger-delay: 90ms">
-                <h2 class="border-b border-hairline pb-3 font-serif text-lg font-bold text-ink">Publikasi Terkait</h2>
-                <ul class="mt-3 space-y-2">
-                    @foreach ($related as $rel)
-                        <li>
-                            <a href="{{ route('public.posts.show', ['slug' => $rel->slug]) }}" class="pub-link-card flex min-h-11 items-center justify-between gap-2 rounded-lg border border-hairline bg-ivory px-3.5 py-2 text-sm font-semibold text-primary hover:border-primary hover:bg-primary-soft">
-                                <span>{{ $rel->title }}</span>
-                                <span class="flex shrink-0 items-center gap-3 font-mono text-2xs text-ink-muted">
-                                    <span>{{ number_format((int) ($rel->views_count ?? 0)) }} dilihat</span>
-                                    <span>{{ number_format((int) ($rel->approved_comments_count ?? 0)) }} komentar</span>
-                                    <span aria-hidden="true" class="pub-chevron text-primary">&rarr;</span>
+            <!-- Right Editorial Sidebar (4 Columns) -->
+            <aside aria-label="Publikasi Terkait dan Navigasi Kategori" class="min-w-0 lg:col-span-4">
+                <div class="space-y-5 lg:sticky lg:top-20">
+                    @if ($related->isNotEmpty())
+                        <section aria-label="Publikasi Terkait" class="pub-reveal rounded-xl border border-hairline border-t-4 border-t-gold bg-white p-5 shadow-2xs">
+                            <div class="flex items-center justify-between gap-2 border-b border-hairline pb-2.5">
+                                <h2 class="font-serif text-base font-bold text-ink">Publikasi Terkait</h2>
+                                <span class="rounded bg-primary-soft px-2 py-0.5 font-mono text-2xs font-semibold text-primary">
+                                    {{ $categoryLabel }}
                                 </span>
-                            </a>
-                        </li>
-                    @endforeach
-                </ul>
+                            </div>
+                            <ul class="mt-3 divide-y divide-hairline">
+                                @foreach ($related as $rel)
+                                    <li class="py-3 first:pt-0 last:pb-0">
+                                        <a href="{{ route('public.posts.show', ['slug' => $rel->slug]) }}" class="group flex items-start gap-3">
+                                            @if ($rel->featured_image_path)
+                                                @php
+                                                    $relImg = \App\Services\ImageOptimizerService::responsiveAttributes($rel->featured_image_path, [400], '72px', null, 1000);
+                                                @endphp
+                                                <img
+                                                    src="{{ $relImg['src'] }}"
+                                                    @if ($relImg['srcset']) srcset="{{ $relImg['srcset'] }}" sizes="72px" @endif
+                                                    alt="{{ $rel->featured_image_alt ?: $rel->title }}"
+                                                    width="72"
+                                                    height="54"
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    class="mt-0.5 h-13.5 w-18 shrink-0 rounded-md border border-hairline bg-mist object-cover"
+                                                />
+                                            @endif
+                                            <div class="min-w-0 flex-1">
+                                                <p class="line-clamp-2 text-xs leading-snug font-semibold text-ink transition-colors group-hover:text-primary">
+                                                    {{ $rel->title }}
+                                                </p>
+                                                <p class="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 font-mono text-2xs text-ink-muted">
+                                                    <span>{{ \App\Support\Tanggal::format($rel->published_at ?? $rel->created_at, 'd M Y') }}</span>
+                                                    <span>{{ number_format((int) ($rel->views_count ?? 0)) }} dilihat</span>
+                                                    <span>{{ number_format((int) ($rel->approved_comments_count ?? 0)) }} komentar</span>
+                                                </p>
+                                            </div>
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                            <div class="mt-4 border-t border-hairline pt-3">
+                                <a
+                                    href="{{ route('public.posts', ['kategori' => $post->category]) }}"
+                                    class="pub-link-card flex min-h-10 items-center justify-between rounded-lg border border-hairline bg-mist px-3 text-xs font-semibold text-primary hover:border-primary hover:bg-primary-soft"
+                                >
+                                    <span>Lihat Semua {{ $categoryLabel }}</span>
+                                    <span aria-hidden="true" class="pub-chevron">&rarr;</span>
+                                </a>
+                            </div>
+                        </section>
+                    @endif
+
+                    @if (isset($latestPosts) && $latestPosts->isNotEmpty())
+                        <section aria-label="Publikasi Terbaru" class="pub-reveal rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-5 shadow-2xs">
+                            <h2 class="border-b border-hairline pb-2.5 font-serif text-base font-bold text-ink">
+                                Publikasi Terbaru
+                            </h2>
+                            <ul class="mt-3 divide-y divide-hairline">
+                                @foreach ($latestPosts as $latest)
+                                    <li class="py-2.5 first:pt-0 last:pb-0">
+                                        <a href="{{ route('public.posts.show', ['slug' => $latest->slug]) }}" class="group block">
+                                            <span class="font-mono text-2xs font-semibold text-primary uppercase">
+                                                {{ $categories[$latest->category] ?? $latest->category }}
+                                            </span>
+                                            <p class="mt-0.5 line-clamp-2 text-xs leading-snug font-semibold text-ink transition-colors group-hover:text-primary">
+                                                {{ $latest->title }}
+                                            </p>
+                                            <p class="mt-1 font-mono text-2xs text-ink-muted">
+                                                {{ \App\Support\Tanggal::format($latest->published_at ?? $latest->created_at, 'd M Y') }}
+                                                &middot; {{ number_format((int) ($latest->views_count ?? 0)) }} dilihat
+                                            </p>
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </section>
+                    @endif
+
+                    <nav aria-label="Kategori Publikasi" class="pub-reveal rounded-xl border border-hairline border-t-4 border-t-primary bg-white p-5 shadow-2xs">
+                        <h2 class="border-b border-hairline pb-2.5 font-serif text-base font-bold text-ink">
+                            Kategori Publikasi
+                        </h2>
+                        <ul class="mt-3 space-y-1.5 text-xs">
+                            @foreach ($categories as $catKey => $catName)
+                                @php
+                                    $catCount = (int) (($categoryCounts ?? [])[$catKey] ?? 0);
+                                    $isActiveCat = $post->category === $catKey;
+                                @endphp
+                                @if ($catCount > 0 || $isActiveCat)
+                                    <li>
+                                        <a
+                                            href="{{ route('public.posts', ['kategori' => $catKey]) }}"
+                                            @if ($isActiveCat) aria-current="page" @endif
+                                            @class([
+                                                'pub-link-card flex min-h-10 items-center justify-between gap-2 rounded-lg px-3 py-2 font-semibold',
+                                                'bg-primary text-white shadow-2xs' => $isActiveCat,
+                                                'border border-hairline bg-mist text-ink hover:border-primary hover:bg-primary-soft hover:text-primary' => ! $isActiveCat,
+                                            ])
+                                        >
+                                            <span>{{ $catName }}</span>
+                                            <span @class([
+                                                'rounded px-1.5 py-0.5 font-mono text-2xs',
+                                                'bg-white/20 text-white' => $isActiveCat,
+                                                'bg-white text-ink-muted' => ! $isActiveCat,
+                                            ])>
+                                                {{ number_format($catCount) }}
+                                            </span>
+                                        </a>
+                                    </li>
+                                @endif
+                            @endforeach
+                        </ul>
+                    </nav>
+                </div>
             </aside>
-        @endif
+        </div>
     </div>
 </x-layouts.public>
