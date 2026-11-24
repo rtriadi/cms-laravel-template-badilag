@@ -21,6 +21,7 @@
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
+/database/data/legacy-pa-gorontalo/
 /storage/*.key
 /storage/pail
 /vendor
@@ -32,15 +33,29 @@ Thumbs.db
 # AI Assistants, Agents, Skills, MCP & Graphify
 /.agents/
 /.ai/
+/.aider*
 /.antigravity/
 /.claude/
+/.continue/
 /.gemini/
+/.kilocode/
+/.opencode/
+/.roo/
 /.windsurf/
 /.mcp.json
 /.graphifyignore
+/anti-slop/
 /graphify-out/
 /skills/
 /AGENTS.md
 /CLAUDE.md
+/DESIGN.md
 /GEMINI.md
 /boost.json
+
+# Non-application planning & regulatory reference documents
+/docs/
+/*.pdf
+/*.xlsx
+/*.xls
+/*.docx
