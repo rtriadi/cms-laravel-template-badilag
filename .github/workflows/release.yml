@@ -22,9 +22,14 @@ jobs:
       - name: Resolve release tag
         id: meta
         run: |
-          RAW_TAG="${{ github.event.inputs.tag_name || github.ref_name }}"
+          RAW_INPUT="${{ github.event.inputs.tag_name || github.ref_name }}"
+          if [[ "$RAW_INPUT" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9._-]+)?$ ]]; then
+            RAW_TAG="v${RAW_INPUT}"
+          else
+            RAW_TAG="$RAW_INPUT"
+          fi
           if [[ ! "$RAW_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9._-]+)?$ ]]; then
-            echo "Tag rilis tidak valid: $RAW_TAG (harus diawali vX.Y.Z)"
+            echo "Tag rilis tidak valid: $RAW_TAG (harus berformat vX.Y.Z)"
             exit 1
           fi
           CLEAN_VERSION="${RAW_TAG#v}"
@@ -32,9 +37,9 @@ jobs:
           echo "clean_version=${CLEAN_VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout repository at release tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
-          ref: ${{ steps.meta.outputs.tag_name }}
+          ref: refs/tags/${{ steps.meta.outputs.tag_name }}
 
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
@@ -44,12 +49,17 @@ jobs:
           coverage: none
 
       - name: Setup Node.js 22 LTS
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: '22'
           cache: 'npm'
 
-      - name: Install dependencies for test suite
+      - name: Build Vite frontend assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Install PHP dependencies for test suite
         run: composer install --no-interaction --prefer-dist
 
       - name: Run automated Pest test gate
@@ -60,7 +70,7 @@ jobs:
           CMS_UPDATE_ENABLED: 'false'
         run: php artisan test --compact
 
-      - name: Stamp version.json and purge dev cache
+      - name: Stamp version.json and optimize production vendor
         run: |
           rm -f bootstrap/cache/*.php
           RELEASED_AT="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
@@ -73,12 +83,7 @@ jobs:
             ];
             file_put_contents("version.json", json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL);
           ' "${{ steps.meta.outputs.clean_version }}" "${{ github.sha }}" "${RELEASED_AT}"
-
-      - name: Build production vendor and Vite frontend assets
-        run: |
           composer install --no-dev --optimize-autoloader --classmap-authoritative --no-interaction --prefer-dist
-          npm ci
-          npm run build
           rm -f bootstrap/cache/*.php
 
       - name: Package release ZIP and SHA-256 checksum
@@ -116,6 +121,10 @@ jobs:
             "$STAGE_DIR/storage/logs" \
             "$STAGE_DIR/bootstrap/cache"
 
+          test -f "$STAGE_DIR/version.json"
+          test -f "$STAGE_DIR/vendor/autoload.php"
+          test -f "$STAGE_DIR/public/build/manifest.json"
+
           (
             cd "$STAGE_DIR"
             zip -rq "${ARTIFACT_DIR}/satkercms-${TAG_NAME}.zip" .
@@ -127,7 +136,7 @@ jobs:
           )
 
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3.0.4
         with:
           tag_name: ${{ steps.meta.outputs.tag_name }}
           name: SatkerCMS ${{ steps.meta.outputs.tag_name }}
