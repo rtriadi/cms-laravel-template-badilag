@@ -121,6 +121,8 @@ class TrackPageVisitMiddleware
             'robots.txt',
             'build/*',
             'storage/*',
+            '_system',
+            '_system/*',
         );
     }
 

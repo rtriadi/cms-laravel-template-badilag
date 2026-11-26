@@ -291,6 +291,7 @@ class AuditAndBackupManager extends Component
             '/sitemap.xml',
             '/login',
             '/two-factor-challenge',
+            '/_system',
         ];
 
         if (in_array($lower, $reservedExact, true)) {
@@ -304,6 +305,7 @@ class AuditAndBackupManager extends Component
             '/livewire-',
             '/flux/',
             '/storage/',
+            '/_system/',
         ];
 
         foreach ($reservedPrefixes as $prefix) {

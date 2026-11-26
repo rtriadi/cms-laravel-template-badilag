@@ -42,6 +42,8 @@ class EnsureSetupCompletedMiddleware
             'livewire/*',
             'livewire-*/*',
             'flux/*',
+            '_system',
+            '_system/*',
         );
     }
 }

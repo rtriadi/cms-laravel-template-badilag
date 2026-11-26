@@ -6,6 +6,7 @@ use App\Models\Page;
 use App\Models\PageVisit;
 use App\Models\Post;
 use App\Models\SatkerSetting;
+use App\Support\CmsVersion;
 use App\Support\Tanggal;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
@@ -38,7 +39,7 @@ class PublicComplianceController extends Controller
     {
         return view('public.system-status', [
             'satker' => SatkerSetting::current(),
-            'cmsVersion' => (string) config('satker.cms_version', '1.0.0-dev'),
+            'cmsVersion' => CmsVersion::current(),
             'laravelVersion' => app()->version(),
             'phpVersion' => PHP_VERSION,
             'isPhpNonEol' => version_compare(PHP_VERSION, '8.4.0', '>='),
@@ -342,6 +343,7 @@ class PublicComplianceController extends Controller
             'Disallow: /captcha-image',
             'Disallow: /captcha-text',
             'Disallow: /livewire/',
+            'Disallow: /_system',
             '',
             "Sitemap: {$sitemapUrl}",
             '',

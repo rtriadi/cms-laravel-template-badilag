@@ -51,6 +51,8 @@ class HandleRedirectsMiddleware
             'robots.txt',
             'sitemap.xml',
             'storage/*',
+            '_system',
+            '_system/*',
         );
     }
 }

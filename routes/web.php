@@ -6,6 +6,7 @@ use App\Http\Controllers\PublicHomeController;
 use App\Http\Controllers\PublicPageController;
 use App\Http\Controllers\PublicPostController;
 use App\Http\Controllers\PublicSearchController;
+use App\Http\Controllers\SystemOpcacheResetController;
 use App\Livewire\Admin\AuditAndBackupManager;
 use App\Livewire\Admin\CommentManager;
 use App\Livewire\Admin\CriteriaManager;
@@ -66,6 +67,10 @@ Route::get('/sitemap.xml', [PublicComplianceController::class, 'sitemapXml'])
 Route::get('/robots.txt', [PublicComplianceController::class, 'robotsTxt'])
     ->withoutMiddleware($statelessCrawlerMiddleware)
     ->name('public.robots');
+Route::post('/_system/opcache-reset', SystemOpcacheResetController::class)
+    ->withoutMiddleware($statelessCrawlerMiddleware)
+    ->middleware('throttle:10,1,opcache_reset')
+    ->name('system.opcache-reset');
 
 Route::get('/setup', SetupWizard::class)->name('setup');
 
