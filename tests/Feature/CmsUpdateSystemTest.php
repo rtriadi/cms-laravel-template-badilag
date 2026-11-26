@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Admin\AuditAndBackupManager;
+use App\Livewire\Admin\Dashboard;
 use App\Models\SatkerSetting;
 use App\Models\User;
 use App\Services\CmsUpdateCheckService;
@@ -540,4 +541,100 @@ it('runs cms:update --local-only cleanly', function (): void {
 
     $this->artisan('cms:update', ['--local-only' => true])
         ->assertExitCode(0);
+});
+
+it('displays update banner and allows manual check on Dashboard only for super_admin and admin_konten', function (): void {
+    $this->seed(RoleAndPermissionSeeder::class);
+
+    SatkerSetting::query()->create([
+        'nama_satker' => 'Pengadilan Agama Uji',
+        'jenis_badan' => 'PA',
+        'tingkat' => 'pertama',
+        'is_setup_completed' => true,
+        'is_tingkat_locked' => true,
+    ]);
+
+    file_put_contents($this->stateFile, json_encode([
+        'channel' => 'stable',
+        'installed_version' => '1.0.0-dev',
+        'latest_version' => '1.3.0',
+        'latest_tag' => 'v1.3.0',
+        'update_available' => true,
+        'published_at' => '2026-11-26T08:00:00Z',
+        'release_url' => 'https://github.com/rtriadi/cms-laravel-template-badilag/releases/tag/v1.3.0',
+        'release_notes' => 'Penambahan modul audit dan perbaikan aksesibilitas',
+        'checked_at' => now()->timestamp,
+        'retry_after' => null,
+        'last_error' => null,
+    ], JSON_THROW_ON_ERROR));
+
+    $superAdmin = User::factory()->create([
+        'two_factor_secret' => encrypt('secret'),
+        'two_factor_recovery_codes' => encrypt(json_encode(['code-1'])),
+        'two_factor_confirmed_at' => now(),
+    ]);
+    $superAdmin->assignRole('super_admin');
+
+    $penilai = User::factory()->create([
+        'two_factor_secret' => encrypt('secret'),
+        'two_factor_recovery_codes' => encrypt(json_encode(['code-1'])),
+        'two_factor_confirmed_at' => now(),
+    ]);
+    $penilai->assignRole('penilai_internal');
+
+    $this->actingAs($superAdmin);
+    Livewire::test(Dashboard::class)
+        ->assertSee('Pembaruan SatkerCMS Tersedia')
+        ->assertSee('1.3.0')
+        ->assertSee('php artisan cms:update')
+        ->assertSee('Cek Pembaruan');
+
+    // Dev channel shows git pull + --local-only command hint
+    config()->set('satker.update.channel', 'dev');
+    file_put_contents($this->stateFile, json_encode([
+        'channel' => 'dev',
+        'installed_version' => '1.0.0-dev',
+        'installed_commit' => str_repeat('1', 40),
+        'latest_version' => 'main@abcdef1',
+        'latest_commit' => 'abcdef1234567890abcdef1234567890abcdef12',
+        'update_available' => true,
+        'published_at' => '2026-11-26T09:00:00Z',
+        'release_url' => 'https://github.com/rtriadi/cms-laravel-template-badilag/commit/abcdef1234567890abcdef1234567890abcdef12',
+        'release_notes' => 'chore: sinkronisasi kriteria terbaru',
+        'checked_at' => now()->timestamp,
+        'retry_after' => null,
+        'last_error' => null,
+    ], JSON_THROW_ON_ERROR));
+
+    Livewire::test(Dashboard::class)
+        ->assertSee('main@abcdef1')
+        ->assertSee('git pull && php artisan cms:update --local-only');
+
+    // Non-privileged role (penilai_internal) must NOT see update banner or trigger checkForUpdates
+    config()->set('satker.update.channel', 'stable');
+    $this->actingAs($penilai);
+
+    Livewire::test(Dashboard::class)
+        ->assertDontSee('Pembaruan SatkerCMS Tersedia')
+        ->assertDontSee('Cek Pembaruan')
+        ->call('checkForUpdates')
+        ->assertForbidden();
+
+    // Manual trigger by super_admin hits GitHub and shows up-to-date feedback
+    Http::fake([
+        'https://api.github.com/repos/rtriadi/cms-laravel-template-badilag/releases/latest' => Http::response([
+            'tag_name' => 'v1.0.0-dev',
+            'draft' => false,
+            'prerelease' => false,
+            'published_at' => '2026-11-26T09:00:00Z',
+            'html_url' => 'https://github.com/rtriadi/cms-laravel-template-badilag/releases/tag/v1.0.0-dev',
+            'body' => 'Versi saat ini',
+            'assets' => [],
+        ], 200),
+    ]);
+
+    $this->actingAs($superAdmin);
+    Livewire::test(Dashboard::class)
+        ->call('checkForUpdates')
+        ->assertSee('versi terbaru');
 });

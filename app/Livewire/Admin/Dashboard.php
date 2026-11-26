@@ -8,7 +8,9 @@ use App\Models\PageVisit;
 use App\Models\Post;
 use App\Models\PostComment;
 use App\Models\SatkerSetting;
+use App\Services\CmsUpdateCheckService;
 use App\Services\SinovaHealthCheckService;
+use App\Support\CmsVersion;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -20,6 +22,10 @@ use Spatie\Activitylog\Models\Activity;
 class Dashboard extends Component
 {
     public ?string $auditMessage = null;
+
+    public ?string $updateNotice = null;
+
+    public ?string $updateError = null;
 
     public string $quickDraftTitle = '';
 
@@ -44,6 +50,44 @@ class Dashboard extends Component
 
         $counts = $healthCheck->checkAll(probeExternal: false);
         $this->auditMessage = "Pemeriksaan selesai: {$counts['healthy']} siap, {$counts['warning']} perlu perbaikan, {$counts['broken']} bermasalah, {$counts['empty']} kosong.";
+    }
+
+    public function checkForUpdates(CmsUpdateCheckService $updateChecker): void
+    {
+        $user = auth()->user();
+        abort_unless(
+            $user !== null && $user->hasAnyRole(['super_admin', 'admin_konten']),
+            403
+        );
+
+        $this->updateNotice = null;
+        $this->updateError = null;
+
+        $state = $updateChecker->check(force: true);
+
+        activity('system')
+            ->causedBy($user->id)
+            ->withProperties([
+                'channel' => $state['channel'] ?? 'stable',
+                'installed_version' => $state['installed_version'] ?? CmsVersion::current(),
+                'latest_version' => $state['latest_version'] ?? null,
+                'update_available' => (bool) ($state['update_available'] ?? false),
+            ])
+            ->log('Memeriksa ketersediaan pembaruan SatkerCMS dari GitHub');
+
+        if (! empty($state['last_error'])) {
+            $this->updateError = (string) $state['last_error'];
+
+            return;
+        }
+
+        if (($state['update_available'] ?? false) === true) {
+            $this->updateNotice = 'Tersedia pembaruan baru versi '.($state['latest_version'] ?? '').'. Gunakan perintah terminal pada kotak informasi di bawah untuk memperbarui server.';
+
+            return;
+        }
+
+        $this->updateNotice = 'SatkerCMS sudah menggunakan versi terbaru ('.($state['installed_version'] ?? CmsVersion::current()).').';
     }
 
     public function saveQuickDraft(): void
@@ -102,7 +146,7 @@ class Dashboard extends Component
         );
     }
 
-    public function render(SinovaHealthCheckService $healthCheck): View
+    public function render(SinovaHealthCheckService $healthCheck, CmsUpdateCheckService $updateChecker): View
     {
         $this->authorizeView();
 
@@ -123,6 +167,8 @@ class Dashboard extends Component
         $canWritePosts = $user !== null && ($user->can('manage-ppid-humas') || $user->hasAnyRole(['super_admin', 'admin_konten']));
         $canModerateComments = $user !== null && $user->can('viewAny', PostComment::class);
         $canViewAudit = $user !== null && $user->hasAnyRole(['super_admin', 'admin_konten', 'penilai_internal']);
+        $canManageUpdates = $user !== null && $user->hasAnyRole(['super_admin', 'admin_konten']);
+        $updateState = $canManageUpdates ? $updateChecker->checkIfStale() : null;
 
         $recentActivities = $canViewAudit
             ? Activity::query()
@@ -171,6 +217,9 @@ class Dashboard extends Component
             'canWritePosts' => $canWritePosts,
             'canModerateComments' => $canModerateComments,
             'canViewAudit' => $canViewAudit,
+            'canManageUpdates' => $canManageUpdates,
+            'updateState' => $updateState,
+            'cmsVersion' => CmsVersion::current(),
             'categories' => Post::categoryLabels(),
             'totalVisits' => $totalVisits,
             'brokenLinksCount' => $brokenLinksCount,

@@ -598,14 +598,22 @@ Repositori SatkerCMS disiapkan bersih untuk **instalasi baru (*fresh installatio
 
 | Perintah | Kegunaan |
 | :--- | :--- |
-| `php artisan cms:update --dry-run` | Memeriksa versi CMS, Laravel, PHP, dan kesiapan link SINOVA tanpa mengubah database. |
-| `php artisan cms:update` | Menjalankan prosedur pembaruan resmi (migrasi database, pembersihan cache, dan pemeriksaan kesehatan SINOVA). |
+| `php artisan cms:check-update --force` | Memeriksa ketersediaan rilis terbaru SatkerCMS langsung ke GitHub Releases dan memperbarui status Dashboard Admin. |
+| `php artisan cms:update --dry-run` | Memeriksa versi CMS, mode peladen (`atomic_release` / `staged_inplace`), status rilis GitHub, dan kesiapan link SINOVA tanpa mengubah berkas atau database. |
+| `php artisan cms:update` | Mengunduh paket rilis terbaru dari GitHub Releases, memvalidasi checksum `SHA-256`, mencadangkan database otomatis, menerapkan pembaruan secara *zero-downtime* (tanpa perlu Node.js/Composer/Git di server), dan mereset OPcache web. Pada VPS Ubuntu disarankan dijalankan dengan `sudo -u www-data php artisan cms:update --yes`. |
+| `php artisan cms:update --local-only` | Menjalankan penemuan paket, migrasi database, pemanasan cache, dan pemeriksaan kesehatan SINOVA setelah penarikan kode manual (`git pull`). |
+| `php artisan cms:rollback` | Mengembalikan aplikasi ke rilis sebelumnya di folder `releases/` (atau snapshot cadangan lokal `prev-*`) secara cepat apabila ditemukan kendala pasca-pembaruan. |
 | `php artisan satker:optimize-media` | Mengonversi dan mengecilkan seluruh gambar eksisting (slider, logo, foto gedung, gambar berita) ke WebP terkompresi. |
 | `php artisan backup:run` | Menjalankan pencadangan penuh database dan berkas ke arsip ZIP terenkripsi. Backup juga dapat dijalankan dan diunduh langsung dari tab **Backup & Pembaruan Sistem** di `/panel-admin/audit`. |
-| `php artisan schedule:list` | Menampilkan jadwal pemeliharaan otomatis: backup harian pukul 02:00, pembersihan arsip lama pukul 03:00, dan pemangkasan log aktivitas setiap Senin pukul 03:30 (dijalankan cron `schedule:run`). |
+| `php artisan schedule:list` | Menampilkan jadwal pemeliharaan otomatis: backup harian pukul 02:00, pembersihan arsip lama pukul 03:00, pemangkasan log aktivitas setiap Senin pukul 03:30, dan pengecekan rilis baru GitHub pukul 04:00 & 16:00 (dijalankan cron `schedule:run`). |
 | `php artisan optimize` | Membangun ulang cache konfigurasi, rute, dan tampilan Blade untuk performa produksi maksimal. |
 | `php artisan optimize:clear` | Membersihkan seluruh cache Laravel apabila terjadi kendala tampilan atau perubahan `.env`. |
-| `php artisan test` | Menjalankan seluruh rangkaian **116 pengujian otomatis Pest** guna memastikan integritas aplikasi setelah pembaruan. |
+| `php artisan test` | Menjalankan seluruh rangkaian pengujian otomatis Pest guna memastikan integritas aplikasi setelah pembaruan. |
+
+#### Prosedur Pembaruan Zero-Downtime & Struktur `releases/current`
+1. **Deteksi Otomatis di Panel Admin:** Pengguna dengan peran `super_admin` dan `admin_konten` menerima banner pemberitahuan di Dashboard `/panel-admin` setiap kali rilis baru diterbitkan di GitHub Releases (atau dapat menekan tombol **Cek Pembaruan** kapan saja). Demi keamanan server pemerintahan, eksekusi perubahan berkas tetap dilakukan melalui terminal/SSH agar user web tidak memerlukan hak tulis ke kode inti aplikasi.
+2. **Mode Atomic Symlink (`releases/current`):** Untuk VPS Linux maupun Shared Hosting Opsi A yang dapat mengatur Document Root ke `{root}/current/public` (dengan `{root}/shared/.env` dan `{root}/shared/storage`), `php artisan cms:update` mengekstrak rilis baru ke `{root}/releases/vX.Y.Z` lalu menukar symlink `current` secara atomik dalam < 1 milidetik tanpa waktu henti.
+3. **Mode Staged Swap (`public_html`):** Untuk instalasi satu folder maupun Shared Hosting Opsi B (`satkercms_core` + `public_html`, opsional didukung variabel `.env` `CMS_PUBLIC_PATH=/home/<user>/public_html`), `php artisan cms:update` otomatis mempertahankan aset CSS/JS Vite versi sebelumnya selama transisi, mencadangkan versi lama ke snapshot lokal untuk *auto-revert* / `cms:rollback`, dan mereset OPcache web secara otomatis.
 
 ### 10.2 Jadwal Pemeliharaan Berkala yang Disarankan
 

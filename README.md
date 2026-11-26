@@ -62,6 +62,7 @@
 - **3-Tab Studio TinyMCE 8 Self-Hosted (`Editor` | `Code` | `Preview`):** Mendukung penyuntingan visual, kode HTML langsung, pratinjau instan, tabel, serta unggah gambar (otomatis WebP) dan dokumen PDF.
 - **Pengaturan Satker 6 Seksi:** Identitas & Logo/Gedung, Alamat & Kontak, Integrasi SIPP & SIMTEPA (termasuk URL Bagan Struktur Organisasi), Pengawasan & Beranda (PTA, Indeks SKM/SPAK/SPKP, Video), Tautan Instansi Dinamis (maks. 20) / Sosial Media Resmi / Access CCTV Online (ACO), dan Ubah Tingkat Peradilan dengan konfirmasi ganda Super Admin.
 - **Hub Link SINOVA 2026 & Audit Sistem:** Pemetaan resmi **18 grup & 40 kriteria SINOVA** (`1.a.1.a` s.d. `3.c.1`: 35 URL + 5 non-URL), ekspor CSV siap lapor, manajemen/impor JSON kriteria juknis masa depan (`/panel-admin/kriteria`), audit tautan rusak (*broken link*), daftar Redirect 301, backup ZIP terenkripsi (`spatie/laravel-backup`) dengan tombol **Jalankan Backup Database** dan **Unduh** arsip di panel, serta log aktivitas (`spatie/laravel-activitylog`).
+- **Deteksi Pembaruan GitHub & Zero-Downtime Updater:** Pengecekan rilis baru otomatis ke GitHub Releases dua kali sehari (`cms:check-update`), banner notifikasi versi baru di Dashboard Admin khusus `super_admin` dan `admin_konten` (izin berkas web tetap terkunci aman), serta pembaruan satu perintah `php artisan cms:update` berarsitektur *zero-downtime* (mendukung pertukaran symlink atomik `releases/current` di VPS maupun *staged swap* di Shared Hosting tanpa butuh Node.js/Composer/Git di peladen, lengkap dengan verifikasi `SHA-256`, backup database otomatis, reset OPcache web bertanda tangan, dan `php artisan cms:rollback`).
 - **Keamanan Berlapis:** Login admin dengan CAPTCHA lokal + wajib **2FA TOTP** (Google Authenticator/Authy), reset 2FA akun lain oleh **Super Admin** langsung dari menu Pengguna & Peran, 6 peran RBAC standar (`super_admin`, `admin_konten`, `operator_kepaniteraan`, `operator_kesekretariatan`, `operator_ppid_humas`, `penilai_internal`), sanitasi HTML (`SafeHtml`), dan header keamanan HTTP (`SecurityHeadersMiddleware`).
 
 ---
@@ -453,6 +454,23 @@ Tambahkan baris berikut:
 * * * * * cd /var/www/satkercms && /usr/bin/php artisan schedule:run >> /dev/null 2>&1
 ```
 
+### Langkah 8 (Opsional Direkomendasikan): Tata Letak `releases/current` untuk Zero-Downtime 0ms
+Agar pergantian versi melalui `php artisan cms:update` berjalan secara atomik tanpa jeda seperseribu detik pun (serta bisa *rollback* instan):
+```text
+/var/www/satkercms/
+├── current -> releases/v1.0.0   (arahkan root Nginx ke /var/www/satkercms/current/public)
+├── releases/
+│   └── v1.0.0/
+└── shared/
+    ├── .env
+    └── storage/
+```
+Saat berada di struktur ini, jalankan pembaruan sebagai user web server:
+```bash
+sudo -u www-data php /var/www/satkercms/current/artisan cms:update --yes
+```
+*(Catatan: Instalasi satu folder biasa maupun Shared Hosting `public_html` tetap didukung otomatis melalui mode `staged_inplace` tanpa wajib mengubah struktur folder.)*
+
 ---
 
 ## 7. Setup Awal Aplikasi & Login Admin
@@ -513,11 +531,24 @@ Ketika tombol **Selesai** ditekan, sistem otomatis:
 ## 8. Perintah Pemeliharaan & Pembaruan
 
 ```bash
-# Cek status versi & kesiapan SINOVA tanpa mengubah database
+# Periksa ketersediaan rilis baru SatkerCMS dari GitHub sekarang
+php artisan cms:check-update --force
+
+# Cek status versi, mode peladen, status rilis GitHub, & kesiapan SINOVA tanpa mengubah database
 php artisan cms:update --dry-run
 
-# Jalankan prosedur pembaruan CMS (migrasi, bersihkan cache, cek link SINOVA)
+# Unduh rilis terbaru dari GitHub Releases (terkompilasi penuh + verifikasi SHA-256),
+# jalankan backup DB otomatis, terapkan secara zero-downtime, dan reset OPcache web
 php artisan cms:update
+
+# Khusus VPS Ubuntu: jalankan sebagai user www-data agar izin cache berkas tetap selaras
+sudo -u www-data php artisan cms:update --yes
+
+# Jalankan pembaruan pasca-tarik lokal saja (misalnya setelah git pull pada kanal dev)
+php artisan cms:update --local-only
+
+# Kembalikan aplikasi ke versi sebelumnya secara cepat bila terjadi kendala pasca-update
+php artisan cms:rollback
 
 # Konversi & perkecil seluruh gambar eksisting (slider, logo, gedung, berita) ke WebP
 php artisan satker:optimize-media
@@ -526,7 +557,7 @@ php artisan satker:optimize-media
 php artisan backup:run
 
 # Tampilkan jadwal pemeliharaan otomatis (backup harian 02:00, pembersihan arsip 03:00,
-# pemangkasan log aktivitas mingguan) yang dijalankan cron `schedule:run`
+# pemangkasan log aktivitas mingguan, & cek update GitHub 2x sehari) yang dijalankan cron `schedule:run`
 php artisan schedule:list
 
 # Bangun ulang cache produksi setelah mengubah .env atau update kode
@@ -535,9 +566,12 @@ php artisan optimize
 # Bersihkan seluruh cache jika terjadi kendala tampilan/konfigurasi
 php artisan optimize:clear
 
-# Jalankan seluruh pengujian otomatis (116 pengujian Pest)
+# Jalankan seluruh pengujian otomatis Pest
 php artisan test
 ```
+
+> **Cara Menerbitkan Rilis Baru di GitHub (Untuk Pengembang / Maintainer):**
+> Dorong tag SemVer baru (contoh: `git tag v1.0.1 && git push origin v1.0.1`). Workflow `.github/workflows/release.yml` otomatis menjalankan pengujian Pest, mengompilasi `vendor/` produksi dan aset Vite `public/build/`, membuat `satkercms-v1.0.1.zip` beserta `.sha256`, lalu menerbitkannya ke **GitHub Releases** sehingga seluruh server satker langsung mendeteksi pembaruan.
 
 ---
 

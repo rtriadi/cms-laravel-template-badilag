@@ -11,6 +11,79 @@
         </div>
     @endif
 
+    @if ($updateNotice)
+        <div role="status" class="rounded-xl border border-[#b6d7c9] bg-[#f0f7f4] px-4 py-3 text-sm font-medium text-[#056e4f]">
+            {{ $updateNotice }}
+        </div>
+    @endif
+
+    @if ($updateError)
+        <div role="alert" class="rounded-xl border border-amber-300 bg-[#fffbeb] px-4 py-3 text-sm font-medium text-[#92400e]">
+            {{ $updateError }}
+        </div>
+    @endif
+
+    @if (($canManageUpdates ?? false) && (($updateState['update_available'] ?? false) === true))
+        @php
+            $updateCliCommand = ($updateState['channel'] ?? 'stable') === 'dev'
+                ? 'git pull && php artisan cms:update --local-only'
+                : 'php artisan cms:update';
+        @endphp
+        <section
+            aria-label="Informasi Pembaruan Aplikasi"
+            class="rounded-xl border border-[#b6d7c9] bg-[#f0f7f4] p-4 sm:p-5"
+        >
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div class="space-y-1.5">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h3 class="font-serif text-base font-bold text-[#111827]">
+                            Pembaruan SatkerCMS Tersedia
+                        </h3>
+                        <span class="rounded-md border border-[#056e4f]/30 bg-white px-2 py-0.5 font-mono text-xs font-semibold text-[#056e4f]">
+                            {{ $updateState['installed_version'] ?? $cmsVersion }} -> {{ $updateState['latest_version'] }}
+                        </span>
+                    </div>
+                    <p class="text-xs leading-relaxed text-[#374151] sm:text-[13px]">
+                        Rilis baru terdeteksi dari repositori resmi GitHub. Jalankan perintah pembaruan melalui terminal peladen agar aplikasi diperbarui secara zero-downtime dengan backup basis data otomatis.
+                    </p>
+                    @if (! empty($updateState['release_notes']))
+                        <p class="whitespace-pre-line rounded-lg border border-[#d8e2dd] bg-white px-3 py-2 text-xs leading-relaxed text-[#374151]">{{ $updateState['release_notes'] }}</p>
+                    @endif
+                    @if (! empty($updateState['release_url']))
+                        <div class="pt-0.5">
+                            <a
+                                href="{{ $updateState['release_url'] }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex min-h-11 items-center text-xs font-semibold text-[#056e4f] underline underline-offset-4 hover:text-[#04543c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#056e4f] sm:min-h-0"
+                            >
+                                Lihat Catatan Rilis di GitHub
+                            </a>
+                        </div>
+                    @endif
+                </div>
+
+                <div
+                    x-data="{ copied: false, cmd: @js($updateCliCommand) }"
+                    class="w-full shrink-0 rounded-lg border border-[#022c20] bg-[#022c20] p-3 text-white lg:w-auto lg:min-w-[320px]"
+                >
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="font-mono text-[11px] font-medium text-[#d8e2dd]">Perintah Terminal Peladen</span>
+                        <button
+                            type="button"
+                            x-on:click="navigator.clipboard?.writeText(cmd); copied = true; setTimeout(() => copied = false, 2000)"
+                            class="inline-flex min-h-11 cursor-pointer items-center rounded-md border border-white/30 bg-[#033d2c] px-2.5 py-1 text-xs font-semibold text-white transition-colors hover:bg-[#056e4f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff9900] sm:min-h-8"
+                        >
+                            <span x-show="!copied">Salin Perintah</span>
+                            <span x-cloak x-show="copied">Tersalin</span>
+                        </button>
+                    </div>
+                    <code class="mt-2 block overflow-x-auto font-mono text-xs text-white">{{ $updateCliCommand }}</code>
+                </div>
+            </div>
+        </section>
+    @endif
+
     <!-- Calm Executive Greeting Header -->
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -22,9 +95,21 @@
             </p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
+            @if ($canManageUpdates ?? false)
+                <button
+                    type="button"
+                    wire:click="checkForUpdates"
+                    wire:loading.attr="disabled"
+                    wire:target="checkForUpdates"
+                    class="inline-flex min-h-11 cursor-pointer items-center rounded-lg border border-[#d8e2dd] bg-white px-3.5 text-xs font-semibold text-[#334155] transition-colors hover:border-primary/40 hover:bg-primary-soft hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-9"
+                >
+                    <span wire:loading.remove wire:target="checkForUpdates">Cek Pembaruan</span>
+                    <span wire:loading wire:target="checkForUpdates">Memeriksa GitHub...</span>
+                </button>
+            @endif
             <a
                 href="{{ route('admin.sinova-links') }}"
-                class="inline-flex h-9 items-center rounded-lg border border-[#e2e8e5] bg-white px-3.5 text-xs font-semibold text-[#334155] transition-colors hover:border-primary/40 hover:bg-primary-soft hover:text-primary"
+                class="inline-flex min-h-11 items-center rounded-lg border border-[#e2e8e5] bg-white px-3.5 text-xs font-semibold text-[#334155] transition-colors hover:border-primary/40 hover:bg-primary-soft hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:min-h-9"
             >
                 Link SINOVA
             </a>

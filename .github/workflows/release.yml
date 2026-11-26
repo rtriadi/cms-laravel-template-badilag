@@ -1,0 +1,138 @@
+name: Build & Publish SatkerCMS Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag rilis SemVer yang akan dipaketkan (contoh: v1.0.1)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Test, Build Production Artifact & Publish Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve release tag
+        id: meta
+        run: |
+          RAW_TAG="${{ github.event.inputs.tag_name || github.ref_name }}"
+          if [[ ! "$RAW_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9._-]+)?$ ]]; then
+            echo "Tag rilis tidak valid: $RAW_TAG (harus diawali vX.Y.Z)"
+            exit 1
+          fi
+          CLEAN_VERSION="${RAW_TAG#v}"
+          echo "tag_name=${RAW_TAG}" >> "$GITHUB_OUTPUT"
+          echo "clean_version=${CLEAN_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout repository at release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.meta.outputs.tag_name }}
+
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_sqlite, pdo_mysql, mbstring, xml, curl, zip, bcmath, gd, intl, fileinfo
+          coverage: none
+
+      - name: Setup Node.js 22 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies for test suite
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run automated Pest test gate
+        env:
+          APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+          CMS_UPDATE_ENABLED: 'false'
+        run: php artisan test --compact
+
+      - name: Stamp version.json and purge dev cache
+        run: |
+          rm -f bootstrap/cache/*.php
+          RELEASED_AT="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          php -r '
+            $data = [
+              "version" => $argv[1],
+              "commit" => $argv[2],
+              "released_at" => $argv[3],
+              "min_php" => "8.4.1",
+            ];
+            file_put_contents("version.json", json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL);
+          ' "${{ steps.meta.outputs.clean_version }}" "${{ github.sha }}" "${RELEASED_AT}"
+
+      - name: Build production vendor and Vite frontend assets
+        run: |
+          composer install --no-dev --optimize-autoloader --classmap-authoritative --no-interaction --prefer-dist
+          npm ci
+          npm run build
+          rm -f bootstrap/cache/*.php
+
+      - name: Package release ZIP and SHA-256 checksum
+        run: |
+          TAG_NAME="${{ steps.meta.outputs.tag_name }}"
+          STAGE_DIR="/tmp/satkercms-stage"
+          ARTIFACT_DIR="/tmp/satkercms-artifacts"
+          rm -rf "$STAGE_DIR" "$ARTIFACT_DIR"
+          mkdir -p "$STAGE_DIR" "$ARTIFACT_DIR"
+
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            --exclude='tests' \
+            --exclude='docs' \
+            --exclude='panduan' \
+            --exclude='phpunit.xml' \
+            --exclude='vite.config.js' \
+            --exclude='package.json' \
+            --exclude='package-lock.json' \
+            --exclude='run-app.bat' \
+            --exclude='run-app.ps1' \
+            --exclude='.editorconfig' \
+            --exclude='.gitattributes' \
+            --exclude='.gitignore' \
+            --exclude='.npmrc' \
+            ./ "$STAGE_DIR/"
+
+          mkdir -p \
+            "$STAGE_DIR/storage/app/public" \
+            "$STAGE_DIR/storage/framework/cache/data" \
+            "$STAGE_DIR/storage/framework/sessions" \
+            "$STAGE_DIR/storage/framework/views" \
+            "$STAGE_DIR/storage/logs" \
+            "$STAGE_DIR/bootstrap/cache"
+
+          (
+            cd "$STAGE_DIR"
+            zip -rq "${ARTIFACT_DIR}/satkercms-${TAG_NAME}.zip" .
+          )
+
+          (
+            cd "$ARTIFACT_DIR"
+            sha256sum "satkercms-${TAG_NAME}.zip" > "satkercms-${TAG_NAME}.zip.sha256"
+          )
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag_name }}
+          name: SatkerCMS ${{ steps.meta.outputs.tag_name }}
+          generate_release_notes: true
+          files: |
+            /tmp/satkercms-artifacts/satkercms-${{ steps.meta.outputs.tag_name }}.zip
+            /tmp/satkercms-artifacts/satkercms-${{ steps.meta.outputs.tag_name }}.zip.sha256
+
