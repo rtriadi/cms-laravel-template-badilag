@@ -10,6 +10,18 @@ return [
 
     'cms_version' => '1.0.0-dev',
 
+    'update' => [
+        'enabled' => (bool) env('CMS_UPDATE_ENABLED', true),
+        'repository' => (string) env('CMS_UPDATE_REPO', 'rtriadi/cms-laravel-template-badilag'),
+        'channel' => (string) env('CMS_UPDATE_CHANNEL', 'stable'),
+        'branch' => (string) env('CMS_UPDATE_BRANCH', 'main'),
+        'github_token' => (string) env('CMS_UPDATE_GITHUB_TOKEN', ''),
+        'check_ttl_seconds' => max(300, (int) env('CMS_UPDATE_CHECK_TTL', 43200)),
+        'state_path' => (string) env('CMS_UPDATE_STATE_PATH', storage_path('app/cms-update-state.json')),
+        'public_path_override' => (string) env('CMS_PUBLIC_PATH', ''),
+        'keep_releases' => 3,
+    ],
+
     'brand_colors' => [
         'primary' => '#056e4f',
         'secondary' => '#ff9900',

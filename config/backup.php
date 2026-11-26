@@ -48,6 +48,8 @@ return [
                     storage_path('framework'),
                     storage_path('logs'),
                     storage_path('app/private'),
+                    storage_path('app/updates'),
+                    storage_path('app/cms-update.lock'),
                 ],
 
                 /*
