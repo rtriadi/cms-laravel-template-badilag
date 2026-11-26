@@ -54,13 +54,13 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Install PHP dependencies for test suite
+        run: composer install --no-interaction --prefer-dist
+
       - name: Build Vite frontend assets
         run: |
           npm ci
           npm run build
-
-      - name: Install PHP dependencies for test suite
-        run: composer install --no-interaction --prefer-dist
 
       - name: Run automated Pest test gate
         env:
@@ -111,6 +111,11 @@ jobs:
             --exclude='.gitattributes' \
             --exclude='.gitignore' \
             --exclude='.npmrc' \
+            --exclude='storage/app/*' \
+            --exclude='storage/framework/cache/data/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*' \
+            --exclude='storage/logs/*.log' \
             ./ "$STAGE_DIR/"
 
           mkdir -p \
