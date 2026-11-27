@@ -257,6 +257,47 @@ class CmsZeroDowntimeUpdater
         });
     }
 
+    public function hasRollbackCandidate(?string $basePath = null): bool
+    {
+        $layout = $this->detectLayout($basePath);
+
+        if ($layout['mode'] === 'atomic_release') {
+            $releasesPath = (string) $layout['releases_path'];
+            $currentLink = (string) $layout['current_link'];
+            $activeReal = @realpath($currentLink);
+
+            foreach (@scandir($releasesPath) ?: [] as $entry) {
+                if ($entry === '.' || $entry === '..') {
+                    continue;
+                }
+
+                $fullPath = $releasesPath.DIRECTORY_SEPARATOR.$entry;
+                if (! is_dir($fullPath) || ! is_file($fullPath.DIRECTORY_SEPARATOR.'version.json')) {
+                    continue;
+                }
+
+                if ($activeReal === false || realpath($fullPath) !== $activeReal) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        $updatesRoot = $layout['base_path'].DIRECTORY_SEPARATOR.'storage'.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'updates';
+        if (! is_dir($updatesRoot)) {
+            return false;
+        }
+
+        foreach (@scandir($updatesRoot) ?: [] as $entry) {
+            if (str_starts_with($entry, 'prev-') && is_dir($updatesRoot.DIRECTORY_SEPARATOR.$entry.DIRECTORY_SEPARATOR.'core')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * @param  array<string, mixed>  $layout
      * @param  array<string, mixed>  $release

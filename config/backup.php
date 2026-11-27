@@ -50,6 +50,8 @@ return [
                     storage_path('app/private'),
                     storage_path('app/updates'),
                     storage_path('app/cms-update.lock'),
+                    storage_path('app/cms-update-trigger.json'),
+                    storage_path('app/cms-update-job.json'),
                 ],
 
                 /*

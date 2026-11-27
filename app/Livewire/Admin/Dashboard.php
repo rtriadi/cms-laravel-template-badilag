@@ -8,7 +8,10 @@ use App\Models\PageVisit;
 use App\Models\Post;
 use App\Models\PostComment;
 use App\Models\SatkerSetting;
+use App\Models\User;
 use App\Services\CmsUpdateCheckService;
+use App\Services\CmsUpdateQueueService;
+use App\Services\CmsZeroDowntimeUpdater;
 use App\Services\SinovaHealthCheckService;
 use App\Support\CmsVersion;
 use Illuminate\Contracts\View\View;
@@ -17,6 +20,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Spatie\Activitylog\Models\Activity;
+use Throwable;
 
 #[Layout('components.layouts.admin')]
 class Dashboard extends Component
@@ -26,6 +30,12 @@ class Dashboard extends Component
     public ?string $updateNotice = null;
 
     public ?string $updateError = null;
+
+    public bool $showUpdateConfirm = false;
+
+    public bool $skipUpdateBackup = false;
+
+    public bool $showRollbackConfirm = false;
 
     public string $quickDraftTitle = '';
 
@@ -90,6 +100,122 @@ class Dashboard extends Component
         $this->updateNotice = 'SatkerCMS sudah menggunakan versi terbaru ('.($state['installed_version'] ?? CmsVersion::current()).').';
     }
 
+    public function queueWebUpdate(CmsUpdateCheckService $updateChecker, CmsUpdateQueueService $queue): void
+    {
+        $user = $this->authorizeWebTrigger();
+
+        $this->updateNotice = null;
+        $this->updateError = null;
+
+        $state = $updateChecker->getCachedState();
+        $targetTag = trim((string) ($state['latest_tag'] ?? ''));
+
+        if (($state['channel'] ?? 'stable') !== 'stable' || ($state['update_available'] ?? false) !== true || $targetTag === '') {
+            $this->updateError = 'Tidak ada rilis stabil baru yang siap dijadwalkan saat ini. Klik Cek Pembaruan terlebih dahulu.';
+
+            return;
+        }
+
+        try {
+            $queue->enqueueUpdate(
+                targetTag: $targetTag,
+                skipBackup: $this->skipUpdateBackup,
+                userId: $user->id,
+                userName: (string) $user->name,
+                fromVersion: CmsVersion::current(),
+            );
+        } catch (Throwable $e) {
+            $this->updateError = $e->getMessage();
+
+            return;
+        }
+
+        activity('system')
+            ->causedBy($user->id)
+            ->withProperties([
+                'action' => 'update',
+                'target_tag' => $targetTag,
+                'skip_backup' => $this->skipUpdateBackup,
+            ])
+            ->log('Menjadwalkan pembaruan SatkerCMS melalui antrean cron Panel Admin');
+
+        $this->showUpdateConfirm = false;
+        $this->skipUpdateBackup = false;
+        $this->updateNotice = "Pembaruan ke {$targetTag} berhasil masuk antrean. Cron schedule:run akan mengeksekusinya dalam <= 1 menit.";
+    }
+
+    public function queueWebRollback(CmsZeroDowntimeUpdater $updater, CmsUpdateQueueService $queue): void
+    {
+        $user = $this->authorizeWebTrigger();
+
+        $this->updateNotice = null;
+        $this->updateError = null;
+
+        if (! $updater->hasRollbackCandidate()) {
+            $this->updateError = 'Tidak tersedia rilis sebelumnya atau snapshot cadangan untuk rollback.';
+
+            return;
+        }
+
+        try {
+            $queue->enqueueRollback(
+                userId: $user->id,
+                userName: (string) $user->name,
+                fromVersion: CmsVersion::current(),
+            );
+        } catch (Throwable $e) {
+            $this->updateError = $e->getMessage();
+
+            return;
+        }
+
+        activity('system')
+            ->causedBy($user->id)
+            ->withProperties(['action' => 'rollback'])
+            ->log('Menjadwalkan rollback SatkerCMS melalui antrean cron Panel Admin');
+
+        $this->showRollbackConfirm = false;
+        $this->updateNotice = 'Permintaan rollback masuk antrean. Cron schedule:run akan memulihkan versi sebelumnya dalam <= 1 menit.';
+    }
+
+    public function cancelQueuedUpdate(CmsUpdateQueueService $queue): void
+    {
+        $user = $this->authorizeWebTrigger();
+
+        $this->updateNotice = null;
+        $this->updateError = null;
+
+        if ($queue->cancelQueued()) {
+            activity('system')
+                ->causedBy($user->id)
+                ->log('Membatalkan antrean pembaruan SatkerCMS sebelum dieksekusi cron');
+
+            $this->updateNotice = 'Antrean pembaruan berhasil dibatalkan sebelum dijalankan cron.';
+        }
+    }
+
+    public function dismissUpdateJob(CmsUpdateQueueService $queue): void
+    {
+        $this->authorizeWebTrigger();
+        $status = $queue->getJobStatus();
+        if ($status !== null && in_array((string) ($status['status'] ?? ''), ['succeeded', 'failed'], true)) {
+            $queue->clearJobStatus();
+        }
+    }
+
+    private function authorizeWebTrigger(): User
+    {
+        $user = auth()->user();
+        abort_unless(
+            $user !== null
+                && $user->hasRole('super_admin')
+                && (bool) config('satker.update.web_trigger_enabled', true),
+            403
+        );
+
+        return $user;
+    }
+
     public function saveQuickDraft(): void
     {
         $user = auth()->user();
@@ -146,8 +272,12 @@ class Dashboard extends Component
         );
     }
 
-    public function render(SinovaHealthCheckService $healthCheck, CmsUpdateCheckService $updateChecker): View
-    {
+    public function render(
+        SinovaHealthCheckService $healthCheck,
+        CmsUpdateCheckService $updateChecker,
+        CmsUpdateQueueService $updateQueue,
+        CmsZeroDowntimeUpdater $updater,
+    ): View {
         $this->authorizeView();
 
         $satker = SatkerSetting::current();
@@ -168,7 +298,12 @@ class Dashboard extends Component
         $canModerateComments = $user !== null && $user->can('viewAny', PostComment::class);
         $canViewAudit = $user !== null && $user->hasAnyRole(['super_admin', 'admin_konten', 'penilai_internal']);
         $canManageUpdates = $user !== null && $user->hasAnyRole(['super_admin', 'admin_konten']);
+        $canTriggerWebUpdate = $user !== null
+            && $user->hasRole('super_admin')
+            && (bool) config('satker.update.web_trigger_enabled', true);
         $updateState = $canManageUpdates ? $updateChecker->checkIfStale() : null;
+        $updateJob = $canTriggerWebUpdate ? $updateQueue->getJobStatus() : null;
+        $hasRollbackCandidate = $canTriggerWebUpdate && $updater->hasRollbackCandidate();
 
         $recentActivities = $canViewAudit
             ? Activity::query()
@@ -218,7 +353,11 @@ class Dashboard extends Component
             'canModerateComments' => $canModerateComments,
             'canViewAudit' => $canViewAudit,
             'canManageUpdates' => $canManageUpdates,
+            'canTriggerWebUpdate' => $canTriggerWebUpdate,
             'updateState' => $updateState,
+            'updateJob' => $updateJob,
+            'hasRollbackCandidate' => $hasRollbackCandidate,
+            'autoUpdateEnabled' => (bool) config('satker.update.auto_update_enabled', false),
             'cmsVersion' => CmsVersion::current(),
             'categories' => Post::categoryLabels(),
             'totalVisits' => $totalVisits,

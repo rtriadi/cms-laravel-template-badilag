@@ -5,6 +5,7 @@ use App\Livewire\Admin\Dashboard;
 use App\Models\SatkerSetting;
 use App\Models\User;
 use App\Services\CmsUpdateCheckService;
+use App\Services\CmsUpdateQueueService;
 use App\Services\CmsZeroDowntimeUpdater;
 use App\Support\SafeReleaseArchiveExtractor;
 use Database\Seeders\RoleAndPermissionSeeder;
@@ -92,6 +93,8 @@ beforeEach(function (): void {
 
     $this->stateFile = $this->tempDir.DIRECTORY_SEPARATOR.'cms-update-state.json';
     $this->versionFile = $this->tempDir.DIRECTORY_SEPARATOR.'version.json';
+    $this->triggerFile = $this->tempDir.DIRECTORY_SEPARATOR.'cms-update-trigger.json';
+    $this->jobStatusFile = $this->tempDir.DIRECTORY_SEPARATOR.'cms-update-job.json';
 
     file_put_contents($this->versionFile, json_encode([
         'version' => '1.0.0',
@@ -105,6 +108,10 @@ beforeEach(function (): void {
     config()->set('satker.update.channel', 'stable');
     config()->set('satker.update.branch', 'main');
     config()->set('satker.update.state_path', $this->stateFile);
+    config()->set('satker.update.trigger_path', $this->triggerFile);
+    config()->set('satker.update.job_status_path', $this->jobStatusFile);
+    config()->set('satker.update.web_trigger_enabled', true);
+    config()->set('satker.update.auto_update_enabled', false);
     config()->set('satker.update.check_ttl_seconds', 43200);
 });
 
@@ -637,4 +644,233 @@ it('displays update banner and allows manual check on Dashboard only for super_a
     Livewire::test(Dashboard::class)
         ->call('checkForUpdates')
         ->assertSee('versi terbaru');
+});
+
+it('signs, consumes once, rejects tampered or expired triggers, and cancels queued updates in CmsUpdateQueueService', function (): void {
+    $queue = new CmsUpdateQueueService;
+
+    $job = $queue->enqueueUpdate(
+        targetTag: 'v1.2.0',
+        skipBackup: true,
+        userId: 1,
+        userName: 'Ketua Admin',
+        fromVersion: '1.0.0',
+    );
+
+    expect($job['status'])->toBe('queued')
+        ->and($job['action'])->toBe('update')
+        ->and($job['target_tag'])->toBe('v1.2.0')
+        ->and($job['skip_backup'])->toBeTrue()
+        ->and(is_file($this->triggerFile))->toBeTrue();
+
+    // Valid trigger is consumed strictly once (deleted immediately on consume)
+    $consumed = $queue->consumeValidTrigger();
+    expect($consumed)->not->toBeNull()
+        ->and($consumed['target_tag'])->toBe('v1.2.0')
+        ->and($consumed['skip_backup'])->toBeTrue()
+        ->and(is_file($this->triggerFile))->toBeFalse()
+        ->and($queue->consumeValidTrigger())->toBeNull();
+
+    // Tampered HMAC signature must be rejected and discarded
+    $queue->clearJobStatus();
+    $queue->enqueueUpdate('v1.2.0', false, 1, 'Ketua Admin', '1.0.0');
+    $raw = json_decode((string) file_get_contents($this->triggerFile), true);
+    $raw['target_tag'] = 'v9.9.9';
+    file_put_contents($this->triggerFile, json_encode($raw, JSON_THROW_ON_ERROR));
+
+    expect($queue->consumeValidTrigger())->toBeNull()
+        ->and(is_file($this->triggerFile))->toBeFalse();
+
+    // Expired trigger must be rejected and discarded
+    $queue->clearJobStatus();
+    $queue->enqueueUpdate('v1.2.0', false, 1, 'Ketua Admin', '1.0.0');
+    $expired = json_decode((string) file_get_contents($this->triggerFile), true);
+    $expired['expires_at'] = now()->subMinutes(5)->timestamp;
+    file_put_contents($this->triggerFile, json_encode($expired, JSON_THROW_ON_ERROR));
+
+    expect($queue->consumeValidTrigger())->toBeNull()
+        ->and(is_file($this->triggerFile))->toBeFalse();
+
+    // Cancel removes pending trigger and clears queued status
+    $queue->clearJobStatus();
+    $queue->enqueueUpdate('v1.2.0', false, 1, 'Ketua Admin', '1.0.0');
+    expect($queue->cancelQueued())->toBeTrue()
+        ->and(is_file($this->triggerFile))->toBeFalse()
+        ->and($queue->getJobStatus())->toBeNull();
+});
+
+it('processes queued update triggers and respects CMS_UPDATE_AUTO flag in cms:process-update-queue', function (): void {
+    Http::fake([
+        'https://api.github.com/repos/rtriadi/cms-laravel-template-badilag/releases/tags/v1.2.0' => Http::response([
+            'tag_name' => 'v1.2.0',
+            'draft' => false,
+            'prerelease' => false,
+            'published_at' => '2026-11-27T08:00:00Z',
+            'html_url' => 'https://github.com/rtriadi/cms-laravel-template-badilag/releases/tag/v1.2.0',
+            'body' => 'Rilis uji antrean',
+            'assets' => [
+                [
+                    'name' => 'satkercms-v1.2.0.zip',
+                    'browser_download_url' => 'https://github.com/rtriadi/cms-laravel-template-badilag/releases/download/v1.2.0/satkercms-v1.2.0.zip',
+                ],
+                [
+                    'name' => 'satkercms-v1.2.0.zip.sha256',
+                    'browser_download_url' => 'https://github.com/rtriadi/cms-laravel-template-badilag/releases/download/v1.2.0/satkercms-v1.2.0.zip.sha256',
+                ],
+            ],
+        ], 200),
+        'https://api.github.com/repos/rtriadi/cms-laravel-template-badilag/releases/latest' => Http::response([
+            'tag_name' => 'v1.4.0',
+            'draft' => false,
+            'prerelease' => false,
+            'published_at' => '2026-11-27T08:00:00Z',
+            'html_url' => 'https://github.com/rtriadi/cms-laravel-template-badilag/releases/tag/v1.4.0',
+            'body' => 'Rilis otomatis dini hari',
+            'assets' => [
+                [
+                    'name' => 'satkercms-v1.4.0.zip',
+                    'browser_download_url' => 'https://github.com/rtriadi/cms-laravel-template-badilag/releases/download/v1.4.0/satkercms-v1.4.0.zip',
+                ],
+                [
+                    'name' => 'satkercms-v1.4.0.zip.sha256',
+                    'browser_download_url' => 'https://github.com/rtriadi/cms-laravel-template-badilag/releases/download/v1.4.0/satkercms-v1.4.0.zip.sha256',
+                ],
+            ],
+        ], 200),
+        'https://api.github.com/repos/rtriadi/cms-laravel-template-badilag/releases/tags/v1.4.0' => Http::response([
+            'tag_name' => 'v1.4.0',
+            'draft' => false,
+            'prerelease' => false,
+            'published_at' => '2026-11-27T08:00:00Z',
+            'html_url' => 'https://github.com/rtriadi/cms-laravel-template-badilag/releases/tag/v1.4.0',
+            'body' => 'Rilis otomatis dini hari',
+            'assets' => [
+                [
+                    'name' => 'satkercms-v1.4.0.zip',
+                    'browser_download_url' => 'https://github.com/rtriadi/cms-laravel-template-badilag/releases/download/v1.4.0/satkercms-v1.4.0.zip',
+                ],
+                [
+                    'name' => 'satkercms-v1.4.0.zip.sha256',
+                    'browser_download_url' => 'https://github.com/rtriadi/cms-laravel-template-badilag/releases/download/v1.4.0/satkercms-v1.4.0.zip.sha256',
+                ],
+            ],
+        ], 200),
+    ]);
+
+    // Idle run when no trigger exists succeeds immediately with zero HTTP calls
+    $this->artisan('cms:process-update-queue')
+        ->assertExitCode(0);
+    Http::assertNothingSent();
+
+    // Auto mode does nothing when CMS_UPDATE_AUTO is false
+    config()->set('satker.update.auto_update_enabled', false);
+    $this->artisan('cms:process-update-queue', ['--auto' => true])
+        ->assertExitCode(0);
+    Http::assertNothingSent();
+
+    // Queued trigger executes updater and writes succeeded job status
+    $queue = app(CmsUpdateQueueService::class);
+    $queue->enqueueUpdate('v1.2.0', skipBackup: true, userId: 1, userName: 'Super Admin', fromVersion: '1.0.0');
+
+    $mockUpdater = Mockery::mock(CmsZeroDowntimeUpdater::class);
+    $mockUpdater->shouldReceive('detectLayout')->andReturn(['mode' => 'staged_inplace']);
+    $mockUpdater->shouldReceive('updateToRelease')
+        ->once()
+        ->andReturn(['mode' => 'staged_inplace', 'version' => '1.2.0', 'previous_version' => '1.0.0']);
+    $this->app->instance(CmsZeroDowntimeUpdater::class, $mockUpdater);
+
+    $this->artisan('cms:process-update-queue')
+        ->assertExitCode(0);
+
+    $status = $queue->getJobStatus();
+    expect($status)->not->toBeNull()
+        ->and($status['status'])->toBe('succeeded')
+        ->and($status['to_version'])->toBe('1.2.0');
+
+    // Auto mode with CMS_UPDATE_AUTO=true checks GitHub and triggers update automatically
+    $queue->clearJobStatus();
+    config()->set('satker.update.auto_update_enabled', true);
+
+    $autoMockUpdater = Mockery::mock(CmsZeroDowntimeUpdater::class);
+    $autoMockUpdater->shouldReceive('detectLayout')->andReturn(['mode' => 'staged_inplace']);
+    $autoMockUpdater->shouldReceive('updateToRelease')
+        ->once()
+        ->andReturn(['mode' => 'staged_inplace', 'version' => '1.4.0', 'previous_version' => '1.0.0']);
+    $this->app->instance(CmsZeroDowntimeUpdater::class, $autoMockUpdater);
+
+    $this->artisan('cms:process-update-queue', ['--auto' => true, '--skip-backup' => true])
+        ->assertExitCode(0);
+
+    $autoStatus = $queue->getJobStatus();
+    expect($autoStatus)->not->toBeNull()
+        ->and($autoStatus['status'])->toBe('succeeded')
+        ->and($autoStatus['requested_by_name'])->toBe('Auto-Updater Terjadwal');
+});
+
+it('allows only super_admin to queue or cancel 1-click web updates on Dashboard and respects CMS_UPDATE_WEB_TRIGGER', function (): void {
+    $this->seed(RoleAndPermissionSeeder::class);
+
+    SatkerSetting::query()->create([
+        'nama_satker' => 'Pengadilan Agama Uji',
+        'jenis_badan' => 'PA',
+        'tingkat' => 'pertama',
+        'is_setup_completed' => true,
+        'is_tingkat_locked' => true,
+    ]);
+
+    file_put_contents($this->stateFile, json_encode([
+        'channel' => 'stable',
+        'installed_version' => '1.0.0-dev',
+        'latest_version' => '1.3.0',
+        'latest_tag' => 'v1.3.0',
+        'update_available' => true,
+        'published_at' => '2026-11-27T08:00:00Z',
+        'release_url' => 'https://github.com/rtriadi/cms-laravel-template-badilag/releases/tag/v1.3.0',
+        'release_notes' => 'Rilis 1.3.0',
+        'zip_url' => 'https://github.com/rtriadi/cms-laravel-template-badilag/releases/download/v1.3.0/satkercms-v1.3.0.zip',
+        'sha256_url' => 'https://github.com/rtriadi/cms-laravel-template-badilag/releases/download/v1.3.0/satkercms-v1.3.0.zip.sha256',
+        'checked_at' => now()->timestamp,
+        'retry_after' => null,
+        'last_error' => null,
+    ], JSON_THROW_ON_ERROR));
+
+    $superAdmin = User::factory()->create([
+        'two_factor_secret' => encrypt('secret'),
+        'two_factor_recovery_codes' => encrypt(json_encode(['code-1'])),
+        'two_factor_confirmed_at' => now(),
+    ]);
+    $superAdmin->assignRole('super_admin');
+
+    $adminKonten = User::factory()->create([
+        'two_factor_secret' => encrypt('secret'),
+        'two_factor_recovery_codes' => encrypt(json_encode(['code-1'])),
+        'two_factor_confirmed_at' => now(),
+    ]);
+    $adminKonten->assignRole('admin_konten');
+
+    // admin_konten sees banner & CLI, does NOT see 1-click update button, and gets 403 on queueWebUpdate
+    $this->actingAs($adminKonten);
+    Livewire::test(Dashboard::class)
+        ->assertSee('Pembaruan SatkerCMS Tersedia')
+        ->assertDontSee('Perbarui ke v1.3.0')
+        ->call('queueWebUpdate')
+        ->assertForbidden();
+
+    // super_admin sees 1-click button, can queue update with skipBackup option, sees queued status, and can cancel
+    $this->actingAs($superAdmin);
+    Livewire::test(Dashboard::class)
+        ->assertSee('Perbarui ke v1.3.0')
+        ->set('skipUpdateBackup', true)
+        ->call('queueWebUpdate')
+        ->assertSee('Menunggu antrean')
+        ->assertSee('Batalkan Antrean')
+        ->call('cancelQueuedUpdate')
+        ->assertDontSee('Batalkan Antrean');
+
+    // When CMS_UPDATE_WEB_TRIGGER=false, even super_admin cannot see or call 1-click trigger
+    config()->set('satker.update.web_trigger_enabled', false);
+    Livewire::test(Dashboard::class)
+        ->assertDontSee('Perbarui ke v1.3.0')
+        ->call('queueWebUpdate')
+        ->assertForbidden();
 });

@@ -23,11 +23,100 @@
         </div>
     @endif
 
+    @php
+        $jobStatus = $updateJob['status'] ?? null;
+        $isJobActive = in_array($jobStatus, ['queued', 'running'], true);
+    @endphp
+
+    @if (($canTriggerWebUpdate ?? false) && $updateJob !== null)
+        <section
+            aria-label="Status Antrean Pembaruan Sistem"
+            @if ($isJobActive) wire:poll.5s @endif
+            @class([
+                'rounded-xl border p-4 sm:p-5',
+                'border-[#b6d7c9] bg-[#f0f7f4]' => in_array($jobStatus, ['queued', 'running', 'succeeded'], true),
+                'border-red-300 bg-[#fef2f2]' => $jobStatus === 'failed',
+            ])
+        >
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div class="space-y-1">
+                    <h3 @class([
+                        'font-serif text-base font-bold',
+                        'text-[#111827]' => $jobStatus !== 'failed',
+                        'text-[#b91c1c]' => $jobStatus === 'failed',
+                    ])>
+                        @if ($jobStatus === 'queued')
+                            Antrean Pembaruan Menunggu Cron
+                        @elseif ($jobStatus === 'running')
+                            Pembaruan Sedang Berjalan di Peladen
+                        @elseif ($jobStatus === 'succeeded')
+                            Pembaruan SatkerCMS Selesai
+                        @else
+                            Pembaruan SatkerCMS Gagal
+                        @endif
+                    </h3>
+                    <p @class([
+                        'text-xs leading-relaxed sm:text-[13px]',
+                        'text-[#374151]' => $jobStatus !== 'failed',
+                        'text-[#991b1b]' => $jobStatus === 'failed',
+                    ])>
+                        {{ $updateJob['message'] ?? '' }}
+                    </p>
+                    @if (! empty($updateJob['output_excerpt']))
+                        <details class="pt-1">
+                            <summary class="cursor-pointer text-xs font-semibold text-[#056e4f] underline underline-offset-4">
+                                Lihat Ringkasan Log Eksekusi
+                            </summary>
+                            <pre class="mt-2 max-h-48 overflow-auto rounded-lg border border-[#d8e2dd] bg-[#022c20] p-3 font-mono text-[11px] leading-relaxed text-white">{{ $updateJob['output_excerpt'] }}</pre>
+                        </details>
+                    @endif
+                </div>
+
+                <div class="flex shrink-0 flex-wrap items-center gap-2">
+                    @if ($jobStatus === 'queued')
+                        <button
+                            type="button"
+                            wire:click="cancelQueuedUpdate"
+                            class="inline-flex min-h-11 cursor-pointer items-center rounded-lg border border-[#92400e]/40 bg-white px-3.5 text-xs font-semibold text-[#92400e] transition-colors hover:bg-[#fffbeb] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#056e4f] sm:min-h-9"
+                        >
+                            Batalkan Antrean
+                        </button>
+                    @elseif ($jobStatus === 'succeeded')
+                        <button
+                            type="button"
+                            onclick="window.location.reload()"
+                            class="inline-flex min-h-11 cursor-pointer items-center rounded-lg bg-[#056e4f] px-3.5 text-xs font-semibold text-white transition-colors hover:bg-[#04543c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#056e4f] sm:min-h-9"
+                        >
+                            Muat Ulang Halaman
+                        </button>
+                        <button
+                            type="button"
+                            wire:click="dismissUpdateJob"
+                            class="inline-flex min-h-11 cursor-pointer items-center rounded-lg border border-[#d8e2dd] bg-white px-3.5 text-xs font-semibold text-[#334155] transition-colors hover:bg-[#f8faf9] sm:min-h-9"
+                        >
+                            Tutup
+                        </button>
+                    @elseif ($jobStatus === 'failed')
+                        <button
+                            type="button"
+                            wire:click="dismissUpdateJob"
+                            class="inline-flex min-h-11 cursor-pointer items-center rounded-lg border border-red-300 bg-white px-3.5 text-xs font-semibold text-[#b91c1c] transition-colors hover:bg-red-50 sm:min-h-9"
+                        >
+                            Tutup
+                        </button>
+                    @endif
+                </div>
+            </div>
+        </section>
+    @endif
+
     @if (($canManageUpdates ?? false) && (($updateState['update_available'] ?? false) === true))
         @php
-            $updateCliCommand = ($updateState['channel'] ?? 'stable') === 'dev'
-                ? 'git pull && php artisan cms:update --local-only'
-                : 'php artisan cms:update';
+            $isStableChannel = ($updateState['channel'] ?? 'stable') === 'stable';
+            $updateCliCommand = $isStableChannel
+                ? 'php artisan cms:update'
+                : 'git pull && php artisan cms:update --local-only';
+            $targetDisplayTag = (string) ($updateState['latest_tag'] ?? ('v'.($updateState['latest_version'] ?? '')));
         @endphp
         <section
             aria-label="Informasi Pembaruan Aplikasi"
@@ -44,13 +133,22 @@
                         </span>
                     </div>
                     <p class="text-xs leading-relaxed text-[#374151] sm:text-[13px]">
-                        Rilis baru terdeteksi dari repositori resmi GitHub. Jalankan perintah pembaruan melalui terminal peladen agar aplikasi diperbarui secara zero-downtime dengan backup basis data otomatis.
+                        Rilis baru terdeteksi dari repositori resmi GitHub. Anda dapat menjadwalkan pembaruan langsung lewat antrean cron peladen atau menjalankan perintah terminal secara manual.
                     </p>
                     @if (! empty($updateState['release_notes']))
                         <p class="whitespace-pre-line rounded-lg border border-[#d8e2dd] bg-white px-3 py-2 text-xs leading-relaxed text-[#374151]">{{ $updateState['release_notes'] }}</p>
                     @endif
-                    @if (! empty($updateState['release_url']))
-                        <div class="pt-0.5">
+                    <div class="flex flex-wrap items-center gap-3 pt-1">
+                        @if (($canTriggerWebUpdate ?? false) && $isStableChannel && ! $isJobActive)
+                            <button
+                                type="button"
+                                wire:click="$toggle('showUpdateConfirm')"
+                                class="inline-flex min-h-11 cursor-pointer items-center rounded-lg bg-[#056e4f] px-4 text-xs font-semibold text-white transition-colors hover:bg-[#04543c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#056e4f] sm:min-h-9"
+                            >
+                                Perbarui ke {{ $targetDisplayTag }}
+                            </button>
+                        @endif
+                        @if (! empty($updateState['release_url']))
                             <a
                                 href="{{ $updateState['release_url'] }}"
                                 target="_blank"
@@ -59,6 +157,41 @@
                             >
                                 Lihat Catatan Rilis di GitHub
                             </a>
+                        @endif
+                    </div>
+
+                    @if (($canTriggerWebUpdate ?? false) && $showUpdateConfirm && $isStableChannel && ! $isJobActive)
+                        <div class="mt-3 rounded-lg border border-[#b6d7c9] bg-white p-3.5 space-y-3">
+                            <p class="text-xs leading-relaxed text-[#111827]">
+                                Tiket pembaruan bertanda tangan akan diproses oleh cron <code class="font-mono text-[#056e4f]">schedule:run</code> dalam waktu maksimal 1 menit tanpa batas timeout browser.
+                            </p>
+                            <label class="flex cursor-pointer items-start gap-2.5 text-xs text-[#374151]">
+                                <input
+                                    type="checkbox"
+                                    wire:model="skipUpdateBackup"
+                                    class="mt-0.5 size-4 rounded border-[#cbd5e1] text-[#056e4f] focus:ring-[#056e4f]"
+                                >
+                                <span>Lewati backup database otomatis (centang hanya jika Anda sudah mengunduh backup manual atau perintah <code class="font-mono">mysqldump</code> dibatasi hosting).</span>
+                            </label>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button
+                                    type="button"
+                                    wire:click="queueWebUpdate"
+                                    wire:loading.attr="disabled"
+                                    wire:target="queueWebUpdate"
+                                    class="inline-flex min-h-11 cursor-pointer items-center rounded-lg bg-[#056e4f] px-4 text-xs font-semibold text-white transition-colors hover:bg-[#04543c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#056e4f] disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-9"
+                                >
+                                    <span wire:loading.remove wire:target="queueWebUpdate">Konfirmasi &amp; Jadwalkan Pembaruan</span>
+                                    <span wire:loading wire:target="queueWebUpdate">Menyimpan antrean...</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    wire:click="$set('showUpdateConfirm', false)"
+                                    class="inline-flex min-h-11 cursor-pointer items-center rounded-lg border border-[#d8e2dd] bg-white px-3.5 text-xs font-semibold text-[#334155] transition-colors hover:bg-[#f8faf9] sm:min-h-9"
+                                >
+                                    Batal
+                                </button>
+                            </div>
                         </div>
                     @endif
                 </div>
@@ -82,6 +215,42 @@
                 </div>
             </div>
         </section>
+    @endif
+
+    @if (($canTriggerWebUpdate ?? false) && ($hasRollbackCandidate ?? false) && ! $isJobActive)
+        <div class="rounded-xl border border-[#d8e2dd] bg-white px-4 py-3">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p class="text-xs text-[#374151]">
+                    Tersedia cadangan versi sebelumnya pada peladen. Jika ditemukan kendala pasca-pembaruan, Anda dapat memulihkan versi sebelumnya lewat antrean cron.
+                </p>
+                <button
+                    type="button"
+                    wire:click="$toggle('showRollbackConfirm')"
+                    class="inline-flex min-h-11 shrink-0 cursor-pointer items-center rounded-lg border border-[#d8e2dd] bg-[#f8faf9] px-3.5 text-xs font-semibold text-[#111827] transition-colors hover:border-[#92400e]/40 hover:bg-[#fffbeb] hover:text-[#92400e] sm:min-h-9"
+                >
+                    Rollback ke Versi Sebelumnya
+                </button>
+            </div>
+            @if ($showRollbackConfirm)
+                <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-[#e2e8e5] pt-3">
+                    <span class="text-xs font-medium text-[#92400e]">Yakin mengembalikan aplikasi ke rilis sebelumnya?</span>
+                    <button
+                        type="button"
+                        wire:click="queueWebRollback"
+                        class="inline-flex min-h-11 cursor-pointer items-center rounded-lg bg-[#92400e] px-3.5 text-xs font-semibold text-white transition-colors hover:bg-[#78350f] sm:min-h-8"
+                    >
+                        Ya, Jadwalkan Rollback
+                    </button>
+                    <button
+                        type="button"
+                        wire:click="$set('showRollbackConfirm', false)"
+                        class="inline-flex min-h-11 cursor-pointer items-center rounded-lg border border-[#d8e2dd] bg-white px-3 text-xs font-semibold text-[#334155] sm:min-h-8"
+                    >
+                        Batal
+                    </button>
+                </div>
+            @endif
+        </div>
     @endif
 
     <!-- Calm Executive Greeting Header -->

@@ -62,7 +62,7 @@
 - **3-Tab Studio TinyMCE 8 Self-Hosted (`Editor` | `Code` | `Preview`):** Mendukung penyuntingan visual, kode HTML langsung, pratinjau instan, tabel, serta unggah gambar (otomatis WebP) dan dokumen PDF.
 - **Pengaturan Satker 6 Seksi:** Identitas & Logo/Gedung, Alamat & Kontak, Integrasi SIPP & SIMTEPA (termasuk URL Bagan Struktur Organisasi), Pengawasan & Beranda (PTA, Indeks SKM/SPAK/SPKP, Video), Tautan Instansi Dinamis (maks. 20) / Sosial Media Resmi / Access CCTV Online (ACO), dan Ubah Tingkat Peradilan dengan konfirmasi ganda Super Admin.
 - **Hub Link SINOVA 2026 & Audit Sistem:** Pemetaan resmi **18 grup & 40 kriteria SINOVA** (`1.a.1.a` s.d. `3.c.1`: 35 URL + 5 non-URL), ekspor CSV siap lapor, manajemen/impor JSON kriteria juknis masa depan (`/panel-admin/kriteria`), audit tautan rusak (*broken link*), daftar Redirect 301, backup ZIP terenkripsi (`spatie/laravel-backup`) dengan tombol **Jalankan Backup Database** dan **Unduh** arsip di panel, serta log aktivitas (`spatie/laravel-activitylog`).
-- **Deteksi Pembaruan GitHub & Zero-Downtime Updater:** Pengecekan rilis baru otomatis ke GitHub Releases dua kali sehari (`cms:check-update`), banner notifikasi versi baru di Dashboard Admin khusus `super_admin` dan `admin_konten` (izin berkas web tetap terkunci aman), serta pembaruan satu perintah `php artisan cms:update` berarsitektur *zero-downtime* (mendukung pertukaran symlink atomik `releases/current` di VPS maupun *staged swap* di Shared Hosting tanpa butuh Node.js/Composer/Git di peladen, lengkap dengan verifikasi `SHA-256`, backup database otomatis, reset OPcache web bertanda tangan, dan `php artisan cms:rollback`).
+- **Deteksi Pembaruan GitHub & Zero-Downtime Updater:** Pengecekan rilis baru otomatis ke GitHub Releases dua kali sehari (`cms:check-update`), banner notifikasi versi baru di Dashboard Admin khusus `super_admin` dan `admin_konten`, pemicu pembaruan & *rollback* 1-klik khusus `super_admin` melalui antrean tiket bertanda tangan `APP_KEY` yang dieksekusi oleh cron permanen `schedule:run` (`CMS_UPDATE_WEB_TRIGGER=true`, plus opsi auto-update dini hari `CMS_UPDATE_AUTO=true` pukul 02:30), serta pembaruan terminal satu perintah `php artisan cms:update` berarsitektur *zero-downtime* (mendukung pertukaran symlink atomik `releases/current` di VPS maupun *staged swap* di Shared Hosting tanpa butuh Node.js/Composer/Git di peladen, lengkap dengan verifikasi `SHA-256`, backup database otomatis, reset OPcache web bertanda tangan, dan `php artisan cms:rollback`).
 - **Keamanan Berlapis:** Login admin dengan CAPTCHA lokal + wajib **2FA TOTP** (Google Authenticator/Authy), reset 2FA akun lain oleh **Super Admin** langsung dari menu Pengguna & Peran, 6 peran RBAC standar (`super_admin`, `admin_konten`, `operator_kepaniteraan`, `operator_kesekretariatan`, `operator_ppid_humas`, `penilai_internal`), sanitasi HTML (`SafeHtml`), dan header keamanan HTTP (`SecurityHeadersMiddleware`).
 
 ---
@@ -556,9 +556,13 @@ php artisan satker:optimize-media
 # Jalankan backup database & berkas terenkripsi (spatie/laravel-backup)
 php artisan backup:run
 
-# Tampilkan jadwal pemeliharaan otomatis (backup harian 02:00, pembersihan arsip 03:00,
-# pemangkasan log aktivitas mingguan, & cek update GitHub 2x sehari) yang dijalankan cron `schedule:run`
+# Tampilkan jadwal pemeliharaan otomatis (backup harian 02:00, auto-update opsional 02:30,
+# pembersihan arsip 03:00, pemangkasan log aktivitas mingguan, cek update GitHub 2x sehari,
+# & pemroses antrean 1-klik tiap menit) yang dijalankan cron `schedule:run`
 php artisan schedule:list
+
+# Memproses antrean pembaruan 1-klik dari Dashboard Admin (dijalankan otomatis oleh cron)
+php artisan cms:process-update-queue
 
 # Bangun ulang cache produksi setelah mengubah .env atau update kode
 php artisan optimize
