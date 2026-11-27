@@ -72,7 +72,7 @@ Sesuai ketentuan Bab III.B.1 Juknis Badilag dan standar WCAG 2.2 AA:
 | **Audit & Backup** | `spatie/laravel-activitylog ^5.1` + `spatie/laravel-backup ^10.4` | Jejak perubahan data dan pencadangan ZIP terenkripsi |
 | **Editor Konten** | TinyMCE 8 GPL (self-hosted, tanpa API key eksternal) | Studio 3-Tab (Editor Visual, Kode HTML, Pratinjau) + unggah WebP/PDF |
 | **Basis Data** | MySQL 8.0+ / MariaDB 10.6+ (atau SQLite untuk uji lokal) | Penyimpanan data CMS dan cache |
-| **Pengujian Otomatis** | Pest `^4.7` (110 pengujian, 943 asersi) | Verifikasi otomatis kepatuhan, keamanan, dan alur bisnis |
+| **Pengujian Otomatis** | Pest `^4.7` (`158` pengujian otomatis) | Verifikasi otomatis kepatuhan, keamanan, performa, dan alur bisnis |
 
 ---
 
@@ -283,9 +283,9 @@ Untuk memenuhi Kriteria `3.a.1` Keamanan Website SINOVA, akses panel admin mener
 
 ### 3.3 Lapisan Keamanan Tambahan Bawaan
 
-- **Security Headers (`SecurityHeadersMiddleware`):** Mengirimkan `Content-Security-Policy`, `X-Frame-Options`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, dan `Permissions-Policy`.
+- **Security Headers (`SecurityHeadersMiddleware`):** Mengirimkan `Content-Security-Policy` ketat berbasis **nonce** (`script-src 'self' 'nonce-...'` tanpa `'unsafe-inline'`/`'unsafe-eval'` di halaman publik) dan allowlist `frame-src` dinamis dari pengaturan satker, `X-Frame-Options`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, dan `Permissions-Policy`.
 - **Penyembunyian Versi di HTTP Header:** Header `X-Powered-By` dan `Server` disembunyikan pada level server/aplikasi, sementara informasi versi PHP dan CMS ditampilkan secara transparan hanya di halaman **`/status-sistem`**.
-- **Sanitasi HTML (`SafeHtml`):** Seluruh masukan konten HTML dari editor disanitasi terhadap celah XSS sebelum disimpan dan ditampilkan ke pengunjung publik.
+- **Sanitasi HTML & Validasi Unggahan (`SafeHtml`, `DOMParser`, `SafeUpload`):** Seluruh masukan konten HTML dari editor disanitasi terhadap celah XSS (termasuk pratinjau inert berbasis `DOMParser`), gambar dikonversi ulang ke WebP (menolak GIF mentah), dan dokumen PDF diperiksa header magic-byte `%PDF-` serta diblokir bila mengandung skrip aktif (`/JavaScript`, `/JS`, `/Launch`, `/RichMedia`).
 - **Rate Limiting:** Pembatasan percobaan login dan pengiriman komentar publik guna mencegah serangan *brute force* dan spam.
 
 ---
