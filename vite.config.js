@@ -20,7 +20,7 @@ export default defineConfig({
                     optimizedFallbacks: false,
                 }),
                 google('IBM Plex Mono', {
-                    weights: [400, 500, 600],
+                    weights: [400, 600],
                     preload: false,
                     optimizedFallbacks: false,
                 }),
@@ -28,20 +28,6 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
-    build: {
-        rollupOptions: {
-            output: {
-                manualChunks(id) {
-                    if (/node_modules[\\/]three[\\/]/.test(id)) {
-                        return 'three-hero';
-                    }
-                    if (/node_modules[\\/]gsap[\\/]/.test(id)) {
-                        return 'motion-gsap';
-                    }
-                },
-            },
-        },
-    },
     server: {
         watch: {
             ignored: ['**/storage/framework/views/**'],
