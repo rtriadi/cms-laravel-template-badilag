@@ -11,13 +11,23 @@
         ->implode('') ?: 'AD';
     $breadcrumbGroup = match (true) {
         request()->routeIs('admin.dashboard', 'admin.sinova-links') => 'Utama',
-        request()->routeIs('admin.pages', 'admin.posts', 'admin.comments', 'admin.documents') => 'Editorial',
-        request()->routeIs('admin.menus', 'admin.sliders', 'admin.kepaniteraan') => 'Struktur',
+        request()->routeIs('admin.pages', 'admin.posts', 'admin.comments', 'admin.documents') => 'Konten website',
+        request()->routeIs('admin.menus', 'admin.sliders') => 'Tampilan beranda',
+        request()->routeIs('admin.kepaniteraan') => 'Data pengadilan',
         default => 'Sistem',
+    };
+    $primaryRoleLabel = match ($user?->roles->first()?->name) {
+        'super_admin' => 'Super Admin',
+        'admin_konten' => 'Admin Konten',
+        'operator_kepaniteraan' => 'Op. Kepaniteraan',
+        'operator_kesekretariatan' => 'Op. Kesekretariatan',
+        'operator_ppid_humas' => 'Op. PPID & Humas',
+        'penilai_internal' => 'Penilai Internal',
+        default => 'Pengelola',
     };
 
     $commands = collect([
-        ['label' => 'Dashboard Studio & Kepatuhan', 'url' => route('admin.dashboard'), 'show' => true],
+        ['label' => 'Dashboard', 'url' => route('admin.dashboard'), 'show' => true],
         ['label' => 'Link Kriteria SINOVA', 'url' => route('admin.sinova-links'), 'show' => $user?->can('manage-sinova-links') || $user?->hasRole('super_admin')],
         ['label' => 'Menu Navigasi', 'url' => route('admin.menus'), 'show' => $user?->can('manage-menus') || $user?->hasRole('super_admin')],
         ['label' => 'Halaman & Page Builder', 'url' => route('admin.pages'), 'show' => $user?->can('manage-pages') || $user?->hasRole('super_admin')],
@@ -43,7 +53,7 @@
     @if ($satker?->logo_path)
         <link rel="icon" href="{{ asset('storage/' . $satker->logo_path) }}">
     @endif
-    <title>{{ $title ?? 'Panel Studio Admin' }} - {{ $satker?->nama_satker ?? 'SatkerCMS' }}</title>
+    <title>{{ $title ?? 'Panel Admin' }} - {{ $satker?->nama_satker ?? 'SatkerCMS' }}</title>
     @if (is_file(public_path('build/fonts-manifest.json')) || \Illuminate\Support\Facades\Vite::isRunningHot())
         {{ \Illuminate\Support\Facades\Vite::fonts() }}
     @endif
@@ -377,21 +387,30 @@
                     if (!raw || !raw.trim()) {
                         return '';
                     }
-                    const container = document.createElement('div');
-                    container.innerHTML = raw;
-                    container.querySelectorAll('script, style, iframe, object, embed, form').forEach((el) => el.remove());
+                    const parsed = new DOMParser().parseFromString(raw, 'text/html');
+                    const container = parsed.body;
+                    if (!container) {
+                        return '';
+                    }
+                    container.querySelectorAll('script, style, iframe, object, embed, form, svg, math, template, base, link, meta').forEach((el) => el.remove());
                     container.querySelectorAll('*').forEach((el) => {
                         Array.from(el.attributes).forEach((attr) => {
                             const name = attr.name.toLowerCase();
-                            const val = attr.value.trim().toLowerCase();
-                            if (name.startsWith('on') || ((name === 'href' || name === 'src') && val.startsWith('javascript:'))) {
+                            const val = attr.value.replace(/[\u0000-\u0020]+/g, '').toLowerCase();
+                            if (
+                                name.startsWith('on')
+                                || name === 'srcdoc'
+                                || name === 'formaction'
+                                || ((name === 'href' || name === 'src' || name === 'action' || name === 'xlink:href')
+                                    && (val.startsWith('javascript:') || val.startsWith('vbscript:') || val.startsWith('data:')))
+                            ) {
                                 el.removeAttribute(attr.name);
                             }
                         });
                     });
                     container.querySelectorAll('table').forEach((tbl) => {
                         if (!tbl.parentElement || !tbl.parentElement.classList.contains('prose-table-wrap')) {
-                            const wrap = document.createElement('div');
+                            const wrap = parsed.createElement('div');
                             wrap.className = 'prose-table-wrap';
                             tbl.parentNode.insertBefore(wrap, tbl);
                             wrap.appendChild(tbl);
@@ -558,6 +577,9 @@
                 } catch (e) {}
             } else {
                 this.mobileSidebarOpen = !this.mobileSidebarOpen;
+                if (!this.mobileSidebarOpen) {
+                    this.$nextTick(() => this.$refs.mobileMenuTrigger?.focus());
+                }
             }
         },
         toggleDesktopSidebar() {
@@ -567,7 +589,11 @@
             } catch (e) {}
         },
         closeMobileSidebar() {
+            const wasOpen = this.mobileSidebarOpen;
             this.mobileSidebarOpen = false;
+            if (wasOpen) {
+                this.$nextTick(() => this.$refs.mobileMenuTrigger?.focus());
+            }
         },
         get filteredItems() {
             const q = this.cmdQuery.trim().toLowerCase();
@@ -603,10 +629,18 @@
             }
         }
     }"
-    x-on:keydown.window="if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); openCmd(); } else if (event.key === 'Escape') { if (cmdOpen) closeCmd(); createOpen = false; mobileSidebarOpen = false; }"
+    x-on:keydown.window="if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); openCmd(); } else if (event.key === 'Escape') { if (cmdOpen) closeCmd(); createOpen = false; closeMobileSidebar(); }"
+    x-bind:class="mobileSidebarOpen ? 'overflow-hidden lg:overflow-auto' : ''"
 >
-    <div class="min-h-screen lg:flex">
-        <!-- Mobile Sidebar Backdrop -->
+    <!-- Pita Identitas Emas 3px (SK Dirjen Badilag) -->
+    <div class="sticky top-0 z-30 h-[3px] w-full bg-gold" aria-hidden="true"></div>
+
+    <a href="#admin-main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-obsidian focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white">
+        Lompat ke konten utama
+    </a>
+
+    <div class="min-h-[calc(100dvh-3px)] md:flex">
+        <!-- Mobile / Tablet Sidebar Backdrop -->
         <div
             x-cloak
             x-show="mobileSidebarOpen"
@@ -619,72 +653,61 @@
             sticky
             x-bind:data-studio-collapsed="sidebarCollapsed ? 'true' : 'false'"
             x-bind:data-mobile-open="mobileSidebarOpen ? 'true' : 'false'"
-            class="studio-sidebar border-e border-[#104436] bg-[#06261d] text-[#cfe9df]"
+            class="studio-sidebar border-e border-[#1a4d3e] bg-obsidian text-[#d3e8df]"
         >
-            <flux:sidebar.header class="flex flex-col items-stretch gap-2 border-b border-[#104436] pb-3">
+            <flux:sidebar.header class="flex flex-col items-stretch gap-2 border-b border-[#1a4d3e] pb-3.5">
                 <div class="studio-sidebar-toprow flex items-center justify-between gap-2">
-                    <a href="{{ route('admin.dashboard') }}" class="studio-sidebar-brand flex min-w-0 items-center gap-2.5 text-white">
+                    <a href="{{ route('admin.dashboard') }}" class="studio-sidebar-brand flex min-w-0 flex-1 items-center gap-2.5 text-white">
                         @if ($satker?->logo_path)
-                            <span class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-[9px] border-[1.5px] border-gold bg-white p-1 shadow-2xs">
+                            <span class="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-[9px] border-[1.5px] border-gold bg-white p-1">
                                 <img
                                     src="{{ asset('storage/' . $satker->logo_path) }}"
                                     alt="Logo {{ $satker->nama_satker }}"
-                                    width="36"
-                                    height="36"
+                                    width="40"
+                                    height="40"
                                     class="size-full object-contain"
                                 />
                             </span>
                         @else
-                            <span class="flex size-9 shrink-0 items-center justify-center rounded-[9px] border-[1.5px] border-gold bg-[#0c3b2e] text-gold shadow-2xs">
-                                <svg class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                    <path d="M12 3v18M5 7h14M8 21h8M5 7l-3 6h6l-3-6zM19 7l-3 6h6l-3-6z" />
-                                </svg>
+                            <span class="flex size-10 shrink-0 items-center justify-center rounded-[9px] border-[1.5px] border-gold bg-white font-mono text-[10px] font-bold text-primary">
+                                LOGO
                             </span>
                         @endif
-                        <div class="studio-sidebar-label min-w-0">
-                            <p class="truncate font-serif text-[15px] leading-tight font-bold text-white">
-                                {{ $satker?->nama_satker ? \Illuminate\Support\Str::limit($satker->nama_satker, 20) : 'SatkerCMS' }}
+                        <div class="studio-sidebar-label min-w-0 flex-1">
+                            <p
+                                class="line-clamp-2 font-serif text-[14.5px] leading-[1.25] font-bold text-white"
+                                title="{{ $satker?->nama_satker ?? 'SatkerCMS' }}"
+                            >
+                                {{ $satker?->nama_satker ?: 'SatkerCMS' }}
                             </p>
-                            <p class="mt-0.5 truncate font-mono text-[10px] text-[#7eb7a3]">
-                                SatkerCMS &middot; {{ $tingkatLabel }}
+                            <p class="mt-0.5 truncate text-[11px] font-medium text-[#8dbfac]">
+                                Panel Admin &middot; {{ $tingkatLabel }}
                             </p>
                         </div>
                     </a>
 
                     <button
                         type="button"
-                        x-on:click="toggleDesktopSidebar()"
-                        x-bind:aria-expanded="(!sidebarCollapsed).toString()"
-                        x-bind:title="sidebarCollapsed ? 'Perluas sidebar navigasi' : 'Ciutkan sidebar navigasi'"
-                        aria-label="Ciutkan atau perluas sidebar navigasi"
-                        class="studio-sidebar-toggle hidden size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#104436] bg-[#0c3b2e] text-[#cfe9df] transition-colors hover:border-gold/60 hover:bg-primary hover:text-white lg:inline-flex"
-                    >
-                        <svg class="size-4 transition-transform duration-200" x-bind:class="sidebarCollapsed ? 'rotate-180' : ''" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75v12.5M3.5 16.25h13c.55 0 1-.45 1-1V4.75c0-.55-.45-1-1-1h-13c-.55 0-1 .45-1 1v10.5c0 .55.45 1 1 1Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m12.75 7.75-2.25 2.25 2.25 2.25" />
-                        </svg>
-                    </button>
-
-                    <button
-                        type="button"
                         x-on:click="closeMobileSidebar()"
                         aria-label="Tutup menu navigasi"
-                        class="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#104436] bg-[#0c3b2e] text-[#cfe9df] hover:bg-primary hover:text-white lg:hidden"
+                        class="studio-sidebar-close-btn inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-[#1a4d3e] bg-[#0d4434] px-2.5 text-xs font-semibold text-white hover:bg-primary lg:hidden"
                     >
                         <svg class="size-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 5l10 10M15 5 5 15" />
                         </svg>
+                        <span>Tutup</span>
                     </button>
                 </div>
             </flux:sidebar.header>
 
-            <flux:sidebar.nav class="flex-1 space-y-3 overflow-y-auto py-1">
+            <flux:sidebar.nav class="flex-1 space-y-3 overflow-y-auto py-1.5">
                 <flux:sidebar.group heading="Utama">
                     <flux:sidebar.item
                         icon="squares-2x2"
                         href="{{ route('admin.dashboard') }}"
                         :current="request()->routeIs('admin.dashboard')"
-                        class="min-h-10"
+                        title="Dashboard"
+                        class="min-h-11 lg:min-h-10"
                     >
                         Dashboard
                     </flux:sidebar.item>
@@ -694,20 +717,22 @@
                             icon="link"
                             href="{{ route('admin.sinova-links') }}"
                             :current="request()->routeIs('admin.sinova-links')"
-                            class="min-h-10"
+                            title="Link SINOVA"
+                            class="min-h-11 lg:min-h-10"
                         >
                             Link SINOVA
                         </flux:sidebar.item>
                     @endif
                 </flux:sidebar.group>
 
-                <flux:sidebar.group heading="Editorial">
+                <flux:sidebar.group heading="Konten website">
                     @if ($user?->can('manage-pages') || $user?->hasRole('super_admin'))
                         <flux:sidebar.item
                             icon="document-duplicate"
                             href="{{ route('admin.pages') }}"
                             :current="request()->routeIs('admin.pages')"
-                            class="min-h-10"
+                            title="Halaman"
+                            class="min-h-11 lg:min-h-10"
                         >
                             Halaman
                         </flux:sidebar.item>
@@ -718,7 +743,8 @@
                             icon="newspaper"
                             href="{{ route('admin.posts') }}"
                             :current="request()->routeIs('admin.posts')"
-                            class="min-h-10"
+                            title="Publikasi"
+                            class="min-h-11 lg:min-h-10"
                         >
                             Publikasi
                         </flux:sidebar.item>
@@ -730,7 +756,8 @@
                             href="{{ route('admin.comments') }}"
                             :current="request()->routeIs('admin.comments')"
                             :badge="$pendingCommentsBadge > 0 ? $pendingCommentsBadge : null"
-                            class="min-h-10"
+                            title="Komentar"
+                            class="min-h-11 lg:min-h-10"
                         >
                             Komentar
                         </flux:sidebar.item>
@@ -741,47 +768,53 @@
                             icon="folder-open"
                             href="{{ route('admin.documents') }}"
                             :current="request()->routeIs('admin.documents')"
-                            class="min-h-10"
+                            title="Dokumen PDF"
+                            class="min-h-11 lg:min-h-10"
                         >
                             Dokumen PDF
                         </flux:sidebar.item>
                     @endif
                 </flux:sidebar.group>
 
-                <flux:sidebar.group heading="Struktur">
-                    @if ($user?->can('manage-menus') || $user?->hasRole('super_admin'))
-                        <flux:sidebar.item
-                            icon="bars-3-bottom-left"
-                            href="{{ route('admin.menus') }}"
-                            :current="request()->routeIs('admin.menus')"
-                            class="min-h-10"
-                        >
-                            Menu Navigasi
-                        </flux:sidebar.item>
-                    @endif
-
+                <flux:sidebar.group heading="Tampilan beranda">
                     @if ($user?->can('manage-pages') || $user?->hasAnyRole(['super_admin', 'admin_konten']))
                         <flux:sidebar.item
                             icon="photo"
                             href="{{ route('admin.sliders') }}"
                             :current="request()->routeIs('admin.sliders')"
-                            class="min-h-10"
+                            title="Slider Beranda"
+                            class="min-h-11 lg:min-h-10"
                         >
                             Slider Beranda
                         </flux:sidebar.item>
                     @endif
 
-                    @if ($user?->can('manage-kepaniteraan') || $user?->can('manage-kesekretariatan') || $user?->hasAnyRole(['super_admin', 'admin_konten']))
+                    @if ($user?->can('manage-menus') || $user?->hasRole('super_admin'))
+                        <flux:sidebar.item
+                            icon="bars-3-bottom-left"
+                            href="{{ route('admin.menus') }}"
+                            :current="request()->routeIs('admin.menus')"
+                            title="Menu Navigasi"
+                            class="min-h-11 lg:min-h-10"
+                        >
+                            Menu Navigasi
+                        </flux:sidebar.item>
+                    @endif
+                </flux:sidebar.group>
+
+                @if ($user?->can('manage-kepaniteraan') || $user?->can('manage-kesekretariatan') || $user?->hasAnyRole(['super_admin', 'admin_konten']))
+                    <flux:sidebar.group heading="Data pengadilan">
                         <flux:sidebar.item
                             icon="scale"
                             href="{{ route('admin.kepaniteraan') }}"
                             :current="request()->routeIs('admin.kepaniteraan')"
-                            class="min-h-10"
+                            title="Kepaniteraan"
+                            class="min-h-11 lg:min-h-10"
                         >
                             Kepaniteraan
                         </flux:sidebar.item>
-                    @endif
-                </flux:sidebar.group>
+                    </flux:sidebar.group>
+                @endif
 
                 <flux:sidebar.group heading="Sistem">
                     @if ($user?->can('manage-satker-settings') || $user?->hasRole('super_admin'))
@@ -789,7 +822,8 @@
                             icon="building-library"
                             href="{{ route('admin.settings') }}"
                             :current="request()->routeIs('admin.settings')"
-                            class="min-h-10"
+                            title="Pengaturan Satker"
+                            class="min-h-11 lg:min-h-10"
                         >
                             Pengaturan Satker
                         </flux:sidebar.item>
@@ -800,7 +834,8 @@
                             icon="clipboard-document-check"
                             href="{{ route('admin.criteria') }}"
                             :current="request()->routeIs('admin.criteria')"
-                            class="min-h-10"
+                            title="Kriteria SINOVA"
+                            class="min-h-11 lg:min-h-10"
                         >
                             Kriteria SINOVA
                         </flux:sidebar.item>
@@ -811,7 +846,8 @@
                             icon="users"
                             href="{{ route('admin.users') }}"
                             :current="request()->routeIs('admin.users')"
-                            class="min-h-10"
+                            title="Pengguna & Peran"
+                            class="min-h-11 lg:min-h-10"
                         >
                             Pengguna &amp; Peran
                         </flux:sidebar.item>
@@ -822,9 +858,10 @@
                             icon="shield-check"
                             href="{{ route('admin.audit') }}"
                             :current="request()->routeIs('admin.audit')"
-                            class="min-h-10"
+                            title="Audit & Backup"
+                            class="min-h-11 lg:min-h-10"
                         >
-                            Audit &amp; Keamanan
+                            Audit &amp; Backup
                         </flux:sidebar.item>
                     @endif
 
@@ -832,28 +869,24 @@
                         icon="key"
                         href="{{ route('admin.two-factor.setup') }}"
                         :current="request()->routeIs('admin.two-factor.setup')"
-                        class="min-h-10"
+                        title="Keamanan 2FA"
+                        class="min-h-11 lg:min-h-10"
                     >
                         Keamanan 2FA
                     </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 
-            <div class="mt-auto border-t border-[#104436] pt-3">
+            <div class="mt-auto space-y-2.5 border-t border-[#1a4d3e] pt-3">
                 <div class="studio-sidebar-meta flex items-center justify-between gap-2 px-1">
                     <div class="flex min-w-0 items-center gap-2.5">
-                        <span class="flex size-8.5 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+                        <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#0d4434] text-xs font-bold text-gold">
                             {{ $userInitials }}
                         </span>
                         <div class="min-w-0">
                             <p class="truncate text-xs font-semibold text-white">{{ $user?->name }}</p>
-                            <p class="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] text-[#7eb7a3]">
-                                <span @class([
-                                    'inline-block size-1.5 rounded-full',
-                                    'bg-emerald-400' => $user?->two_factor_confirmed_at !== null,
-                                    'bg-amber-400' => $user?->two_factor_confirmed_at === null,
-                                ])></span>
-                                <span>{{ $user?->two_factor_confirmed_at !== null ? '2FA TOTP Aktif' : '2FA Belum Aktif' }}</span>
+                            <p class="mt-0.5 truncate text-[11px] text-[#8dbfac]">
+                                {{ $primaryRoleLabel }} &middot; {{ $user?->two_factor_confirmed_at !== null ? '2FA aktif' : '2FA belum aktif' }}
                             </p>
                         </div>
                     </div>
@@ -863,7 +896,7 @@
                             type="submit"
                             title="Keluar dari panel admin"
                             aria-label="Keluar dari panel admin"
-                            class="inline-flex size-8 cursor-pointer items-center justify-center rounded-lg border border-[#104436] bg-[#0c3b2e] text-[#cfe9df] transition-colors hover:bg-primary hover:text-white"
+                            class="inline-flex size-10 cursor-pointer items-center justify-center rounded-lg border border-[#1a4d3e] bg-[#0d4434] text-[#d3e8df] transition-colors hover:bg-primary hover:text-white"
                         >
                             <svg class="size-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12.5 6.25V4.75a1.5 1.5 0 0 0-1.5-1.5h-6a1.5 1.5 0 0 0-1.5 1.5v10.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5v-1.5M8.5 10h8m0 0-2.5-2.5M16.5 10 14 12.5" />
@@ -878,7 +911,7 @@
                         type="submit"
                         title="Keluar ({{ $user?->name }})"
                         aria-label="Keluar dari panel admin"
-                        class="mx-auto flex size-9 cursor-pointer items-center justify-center rounded-full bg-primary text-xs font-bold text-white transition-colors hover:bg-primary-hover"
+                        class="mx-auto flex size-10 cursor-pointer items-center justify-center rounded-full bg-[#0d4434] text-xs font-bold text-gold transition-colors hover:bg-primary hover:text-white"
                     >
                         {{ $userInitials }}
                     </button>
@@ -886,84 +919,114 @@
             </div>
         </flux:sidebar>
 
-        <div class="flex min-w-0 flex-1 flex-col bg-[#f5f7f6]">
-            <header class="sticky top-0 z-20 flex h-14 items-center justify-between gap-3 border-b border-[#e2e8e5] bg-white/95 px-4 backdrop-blur-xs sm:px-6 lg:px-7">
+        <div class="flex min-w-0 flex-1 flex-col overflow-x-clip bg-mist">
+            <header class="sticky top-[3px] z-20 flex min-h-16 items-center justify-between gap-2 border-b border-hairline bg-white px-3.5 sm:px-6 lg:px-8">
                 <div class="flex min-w-0 items-center gap-2.5">
                     <button
                         type="button"
+                        x-ref="mobileMenuTrigger"
                         data-flux-sidebar-toggle
                         x-on:click="toggleSidebar()"
                         x-bind:aria-expanded="mobileSidebarOpen.toString()"
-                        aria-label="Buka atau tutup menu navigasi admin"
-                        class="inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#e2e8e5] bg-[#f5f7f6] text-ink transition-colors hover:border-primary hover:bg-primary-soft hover:text-primary lg:hidden"
+                        aria-label="Buka menu navigasi admin"
+                        class="inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-hairline bg-mist px-3 text-xs font-semibold text-ink transition-colors hover:border-primary hover:bg-primary-soft hover:text-primary lg:hidden"
                     >
-                        <svg class="size-4.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.5 5.25h13M3.5 10h13M3.5 14.75h8.5" />
+                        <svg class="size-4.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.5 5.25h13M3.5 10h13M3.5 14.75h9" />
+                        </svg>
+                        <span>Menu</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        x-on:click="toggleDesktopSidebar()"
+                        x-bind:aria-expanded="(!sidebarCollapsed).toString()"
+                        aria-label="Ciutkan atau perluas navigasi samping"
+                        class="hidden size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-hairline bg-white text-ink-body transition-colors hover:border-primary hover:bg-primary-soft hover:text-primary lg:inline-flex"
+                    >
+                        <svg class="size-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                            <rect x="3" y="4" width="14" height="12" rx="1.5" />
+                            <path d="M7.5 4v12" />
                         </svg>
                     </button>
-                    <nav aria-label="Breadcrumb panel admin" class="flex min-w-0 items-center gap-2 text-[13px]">
-                        <span class="hidden font-medium text-[#64748b] sm:inline">{{ $breadcrumbGroup }}</span>
-                        <span class="hidden text-[#cbd5e1] sm:inline" aria-hidden="true">/</span>
-                        <h1 class="truncate font-semibold text-[#0f172a]">
-                            {{ $title ?? 'Dashboard Studio & Kepatuhan' }}
-                        </h1>
+
+                    <nav aria-label="Breadcrumb panel admin" class="flex min-w-0 items-center gap-2 text-sm">
+                        <span class="hidden font-medium text-ink-muted md:inline">{{ $breadcrumbGroup }}</span>
+                        <svg class="hidden size-3.5 shrink-0 text-ink-muted/60 md:inline" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 3.5 10.5 8 6 12.5" />
+                        </svg>
+                        <span class="truncate font-semibold text-ink">
+                            {{ $title ?? 'Dashboard' }}
+                        </span>
                     </nav>
                 </div>
 
-                <div class="flex items-center gap-2">
+                <div class="flex shrink-0 items-center gap-2">
                     <button
                         type="button"
                         x-on:click="openCmd()"
-                        aria-label="Buka pencarian cepat perintah admin"
-                        class="inline-flex h-9 cursor-pointer items-center gap-3 rounded-lg border border-[#e2e8e5] bg-[#f5f7f6] px-3 text-xs font-medium text-[#64748b] transition-colors hover:border-[#cbd5e1] hover:text-[#0f172a]"
+                        aria-label="Buka pencarian cepat menu admin"
+                        class="inline-flex min-h-11 cursor-pointer items-center gap-2.5 rounded-lg border border-hairline bg-mist px-3 text-xs font-medium text-ink-muted transition-colors hover:border-primary/50 hover:text-ink sm:min-h-10 md:w-48 lg:w-72"
                     >
-                        <span class="hidden sm:inline">Cari menu &amp; konten...</span>
-                        <span class="sm:hidden">Cari...</span>
-                        <kbd class="hidden rounded border border-[#e2e8e5] bg-white px-1.5 py-0.5 font-mono text-[10px] font-medium text-[#64748b] sm:inline">Ctrl K</kbd>
+                        <svg class="size-4 shrink-0 text-ink-muted" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <circle cx="9" cy="9" r="5.5" />
+                            <path stroke-linecap="round" d="m16.5 16.5-3.6-3.6" />
+                        </svg>
+                        <span class="hidden truncate text-left md:inline md:flex-1">Cari menu, berita, dokumen</span>
+                        <span class="sr-only md:hidden">Cari</span>
+                        <kbd class="hidden rounded border border-hairline bg-white px-1.5 py-0.5 font-mono text-[11px] font-medium text-ink-muted md:inline">Ctrl K</kbd>
                     </button>
-
-                    <!-- Quick + Buat Baru Studio Dropdown -->
-                    <div class="relative hidden sm:block" x-on:click.outside="createOpen = false">
-                        <button
-                            type="button"
-                            x-on:click="createOpen = !createOpen"
-                            aria-expanded="false"
-                            x-bind:aria-expanded="createOpen ? 'true' : 'false'"
-                            class="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg bg-primary px-3.5 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-primary-hover"
-                        >
-                            <span>+ Buat Baru</span>
-                        </button>
-                        <div
-                            x-cloak
-                            x-show="createOpen"
-                            class="absolute right-0 mt-1.5 w-60 rounded-xl border border-[#e2e8e5] bg-white p-1.5 shadow-lg"
-                        >
-                            @if ($user?->can('manage-ppid-humas') || $user?->hasAnyRole(['super_admin', 'admin_konten']))
-                                <a href="{{ route('admin.posts', ['kategori' => 'berita']) }}" class="flex min-h-9 items-center rounded-lg px-3 text-xs font-semibold text-ink hover:bg-primary-soft hover:text-primary">Tulis Berita / Pengumuman</a>
-                            @endif
-                            @if ($user?->can('manage-pages') || $user?->hasRole('super_admin'))
-                                <a href="{{ route('admin.pages') }}" class="flex min-h-9 items-center rounded-lg px-3 text-xs font-semibold text-ink hover:bg-primary-soft hover:text-primary">Buka Page Builder</a>
-                            @endif
-                            @if ($user?->can('manage-kesekretariatan') || $user?->can('manage-kepaniteraan') || $user?->can('manage-ppid-humas') || $user?->hasAnyRole(['super_admin', 'admin_konten']))
-                                <a href="{{ route('admin.documents') }}" class="flex min-h-9 items-center rounded-lg px-3 text-xs font-semibold text-ink hover:bg-primary-soft hover:text-primary">Unggah Dokumen PDF</a>
-                            @endif
-                        </div>
-                    </div>
 
                     <a
                         href="{{ route('home') }}"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="inline-flex h-9 items-center rounded-lg border border-[#e2e8e5] bg-white px-3 text-xs font-semibold text-primary transition-colors hover:border-primary/40 hover:bg-primary-soft"
+                        class="hidden min-h-10 items-center gap-1.5 rounded-lg border border-hairline bg-white px-3.5 text-xs font-semibold text-ink transition-colors hover:border-primary/50 hover:bg-primary-soft hover:text-primary sm:inline-flex"
                     >
-                        Lihat Situs &nearr;
+                        <span>Lihat Website</span>
+                        <svg class="size-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.5 3h3.5v3.5M13 3 7.5 8.5M11 9.5V12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h2.5" />
+                        </svg>
                     </a>
+
+                    <!-- Quick Buat Baru Dropdown -->
+                    <div class="relative" x-on:click.outside="createOpen = false">
+                        <button
+                            type="button"
+                            x-on:click="createOpen = !createOpen"
+                            aria-expanded="false"
+                            x-bind:aria-expanded="createOpen ? 'true' : 'false'"
+                            aria-label="Buat konten baru"
+                            class="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg bg-primary px-3.5 text-xs font-semibold text-white transition-colors hover:bg-primary-hover sm:min-h-10"
+                        >
+                            <svg class="size-4 shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path stroke-linecap="round" d="M10 4.5v11M4.5 10h11" />
+                            </svg>
+                            <span class="hidden sm:inline">Buat Baru</span>
+                        </button>
+                        <div
+                            x-cloak
+                            x-show="createOpen"
+                            class="absolute right-0 mt-1.5 w-64 rounded-xl border border-hairline bg-white p-1.5 shadow-lg"
+                        >
+                            @if ($user?->can('manage-ppid-humas') || $user?->hasAnyRole(['super_admin', 'admin_konten']))
+                                <a href="{{ route('admin.posts', ['kategori' => 'berita']) }}" class="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-ink hover:bg-primary-soft hover:text-primary">Tulis Berita / Pengumuman</a>
+                            @endif
+                            @if ($user?->can('manage-pages') || $user?->hasRole('super_admin'))
+                                <a href="{{ route('admin.pages') }}" class="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-ink hover:bg-primary-soft hover:text-primary">Kelola Halaman Website</a>
+                            @endif
+                            @if ($user?->can('manage-kesekretariatan') || $user?->can('manage-kepaniteraan') || $user?->can('manage-ppid-humas') || $user?->hasAnyRole(['super_admin', 'admin_konten']))
+                                <a href="{{ route('admin.documents') }}" class="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-ink hover:bg-primary-soft hover:text-primary">Unggah Dokumen PDF</a>
+                            @endif
+                            <a href="{{ route('home') }}" target="_blank" rel="noopener noreferrer" class="flex min-h-11 items-center rounded-lg border-t border-hairline/70 px-3 text-sm font-medium text-primary hover:bg-primary-soft sm:hidden">Lihat Website Publik</a>
+                        </div>
+                    </div>
                 </div>
             </header>
 
-            <main class="mx-auto w-full max-w-[1480px] flex-1 p-4 sm:p-6 lg:p-7">
+            <main id="admin-main-content" class="mx-auto w-full max-w-[1440px] flex-1 p-4 sm:p-6 lg:p-8">
                 @if (session('status'))
-                    <div role="status" class="mb-6 rounded-lg border border-emerald-200 bg-primary-soft px-4 py-3 text-sm font-medium text-primary">
+                    <div role="status" class="mb-6 rounded-xl border border-emerald-200 bg-primary-soft px-4 py-3 text-sm font-medium text-primary">
                         {{ session('status') }}
                     </div>
                 @endif
@@ -981,11 +1044,15 @@
         role="dialog"
         aria-modal="true"
         aria-label="Navigasi Cepat Admin"
-        class="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-4 pt-20"
+        class="fixed inset-0 z-50 flex items-start justify-center bg-black/45 p-4 pt-16 sm:pt-24"
         x-on:click.self="closeCmd()"
     >
-        <div class="w-full max-w-lg rounded-xl border border-hairline bg-white p-4 shadow-lg">
-            <div class="flex items-center gap-2 border-b border-hairline pb-3">
+        <div class="w-full max-w-lg overflow-hidden rounded-xl border border-primary bg-white shadow-xl">
+            <div class="flex items-center gap-2.5 border-b border-hairline px-4 py-3">
+                <svg class="size-4.5 shrink-0 text-primary" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <circle cx="9" cy="9" r="5.5" />
+                    <path stroke-linecap="round" d="m16.5 16.5-3.6-3.6" />
+                </svg>
                 <label for="admin-cmd-input" class="sr-only">Cari menu admin</label>
                 <input
                     id="admin-cmd-input"
@@ -1001,18 +1068,18 @@
                     aria-controls="admin-cmd-list"
                     x-bind:aria-activedescendant="'admin-cmd-item-' + cmdActive"
                     autocomplete="off"
-                    placeholder="Ketik nama menu admin..."
-                    class="min-h-11 w-full rounded-md border border-hairline px-3 text-sm text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="Ketik nama menu admin (mis. SINOVA, Publikasi, 2FA)..."
+                    class="min-h-11 w-full border-0 bg-transparent px-1 text-sm text-ink shadow-none focus:ring-0 focus:outline-none"
                 >
                 <button
                     type="button"
                     x-on:click="closeCmd()"
-                    class="inline-flex min-h-11 cursor-pointer items-center rounded-md border border-hairline px-3 text-xs font-semibold text-ink-muted hover:text-ink"
+                    class="inline-flex min-h-10 shrink-0 cursor-pointer items-center rounded-md border border-hairline bg-mist px-2.5 font-mono text-xs font-semibold text-ink-muted hover:text-ink"
                 >
                     Esc
                 </button>
             </div>
-            <ul id="admin-cmd-list" x-ref="cmdList" role="listbox" aria-label="Menu admin" class="mt-3 max-h-72 space-y-1 overflow-y-auto">
+            <ul id="admin-cmd-list" x-ref="cmdList" role="listbox" aria-label="Menu admin" class="max-h-72 space-y-1 overflow-y-auto p-2">
                 <template x-for="(item, i) in filteredItems" :key="item.url">
                     <li
                         role="option"
@@ -1022,16 +1089,21 @@
                     >
                         <a
                             :href="item.url"
-                            x-bind:class="i === cmdActive ? 'bg-primary-soft text-primary' : 'text-ink'"
-                            class="flex min-h-11 items-center justify-between rounded-md px-3 text-sm font-medium hover:bg-primary-soft hover:text-primary"
-                            x-text="item.label"
-                        ></a>
+                            x-bind:class="i === cmdActive ? 'bg-primary-soft text-primary font-semibold' : 'text-ink font-medium'"
+                            class="flex min-h-11 items-center justify-between rounded-lg px-3 text-sm hover:bg-primary-soft hover:text-primary"
+                        >
+                            <span x-text="item.label"></span>
+                            <kbd x-show="i === cmdActive" class="rounded border border-primary/30 bg-white px-1.5 py-0.5 font-mono text-[11px] text-primary">Enter</kbd>
+                        </a>
                     </li>
                 </template>
-                <li x-show="filteredItems.length === 0" class="px-3 py-4 text-center text-sm text-ink-muted">
+                <li x-show="filteredItems.length === 0" class="px-3 py-6 text-center text-sm text-ink-muted">
                     Tidak ada menu yang cocok dengan kata kunci tersebut.
                 </li>
             </ul>
+            <div class="border-t border-hairline bg-mist px-4 py-2 text-xs text-ink-muted">
+                Navigasi: Panah Atas/Bawah &middot; Buka: Enter &middot; Tutup: Esc
+            </div>
         </div>
     </div>
 
