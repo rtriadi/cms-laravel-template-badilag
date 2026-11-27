@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Http\Controllers\PublicComplianceController;
 use App\Http\Controllers\PublicHomeController;
+use App\Http\Middleware\SecurityHeadersMiddleware;
 use App\Support\SafeHtml;
 use Database\Factories\SatkerSettingFactory;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -117,6 +118,7 @@ class SatkerSetting extends Model
             Cache::forget(self::CACHE_KEY);
             PublicHomeController::flushCache();
             PublicComplianceController::flushCache();
+            SecurityHeadersMiddleware::flushFrameSrcCache();
         });
 
         static::deleted(function (): void {
@@ -124,6 +126,7 @@ class SatkerSetting extends Model
             Cache::forget(self::CACHE_KEY);
             PublicHomeController::flushCache();
             PublicComplianceController::flushCache();
+            SecurityHeadersMiddleware::flushFrameSrcCache();
         });
     }
 
@@ -464,6 +467,32 @@ class SatkerSetting extends Model
             'embed_url' => null,
             'tabs' => [],
         ];
+    }
+
+    /**
+     * Resolve an official SIMTEPA Share Data JSON endpoint URL when available for a single-category source key.
+     */
+    public function resolveSimtepaJsonUrl(string $sourceKey, ?string $customOverride = null): ?string
+    {
+        if (SafeHtml::cleanUrl($customOverride) !== null) {
+            return null;
+        }
+
+        $singleSimtepaMap = [
+            'simtepa_ketua' => 'profil_ketua',
+            'simtepa_wakil' => 'profil_wakil',
+            'simtepa_hakim' => 'profil_hakim',
+            'simtepa_kepaniteraan' => 'profil_kepaniteraan',
+            'simtepa_kesekretariatan' => 'profil_kesekretariatan',
+            'simtepa_fungsional' => 'profil_fungsional',
+            'simtepa_pelaksana' => 'profil_pelaksana',
+        ];
+
+        if (isset($singleSimtepaMap[$sourceKey])) {
+            return $this->simtepaShareUrl($singleSimtepaMap[$sourceKey], 'json');
+        }
+
+        return null;
     }
 
     /**

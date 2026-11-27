@@ -166,9 +166,6 @@
                         Komentar &amp; Tanggapan Masyarakat ({{ number_format((int) $approvedCommentsCount) }})
                     </h2>
                 </div>
-                <span class="rounded border border-emerald-200 bg-primary-soft px-2.5 py-1 font-mono text-2xs font-semibold text-primary-deep">
-                    Termoderasi Sebelum Tayang
-                </span>
             </div>
 
             @if (session('comment_status'))
@@ -326,7 +323,7 @@
                                     alt="Gambar kode keamanan captcha"
                                     class="h-12 w-44 rounded-md border border-primary/30 bg-primary-soft"
                                 >
-                                <p id="comment-captcha-text" hidden class="flex h-12 min-w-44 items-center justify-center rounded-md border border-primary/30 bg-primary-soft px-3 font-mono text-2xl font-bold tracking-widest text-primary-deep"></p>
+                                <p id="comment-captcha-text" role="status" aria-live="polite" hidden class="flex min-h-12 max-w-full items-center justify-center rounded-md border border-primary/30 bg-primary-soft px-3.5 py-2 text-xs font-semibold leading-snug text-primary-deep"></p>
                                 <button
                                     type="button"
                                     id="comment-captcha-refresh"
@@ -350,9 +347,9 @@
                                 type="text"
                                 name="captcha"
                                 required
-                                maxlength="10"
+                                maxlength="12"
                                 autocomplete="off"
-                                placeholder="Ketik 5 karakter"
+                                placeholder="Ketik kode / jawaban"
                                 class="min-h-11 flex-1 rounded-lg border border-hairline bg-ivory px-3.5 text-sm text-ink focus:border-primary focus:bg-white focus:outline-none"
                             />
                         </div>

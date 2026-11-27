@@ -60,6 +60,7 @@
             'number' => $i + 1,
             'heading' => trim((string) ($b['heading'] ?? '')),
         ])->filter(fn (array $item): bool => $item['heading'] !== '')->values();
+        $hasEmbedBlock = collect($blocks)->contains(fn (array $b): bool => ($b['type'] ?? '') === 'embed_fallback');
     @endphp
 
     <!-- GPU-Composited Reading Progress Bar -->
@@ -116,10 +117,14 @@
             </div>
         </header>
 
-        <!-- 2-Column Authoritative Judicial Editorial Layout (8/4) -->
+        <!-- Adaptive Judicial Layout: Full-Width 12-Col Stage for Embed Apps, 8/4 Editorial for Standard Pages -->
         <div class="mt-6 grid gap-6 lg:grid-cols-12">
-            <!-- Main Content Column (8 Columns) -->
-            <article class="min-w-0 space-y-6 lg:col-span-8">
+            <!-- Main Content Column -->
+            <article @class([
+                'min-w-0 space-y-6',
+                'lg:col-span-12' => $hasEmbedBlock,
+                'lg:col-span-8' => ! $hasEmbedBlock,
+            ])>
                 @forelse ($blocks as $block)
                     @php $type = $block['type'] ?? 'richtext'; @endphp
                     <section
@@ -185,9 +190,20 @@
                 @endforelse
             </article>
 
-            <!-- Contextual Sticky Sidebar (4 Columns) -->
-            <aside aria-label="Navigasi Bagian dan Informasi Layanan" class="min-w-0 lg:col-span-4">
-                <div class="space-y-5 lg:sticky lg:top-20">
+            <!-- Contextual Navigation & Service Info (Bottom 3-Col Strip on Embed Pages, Right Sticky 4-Col Sidebar on Editorial Pages) -->
+            <aside
+                aria-label="Navigasi Bagian dan Informasi Layanan"
+                @class([
+                    'min-w-0',
+                    'lg:col-span-12' => $hasEmbedBlock,
+                    'lg:col-span-4' => ! $hasEmbedBlock,
+                ])
+            >
+                <div @class([
+                    'grid items-start gap-5 md:grid-cols-2' => $hasEmbedBlock,
+                    'lg:grid-cols-3' => $hasEmbedBlock && $headingBlocks->count() > 1,
+                    'space-y-5 lg:sticky lg:top-20' => ! $hasEmbedBlock,
+                ])>
                     @if ($headingBlocks->count() > 1)
                         <nav aria-label="Daftar Isi Halaman Ini" class="pub-reveal rounded-xl border border-hairline border-t-4 border-t-gold bg-white p-5 shadow-2xs">
                             <h2 class="border-b border-hairline pb-2.5 font-serif text-base font-bold text-ink">

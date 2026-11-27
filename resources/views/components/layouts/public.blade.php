@@ -207,7 +207,7 @@
         <script type="application/ld+json">{!! $structuredDataJson !!}</script>
     @endif
 
-    <script>try{const r=localStorage.getItem('satkercms_a11y_v1');if(r){const s=JSON.parse(r),d=document.documentElement;d.style.fontSize=Math.min(200,Math.max(100,Number(s.scale)||100))+'%';if(s.hc)d.classList.add('a11y-hc');if(s.dyslexia)d.classList.add('a11y-dyslexia');if(s.links)d.classList.add('a11y-highlight-links');if(s.motion)d.classList.add('a11y-no-motion')}}catch(e){}</script>
+    <script @if (\Illuminate\Support\Facades\Vite::cspNonce()) nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" @endif>try{const r=localStorage.getItem('satkercms_a11y_v1');if(r){const s=JSON.parse(r),d=document.documentElement;d.style.fontSize=Math.min(200,Math.max(100,Number(s.scale)||100))+'%';if(s.hc)d.classList.add('a11y-hc');if(s.dyslexia)d.classList.add('a11y-dyslexia');if(s.links)d.classList.add('a11y-highlight-links');if(s.motion)d.classList.add('a11y-no-motion')}}catch(e){}</script>
     @if (is_file(public_path('build/fonts-manifest.json')) || \Illuminate\Support\Facades\Vite::isRunningHot())
         {{ \Illuminate\Support\Facades\Vite::fonts() }}
     @endif
@@ -223,7 +223,7 @@
             <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-1.5 sm:px-6 lg:px-8">
                 <span class="font-semibold text-amber-300">Mode Pengelola Aktif ({{ auth()->user()?->name }})</span>
                 <div class="flex flex-wrap items-center gap-3">
-                    <a href="{{ route('admin.dashboard') }}" class="font-semibold hover:underline">Dashboard Studio</a>
+                    <a href="{{ route('admin.dashboard') }}" class="font-semibold hover:underline">Dashboard</a>
                     <a href="{{ route('admin.pages') }}" class="font-semibold hover:underline">Kelola Halaman</a>
                     <a href="{{ route('admin.posts') }}" class="font-semibold hover:underline">Tulis Publikasi</a>
                     <a href="{{ route('admin.comments') }}" class="font-semibold hover:underline">Moderasi Komentar</a>
