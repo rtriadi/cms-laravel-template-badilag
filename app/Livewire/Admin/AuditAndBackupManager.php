@@ -2,13 +2,14 @@
 
 namespace App\Livewire\Admin;
 
+use App\Jobs\RunDatabaseBackupJob;
 use App\Models\LinkCheckLog;
 use App\Models\Redirect;
 use App\Services\SinovaHealthCheckService;
-use App\Support\MysqlDumpBinaryResolver;
 use App\Support\SafeHtml;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -52,13 +53,18 @@ class AuditAndBackupManager extends Component
     {
         abort_unless(auth()->user()?->hasRole('super_admin'), 403);
 
+        if ((bool) config('satker.backup.async_manual', false) && config('queue.default', 'sync') !== 'sync') {
+            $this->queueBackup();
+
+            return;
+        }
+
         $this->statusNotice = null;
         $this->errorNotice = null;
 
-        $this->ensureDumpBinaryConfigured();
+        RunDatabaseBackupJob::ensureDumpBinaryConfigured();
 
         try {
-            // shortcut: sinkron di request admin, cukup untuk database kecil; pindah ke queue bila arsip > 100 MB.
             $exitCode = Artisan::call('backup:run', [
                 '--only-db' => true,
                 '--disable-notifications' => true,
@@ -67,7 +73,7 @@ class AuditAndBackupManager extends Component
         } catch (Throwable $e) {
             report($e);
             $this->loadBackups();
-            $this->errorNotice = 'Backup database gagal dijalankan: '.$this->summarizeBackupFailure($e->getMessage());
+            $this->errorNotice = 'Backup database gagal dijalankan: '.RunDatabaseBackupJob::summarizeFailure($e->getMessage());
 
             return;
         }
@@ -75,7 +81,7 @@ class AuditAndBackupManager extends Component
         $this->loadBackups();
 
         if ($exitCode !== 0) {
-            $reason = $this->summarizeBackupFailure($output);
+            $reason = RunDatabaseBackupJob::summarizeFailure($output);
 
             activity('backup')
                 ->causedBy(auth()->id())
@@ -93,6 +99,37 @@ class AuditAndBackupManager extends Component
         activity('backup')->causedBy(auth()->id())->log('Menjalankan backup database manual dari panel admin');
 
         $this->statusNotice = 'Backup database berhasil dibuat. Unduh arsip terbaru pada daftar di bawah.';
+    }
+
+    public function queueBackup(): void
+    {
+        abort_unless(auth()->user()?->hasRole('super_admin'), 403);
+
+        $this->statusNotice = null;
+        $this->errorNotice = null;
+
+        $actorName = (string) (auth()->user()?->name ?? 'Super Admin');
+        RunDatabaseBackupJob::storeStatus(
+            'queued',
+            'Permintaan backup database telah masuk antrean latar belakang.',
+            $actorName,
+        );
+
+        RunDatabaseBackupJob::dispatch(auth()->id(), $actorName);
+
+        activity('backup')
+            ->causedBy(auth()->id())
+            ->withProperties(['queued' => true])
+            ->log('Menjadwalkan backup database melalui antrean latar belakang');
+
+        $this->loadBackups();
+        $this->statusNotice = 'Backup database dimasukkan ke antrean latar belakang. Muat ulang daftar arsip setelah proses selesai.';
+    }
+
+    public function refreshBackups(): void
+    {
+        $this->authorizeView();
+        $this->loadBackups();
     }
 
     public function downloadBackup(string $name): StreamedResponse
@@ -139,46 +176,6 @@ class AuditAndBackupManager extends Component
     private function backupDirectory(): string
     {
         return trim((string) config('backup.backup.name', 'SatkerCMS'), '/');
-    }
-
-    private function ensureDumpBinaryConfigured(): void
-    {
-        $connection = (string) config('database.default', 'mysql');
-        if (! in_array($connection, ['mysql', 'mariadb'], true)) {
-            return;
-        }
-
-        $configured = (string) config("database.connections.{$connection}.dump.dump_binary_path", '');
-        if ($configured !== '') {
-            return;
-        }
-
-        $resolved = MysqlDumpBinaryResolver::resolve();
-        if ($resolved !== '') {
-            config()->set("database.connections.{$connection}.dump.dump_binary_path", $resolved);
-        }
-    }
-
-    private function summarizeBackupFailure(string $output): string
-    {
-        $normalized = strtolower($output);
-
-        if (str_contains($normalized, 'mysqldump') && (str_contains($normalized, 'not recognized') || str_contains($normalized, 'not found'))) {
-            return 'Perintah mysqldump tidak ditemukan di peladen. Tetapkan MYSQL_DUMP_BINARY_PATH pada berkas .env ke direktori bin MySQL (misalnya C:/laragon/bin/mysql/mysql-8.0.30-winx64/bin).';
-        }
-
-        if (str_contains($normalized, 'access denied')) {
-            return 'Akses database ditolak saat dump. Periksa DB_USERNAME dan DB_PASSWORD pada berkas .env.';
-        }
-
-        $lines = array_values(array_filter(array_map('trim', preg_split('/\r?\n/', $output) ?: [])));
-        foreach ($lines as $line) {
-            if (stripos($line, 'Backup failed because:') !== false || stripos($line, 'Error') !== false) {
-                return mb_strimwidth($line, 0, 220, '...');
-            }
-        }
-
-        return 'Periksa log sistem di storage/logs/laravel.log untuk rincian teknis.';
     }
 
     public function updatingRedirectSearch(): void
@@ -408,6 +405,7 @@ class AuditAndBackupManager extends Component
             'linkStats' => $linkStats,
             'redirects' => $redirects,
             'activities' => $activities,
+            'backupJobStatus' => Cache::get(RunDatabaseBackupJob::STATUS_CACHE_KEY),
             'canModify' => auth()->user()?->hasAnyRole(['super_admin', 'admin_konten']) ?? false,
         ])->title('Tautan Rusak, Audit Log & Backup');
     }

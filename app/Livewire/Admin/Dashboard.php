@@ -15,6 +15,7 @@ use App\Services\CmsZeroDowntimeUpdater;
 use App\Services\SinovaHealthCheckService;
 use App\Support\CmsVersion;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -25,6 +26,8 @@ use Throwable;
 #[Layout('components.layouts.admin')]
 class Dashboard extends Component
 {
+    public const string METRICS_CACHE_KEY = 'admin.dashboard.metrics.v1';
+
     public ?string $auditMessage = null;
 
     public ?string $updateNotice = null;
@@ -263,6 +266,11 @@ class Dashboard extends Component
         $this->quickDraftNotice = 'Draf cepat berhasil disimpan ke Daftar Berita & Publikasi (status: Draf).';
     }
 
+    public static function flushMetricsCache(): void
+    {
+        Cache::forget(self::METRICS_CACHE_KEY);
+    }
+
     private function authorizeView(): void
     {
         $user = auth()->user();
@@ -301,7 +309,8 @@ class Dashboard extends Component
         $canTriggerWebUpdate = $user !== null
             && $user->hasRole('super_admin')
             && (bool) config('satker.update.web_trigger_enabled', true);
-        $updateState = $canManageUpdates ? $updateChecker->checkIfStale() : null;
+        // Never block Dashboard render with synchronous GitHub HTTP; scheduled cms:check-update & manual button refresh this state.
+        $updateState = $canManageUpdates ? $updateChecker->getCachedState() : null;
         $updateJob = $canTriggerWebUpdate ? $updateQueue->getJobStatus() : null;
         $hasRollbackCandidate = $canTriggerWebUpdate && $updater->hasRollbackCandidate();
 
@@ -328,18 +337,23 @@ class Dashboard extends Component
             ->limit(5)
             ->get();
 
-        $publishedPostsCount = Post::query()->publishedActive()->count();
+        $metrics = Cache::remember(
+            self::METRICS_CACHE_KEY,
+            60,
+            static fn (): array => [
+                'published_posts' => Post::query()->publishedActive()->count(),
+                'draft_posts' => Post::query()->where('is_published', false)->count(),
+                'pending_comments' => PostComment::query()->where('status', PostComment::STATUS_PENDING)->count(),
+                'total_visits' => (int) PageVisit::query()->sum('visits_count'),
+                'broken_links' => LinkCheckLog::query()->where('is_broken', true)->count(),
+            ]
+        );
 
-        $pendingCommentsCount = $canModerateComments
-            ? PostComment::query()
-                ->where('status', PostComment::STATUS_PENDING)
-                ->count()
-            : 0;
-
-        $totalVisits = (int) PageVisit::query()->sum('visits_count');
-        $brokenLinksCount = $canViewAudit
-            ? LinkCheckLog::query()->where('is_broken', true)->count()
-            : 0;
+        $publishedPostsCount = (int) $metrics['published_posts'];
+        $draftPostsCount = $canWritePosts ? (int) $metrics['draft_posts'] : 0;
+        $pendingCommentsCount = $canModerateComments ? (int) $metrics['pending_comments'] : 0;
+        $totalVisits = (int) $metrics['total_visits'];
+        $brokenLinksCount = $canViewAudit ? (int) $metrics['broken_links'] : 0;
 
         return view('livewire.admin.dashboard', [
             'satker' => $satker,
@@ -348,6 +362,7 @@ class Dashboard extends Component
             'recentActivities' => $recentActivities,
             'recentPosts' => $recentPosts,
             'publishedPostsCount' => $publishedPostsCount,
+            'draftPostsCount' => $draftPostsCount,
             'pendingCommentsCount' => $pendingCommentsCount,
             'canWritePosts' => $canWritePosts,
             'canModerateComments' => $canModerateComments,
@@ -363,6 +378,6 @@ class Dashboard extends Component
             'totalVisits' => $totalVisits,
             'brokenLinksCount' => $brokenLinksCount,
             'phpNearEol' => version_compare(PHP_VERSION, '8.4.0', '<'),
-        ])->title('Dashboard Studio & Kepatuhan SINOVA');
+        ])->title('Dashboard');
     }
 }

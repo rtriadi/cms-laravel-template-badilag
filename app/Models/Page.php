@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Http\Controllers\PublicComplianceController;
 use App\Http\Controllers\PublicHomeController;
+use App\Http\Controllers\PublicPageController;
+use App\Http\Middleware\SecurityHeadersMiddleware;
 use Database\Factories\PageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -48,12 +50,16 @@ class Page extends Model
             MenuItem::flushPublicCache();
             PublicHomeController::flushCache();
             PublicComplianceController::flushCache();
+            PublicPageController::flushCache();
+            SecurityHeadersMiddleware::flushFrameSrcCache();
         });
 
         static::deleted(function (): void {
             MenuItem::flushPublicCache();
             PublicHomeController::flushCache();
             PublicComplianceController::flushCache();
+            PublicPageController::flushCache();
+            SecurityHeadersMiddleware::flushFrameSrcCache();
         });
 
         static::updating(function (self $page): void {

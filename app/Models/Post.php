@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Http\Controllers\PublicComplianceController;
 use App\Http\Controllers\PublicHomeController;
+use App\Http\Controllers\PublicPostController;
+use App\Livewire\Admin\Dashboard;
 use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -56,12 +58,16 @@ class Post extends Model
         static::saved(function (): void {
             PublicHomeController::flushCache();
             PublicComplianceController::flushCache();
+            PublicPostController::flushCache();
+            Dashboard::flushMetricsCache();
         });
 
         static::deleted(function (): void {
             Cache::forget(PostComment::PENDING_COUNT_CACHE_KEY);
             PublicHomeController::flushCache();
             PublicComplianceController::flushCache();
+            PublicPostController::flushCache();
+            Dashboard::flushMetricsCache();
         });
     }
 

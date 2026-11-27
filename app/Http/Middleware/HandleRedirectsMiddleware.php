@@ -23,7 +23,7 @@ class HandleRedirectsMiddleware
                 $matched = Redirect::findForPath($path);
 
                 if ($matched !== null) {
-                    Redirect::query()->whereKey($matched['id'])->increment('hits');
+                    $request->attributes->set('_matched_redirect_id', $matched['id']);
 
                     return redirect()->to($matched['to_path'], $matched['status_code']);
                 }
@@ -31,6 +31,15 @@ class HandleRedirectsMiddleware
         }
 
         return $next($request);
+    }
+
+    public function terminate(Request $request, Response $response): void
+    {
+        $redirectId = $request->attributes->get('_matched_redirect_id');
+
+        if (is_int($redirectId) && $redirectId > 0) {
+            Redirect::query()->whereKey($redirectId)->increment('hits');
+        }
     }
 
     private function isReservedPath(Request $request): bool

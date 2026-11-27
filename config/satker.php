@@ -10,6 +10,10 @@ return [
 
     'cms_version' => '1.0.0-dev',
 
+    'backup' => [
+        'async_manual' => (bool) env('BACKUP_QUEUE_MANUAL', false),
+    ],
+
     'update' => [
         'enabled' => (bool) env('CMS_UPDATE_ENABLED', true),
         'repository' => (string) env('CMS_UPDATE_REPO', 'rtriadi/cms-laravel-template-badilag'),

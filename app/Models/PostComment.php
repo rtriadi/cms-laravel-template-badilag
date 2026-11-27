@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Http\Controllers\PublicHomeController;
+use App\Livewire\Admin\Dashboard;
 use Database\Factories\PostCommentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -60,6 +61,7 @@ class PostComment extends Model
     {
         static::saved(function (self $comment): void {
             Cache::forget(self::PENDING_COUNT_CACHE_KEY);
+            Dashboard::flushMetricsCache();
             if ($comment->status === self::STATUS_APPROVED || $comment->getOriginal('status') === self::STATUS_APPROVED) {
                 PublicHomeController::flushCache();
             }
@@ -67,6 +69,7 @@ class PostComment extends Model
 
         static::deleted(function (self $comment): void {
             Cache::forget(self::PENDING_COUNT_CACHE_KEY);
+            Dashboard::flushMetricsCache();
             if ($comment->status === self::STATUS_APPROVED) {
                 PublicHomeController::flushCache();
             }

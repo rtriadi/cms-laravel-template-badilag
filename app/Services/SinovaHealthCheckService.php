@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Livewire\Admin\Dashboard;
 use App\Models\CaseStatistic;
 use App\Models\CourtSchedule;
 use App\Models\CriteriaGroup;
@@ -133,6 +134,10 @@ class SinovaHealthCheckService
         $menuSummary = $this->auditMenuLinks($activeTingkat, $probeExternal);
         $counts['menu_checked'] = $menuSummary['checked'];
         $counts['menu_broken'] = $menuSummary['broken'];
+
+        Dashboard::flushMetricsCache();
+
+        Dashboard::flushMetricsCache();
 
         return $counts;
     }

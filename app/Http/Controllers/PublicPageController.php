@@ -10,12 +10,22 @@ use App\Models\Official;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\SatkerSetting;
+use App\Services\SimtepaJsonService;
 use App\Support\SafeHtml;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class PublicPageController extends Controller
 {
+    public const string SECTION_CACHE_VERSION_KEY = 'public_pages.section_cache_ver';
+
+    public static function flushCache(): void
+    {
+        $nextVersion = ((int) Cache::get(self::SECTION_CACHE_VERSION_KEY, 1)) + 1;
+        Cache::forever(self::SECTION_CACHE_VERSION_KEY, $nextVersion);
+    }
+
     public function show(Request $request, string $slug): View
     {
         $cleanSlug = trim($slug, '/');
@@ -51,6 +61,7 @@ class PublicPageController extends Controller
             $satker,
             $selectedYear,
             $docSearch,
+            $forceFallback,
             $requestedSimtepaTab,
             &$documentsByCollection,
             &$yearsByCollection,
@@ -126,27 +137,41 @@ class PublicPageController extends Controller
 
                 $activeTabKey = $requestedSimtepaTab;
                 $activeEmbedUrl = $resolvedSource['embed_url'];
+                $activeJsonUrl = $resolvedSource['tabs'][0]['json_url']
+                    ?? ($satker !== null ? $satker->resolveSimtepaJsonUrl($sourceKey, $customOverride) : null);
 
                 foreach ($resolvedSource['tabs'] as $tabItem) {
                     if ($tabItem['key'] === $activeTabKey) {
                         $activeEmbedUrl = $tabItem['html_url'];
+                        $activeJsonUrl = $tabItem['json_url'];
                         break;
                     }
                 }
 
+                $embedViewMode = (string) $request->query('embed_mode', 'native');
+                $simtepaNativeProfiles = null;
+                if (! $forceFallback && $embedViewMode !== 'iframe' && is_string($activeJsonUrl) && $activeJsonUrl !== '') {
+                    $simtepaNativeProfiles = app(SimtepaJsonService::class)->fetchProfiles($activeJsonUrl);
+                }
+
                 $block['resolved_embed_url'] = $activeEmbedUrl;
+                $block['resolved_json_url'] = $activeJsonUrl;
                 $block['resolved_embed_tabs'] = $resolvedSource['tabs'];
                 $block['active_simtepa_tab'] = $activeTabKey !== '' ? $activeTabKey : ($resolvedSource['tabs'][0]['key'] ?? '');
+                $block['simtepa_native_profiles'] = $simtepaNativeProfiles;
+                $block['embed_view_mode'] = $embedViewMode === 'iframe' ? 'iframe' : 'native';
                 $isSippEmbed = str_starts_with($sourceKey, 'sipp')
                     || (is_string($activeEmbedUrl) && str_contains(strtolower((string) parse_url($activeEmbedUrl, PHP_URL_HOST)), 'sipp'));
                 $block['is_cross_site_sipp'] = $isSippEmbed && $this->isCrossSiteEmbed($request, $activeEmbedUrl);
 
-                match ($fallbackMode) {
-                    'org_chart' => $needsOrgChart = true,
-                    'court_schedule' => $needsSchedules = true,
-                    'case_statistics' => $needsStatistics = true,
-                    default => $needsOfficials = true,
-                };
+                if ($forceFallback || empty($activeEmbedUrl)) {
+                    match ($fallbackMode) {
+                        'org_chart' => $needsOrgChart = true,
+                        'court_schedule' => $needsSchedules = true,
+                        'case_statistics' => $needsStatistics = true,
+                        default => $needsOfficials = true,
+                    };
+                }
             }
 
             if ($type === 'external_portal') {
@@ -192,22 +217,35 @@ class PublicPageController extends Controller
         $sectionLabel = $this->resolveMenuSectionLabel($page, $activeTingkat)
             ?? ($sectionLabels[$sectionPrefix] ?? 'Informasi & Layanan');
 
-        $relatedSectionPages = $sectionPrefix !== ''
-            ? Page::query()
-                ->select(['id', 'title', 'slug', 'criteria_code'])
-                ->where('is_published', true)
-                ->where('slug', 'like', $sectionPrefix.'/%')
-                ->whereIn('tingkat_scope', ['all', $activeTingkat])
-                ->orderBy('id')
-                ->get()
-                ->map(function (Page $relPage) use ($satker): Page {
-                    if ($satker !== null) {
-                        $relPage->title = $satker->replacePlaceholders($relPage->title);
-                    }
+        $relatedSectionPages = collect();
+        if ($sectionPrefix !== '') {
+            $sectionCacheVersion = (int) Cache::get(self::SECTION_CACHE_VERSION_KEY, 1);
+            $sectionCacheKey = 'public_pages.section.arr.v'.$sectionCacheVersion.'.'.$activeTingkat.'.'.sha1($sectionPrefix);
 
-                    return $relPage;
-                })
-            : collect();
+            $cachedRows = Cache::get($sectionCacheKey);
+            if (! is_array($cachedRows)) {
+                $cachedRows = Page::query()
+                    ->select(['id', 'title', 'slug', 'criteria_code'])
+                    ->where('is_published', true)
+                    ->where('slug', 'like', $sectionPrefix.'/%')
+                    ->whereIn('tingkat_scope', ['all', $activeTingkat])
+                    ->orderBy('id')
+                    ->get()
+                    ->map(static fn (Page $row): array => $row->getAttributes())
+                    ->all();
+
+                Cache::put($sectionCacheKey, $cachedRows, 300);
+            }
+
+            $relatedSectionPages = collect($cachedRows)->map(function (array $attrs) use ($satker): Page {
+                $relPage = (new Page)->newFromBuilder($attrs);
+                if ($satker !== null) {
+                    $relPage->title = $satker->replacePlaceholders($relPage->title);
+                }
+
+                return $relPage;
+            });
+        }
 
         return view('public.page', [
             'page' => $page,

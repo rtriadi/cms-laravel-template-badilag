@@ -11,9 +11,20 @@ use App\Services\LocalCaptchaService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class PublicPostController extends Controller
 {
+    public const string CATEGORY_COUNTS_CACHE_KEY = 'public_posts.category_counts';
+
+    public const string LATEST_SIDEBAR_CACHE_KEY = 'public_posts.latest_sidebar.v2';
+
+    public static function flushCache(): void
+    {
+        Cache::forget(self::CATEGORY_COUNTS_CACHE_KEY);
+        Cache::forget(self::LATEST_SIDEBAR_CACHE_KEY);
+    }
+
     public function index(Request $request): View
     {
         $rawCategory = (string) $request->query('kategori', '');
@@ -72,22 +83,39 @@ class PublicPostController extends Controller
 
         $excludedIds = array_merge([$post->id], $related->pluck('id')->all());
 
-        $latestPosts = Post::query()
-            ->select(['id', 'title', 'slug', 'category', 'views_count', 'published_at', 'created_at'])
-            ->publishedActive()
-            ->whereNotIn('id', $excludedIds)
-            ->orderByDesc('published_at')
-            ->orderByDesc('id')
-            ->limit(4)
-            ->get();
+        $cachedLatestRows = Cache::get(self::LATEST_SIDEBAR_CACHE_KEY);
+        if (! is_array($cachedLatestRows)) {
+            $cachedLatestRows = Post::query()
+                ->select(['id', 'title', 'slug', 'category', 'views_count', 'published_at', 'created_at'])
+                ->publishedActive()
+                ->orderByDesc('published_at')
+                ->orderByDesc('id')
+                ->limit(12)
+                ->get()
+                ->map(static fn (Post $item): array => $item->getAttributes())
+                ->all();
 
-        $categoryCounts = Post::query()
-            ->publishedActive()
-            ->selectRaw('category, COUNT(*) as aggregate')
-            ->groupBy('category')
-            ->pluck('aggregate', 'category')
-            ->map(static fn (mixed $v): int => (int) $v)
-            ->all();
+            Cache::put(self::LATEST_SIDEBAR_CACHE_KEY, $cachedLatestRows, 300);
+        }
+
+        $latestPosts = collect($cachedLatestRows)
+            ->map(static fn (array $attrs): Post => (new Post)->newFromBuilder($attrs))
+            ->reject(fn (Post $item): bool => in_array($item->id, $excludedIds, true))
+            ->take(4)
+            ->values();
+
+        $categoryCounts = Cache::get(self::CATEGORY_COUNTS_CACHE_KEY);
+        if (! is_array($categoryCounts)) {
+            $categoryCounts = Post::query()
+                ->publishedActive()
+                ->selectRaw('category, COUNT(*) as aggregate')
+                ->groupBy('category')
+                ->pluck('aggregate', 'category')
+                ->map(static fn (mixed $v): int => (int) $v)
+                ->all();
+
+            Cache::put(self::CATEGORY_COUNTS_CACHE_KEY, $categoryCounts, 300);
+        }
 
         return view('public.posts.show', [
             'post' => $post,
