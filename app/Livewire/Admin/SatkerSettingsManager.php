@@ -9,6 +9,7 @@ use Database\Seeders\SatkerDefaultContentSeeder;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -100,8 +101,10 @@ class SatkerSettingsManager extends Component
 
     public mixed $foto_gedung = null;
 
+    #[Locked]
     public ?string $existingLogoPath = null;
 
+    #[Locked]
     public ?string $existingFotoGedungPath = null;
 
     // Ubah tingkat peradilan (konfirmasi ganda Super Admin)
@@ -226,8 +229,8 @@ class SatkerSettingsManager extends Component
             'related_links.*.title' => ['nullable', 'string', 'max:140'],
             'related_links.*.subtitle' => ['nullable', 'string', 'max:200'],
             'related_links.*.url' => ['nullable', 'url:http,https', 'max:500'],
-            'logo' => ['nullable', 'image', 'max:2048', 'dimensions:max_width=8000,max_height=8000'],
-            'foto_gedung' => ['nullable', 'image', 'max:4096', 'dimensions:max_width=8000,max_height=8000'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'dimensions:max_width=8000,max_height=8000'],
+            'foto_gedung' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096', 'dimensions:max_width=8000,max_height=8000'],
         ], [
             'nama_satker.required' => 'Nama satuan kerja wajib diisi.',
             'email.email' => 'Format surel resmi satuan kerja tidak valid.',

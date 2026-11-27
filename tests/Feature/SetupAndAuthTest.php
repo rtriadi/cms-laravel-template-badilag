@@ -62,14 +62,18 @@ it('renders login page and local captcha svg image', function (): void {
         ->assertHeader('Content-Type', 'image/svg+xml');
 });
 
-it('serves a text captcha alternative for screen readers', function (): void {
+it('serves a text captcha alternative for screen readers without leaking raw answers', function (): void {
     SatkerSetting::factory()->setupCompleted()->create();
 
     $response = $this->get(route('captcha.text'))
         ->assertOk()
         ->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
 
-    expect($response->getContent())->toMatch('/^[2-9A-HJ-NP-Z]{5}$/');
+    $prompt = trim($response->getContent());
+    expect($prompt)
+        ->toStartWith('Berapa hasil ')
+        ->toEndWith('? (ketik angka)')
+        ->not->toMatch('/\d/');
     $this->assertNotNull(session(LocalCaptchaService::SESSION_KEY));
 });
 

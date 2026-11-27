@@ -76,7 +76,7 @@ it('converts uploaded editor images to WebP while preserving PDF uploads', funct
     Storage::disk('public')->assertExists(ltrim(str_replace('/storage/', '', $imageLocation), '/'));
 
     $pdfResp = $this->actingAs($admin)->postJson(route('admin.media.upload'), [
-        'file' => UploadedFile::fake()->create('dokumen.pdf', 120, 'application/pdf'),
+        'file' => UploadedFile::fake()->createWithContent('dokumen.pdf', "%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF"),
     ]);
 
     $pdfResp->assertOk()

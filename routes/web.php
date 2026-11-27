@@ -82,7 +82,7 @@ Route::get('/captcha-image', function (LocalCaptchaService $captcha): Response {
 })->middleware('throttle:30,1,captcha_image')->name('captcha.image');
 
 Route::get('/captcha-text', function (LocalCaptchaService $captcha): Response {
-    return response($captcha->generateCode(), 200, [
+    return response($captcha->generateAccessibleChallenge(), 200, [
         'Content-Type' => 'text/plain; charset=UTF-8',
         'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
     ]);

@@ -68,7 +68,7 @@ class SliderManager extends Component
         $this->validate([
             'title' => ['required', 'string', 'max:255'],
             'subtitle' => ['nullable', 'string', 'max:255'],
-            'image' => ['nullable', 'image', 'max:2048', 'dimensions:max_width=8000,max_height=8000'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'dimensions:max_width=8000,max_height=8000'],
             'image_alt' => ['required', 'string', 'max:255'],
             'cta_label' => ['nullable', 'string', 'max:80'],
             'cta_url' => ['nullable', 'string', 'max:255'],

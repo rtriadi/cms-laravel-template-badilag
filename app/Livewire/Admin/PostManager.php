@@ -46,6 +46,7 @@ class PostManager extends Component
 
     public mixed $featured_image = null;
 
+    #[Locked]
     public ?string $existingFeaturedImagePath = null;
 
     public string $featured_image_alt = '';
@@ -144,7 +145,7 @@ class PostManager extends Component
             'slug' => ['required', 'string', 'max:255', Rule::unique('posts', 'slug')->ignore($this->editingId)],
             'category' => ['required', Rule::in(array_keys(Post::categoryLabels()))],
             'body' => ['required', 'string'],
-            'featured_image' => ['nullable', 'image', 'max:4096', 'dimensions:max_width=8000,max_height=8000'],
+            'featured_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096', 'dimensions:max_width=8000,max_height=8000'],
             'featured_image_alt' => ['required_with:featured_image', 'nullable', 'string', 'max:255'],
             'expiresAt' => ['nullable', 'date'],
         ], [

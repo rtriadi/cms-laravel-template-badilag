@@ -301,7 +301,7 @@ it('uploads images and PDFs for the rich text editor and sanitizes img tags safe
         ->assertJsonPath('name', 'foto-berita.jpg');
     expect((string) $imgResp->json('location'))->toStartWith('/storage/editor-media/');
 
-    $pdfFile = UploadedFile::fake()->create('lampiran-sk.pdf', 120, 'application/pdf');
+    $pdfFile = UploadedFile::fake()->createWithContent('lampiran-sk.pdf', "%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF");
     $pdfResp = $this->postJson(route('admin.media.upload'), ['file' => $pdfFile]);
     $pdfResp->assertOk()
         ->assertJsonPath('is_pdf', true)

@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Models\Document;
+use App\Support\SafeUpload;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -140,6 +141,13 @@ class DocumentManager extends Component
         $targetDisk = $this->is_published ? 'public' : 'local';
 
         if ($this->pdf_file !== null) {
+            $pdfError = SafeUpload::validatePdf($this->pdf_file);
+            if ($pdfError !== null) {
+                $this->addError('pdf_file', $pdfError);
+
+                return;
+            }
+
             $filePath = $this->pdf_file->store('documents/'.$this->collection_type, $targetDisk);
         } elseif ($existing !== null && is_string($oldFilePath) && $oldFilePath !== '') {
             $this->syncDocumentStorageVisibility($oldFilePath, $this->is_published);

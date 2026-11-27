@@ -5,6 +5,7 @@ use App\Models\Page;
 use App\Models\Post;
 use App\Models\SatkerSetting;
 use App\Models\User;
+use App\Services\LocalCaptchaService;
 use Database\Seeders\RoleAndPermissionSeeder;
 use Database\Seeders\SatkerDefaultContentSeeder;
 use Database\Seeders\SinovaCriteriaSeeder;
@@ -126,20 +127,20 @@ it('submits a public comment end to end and rejects a wrong captcha', function (
 
     $this->get('/publikasi/'.$post->slug)->assertOk();
 
-    $plainCode = $this->get('/captcha-text')->assertOk()->getContent();
-    expect($plainCode)->toBeString()->not->toBe('');
+    $challengePrompt = $this->get('/captcha-text')->assertOk()->getContent();
+    expect($challengePrompt)->toBeString()->toContain('Berapa hasil ');
 
     $this->post('/publikasi/'.$post->slug.'/komentar', [
         'author_name' => 'Warga Uji',
         'author_email' => 'warga@example.test',
         'body' => 'Mohon informasi jadwal sidang terbaru.',
-        'captcha' => 'SALAH',
+        'captcha' => $challengePrompt,
         'website' => '',
     ])->assertSessionHasErrors();
 
     expect($post->comments()->count())->toBe(0);
 
-    $validCode = $this->get('/captcha-text')->assertOk()->getContent();
+    $validCode = app(LocalCaptchaService::class)->generateCode();
 
     $this->post('/publikasi/'.$post->slug.'/komentar', [
         'author_name' => 'Bot Spam',
@@ -150,7 +151,7 @@ it('submits a public comment end to end and rejects a wrong captcha', function (
 
     expect($post->comments()->count())->toBe(0);
 
-    $validCode = $this->get('/captcha-text')->assertOk()->getContent();
+    $validCode = app(LocalCaptchaService::class)->generateCode();
 
     $this->post('/publikasi/'.$post->slug.'/komentar', [
         'author_name' => 'Warga Uji',

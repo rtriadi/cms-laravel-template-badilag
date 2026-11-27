@@ -37,7 +37,7 @@ it('uploads, moves between disks, and deletes a document through DocumentManager
         ->set('year', 2026)
         ->set('status_label', 'Final')
         ->set('is_published', true)
-        ->set('pdf_file', UploadedFile::fake()->create('lkjip-2026.pdf', 120, 'application/pdf'))
+        ->set('pdf_file', UploadedFile::fake()->createWithContent('lkjip-2026.pdf', "%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF"))
         ->call('save')
         ->assertHasNoErrors();
 

@@ -12,6 +12,30 @@ class LocalCaptchaService
 
     private const string HMAC_PREFIX = 'hmac:';
 
+    /**
+     * Indonesian number words for screen-reader friendly arithmetic challenges
+     * that avoid leaking plaintext answers on /captcha-text.
+     *
+     * @var array<int, string>
+     */
+    private const array NUMBER_WORDS = [
+        1 => 'satu',
+        2 => 'dua',
+        3 => 'tiga',
+        4 => 'empat',
+        5 => 'lima',
+        6 => 'enam',
+        7 => 'tujuh',
+        8 => 'delapan',
+        9 => 'sembilan',
+        10 => 'sepuluh',
+        11 => 'sebelas',
+        12 => 'dua belas',
+        13 => 'tiga belas',
+        14 => 'empat belas',
+        15 => 'lima belas',
+    ];
+
     public function generateCode(): string
     {
         $alphabet = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -21,12 +45,41 @@ class LocalCaptchaService
             $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
         }
 
-        session([
-            self::SESSION_KEY => $this->signCode($code),
-            self::SESSION_EXPIRES_KEY => now()->addMinutes(10)->timestamp,
-        ]);
+        $this->storeAnswer($code);
 
         return $code;
+    }
+
+    /**
+     * Generate a screen-reader friendly Indonesian arithmetic question without exposing the raw answer.
+     */
+    public function generateAccessibleChallenge(): string
+    {
+        $isAddition = random_int(0, 1) === 1;
+
+        if ($isAddition) {
+            $left = random_int(2, 9);
+            $right = random_int(2, 9);
+            $answer = (string) ($left + $right);
+            $prompt = 'Berapa hasil '.self::NUMBER_WORDS[$left].' ditambah '.self::NUMBER_WORDS[$right].'? (ketik angka)';
+        } else {
+            $left = random_int(7, 15);
+            $right = random_int(2, 6);
+            $answer = (string) ($left - $right);
+            $prompt = 'Berapa hasil '.self::NUMBER_WORDS[$left].' dikurangi '.self::NUMBER_WORDS[$right].'? (ketik angka)';
+        }
+
+        $this->storeAnswer($answer);
+
+        return $prompt;
+    }
+
+    private function storeAnswer(string $answer): void
+    {
+        session([
+            self::SESSION_KEY => $this->signCode($answer),
+            self::SESSION_EXPIRES_KEY => now()->addMinutes(10)->timestamp,
+        ]);
     }
 
     public function verify(string $input): bool

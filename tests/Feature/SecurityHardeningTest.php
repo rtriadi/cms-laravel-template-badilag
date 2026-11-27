@@ -239,7 +239,7 @@ it('invalidates active database sessions on role change and enforces departmenta
         ->call('save')
         ->assertForbidden();
 
-    $pdf = UploadedFile::fake()->create('dip-2026.pdf', 100, 'application/pdf');
+    $pdf = UploadedFile::fake()->createWithContent('dip-2026.pdf', "%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF");
     Livewire::test(DocumentManager::class)
         ->set('collection_type', 'dip_ppid')
         ->set('title', 'DIP PPID 2026')
@@ -431,7 +431,7 @@ test('unpublished documents use private disk, public menu hides draft pages, and
     SatkerSetting::factory()->setupCompleted()->create();
 
     $admin = makeHardeningUser('super_admin');
-    $pdf = UploadedFile::fake()->create('dipa-rahasia.pdf', 100, 'application/pdf');
+    $pdf = UploadedFile::fake()->createWithContent('dipa-rahasia.pdf', "%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF");
 
     $this->actingAs($admin);
     Livewire::test(DocumentManager::class)

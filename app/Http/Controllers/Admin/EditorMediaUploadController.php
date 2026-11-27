@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\ImageOptimizerService;
+use App\Support\SafeUpload;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -32,10 +33,10 @@ class EditorMediaUploadController extends Controller
         );
 
         $request->validate([
-            'file' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,gif,pdf', 'max:10240'],
+            'file' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
         ], [
             'file.required' => 'Pilih berkas gambar atau PDF terlebih dahulu.',
-            'file.mimes' => 'Format berkas harus berupa gambar (JPG, PNG, WEBP, GIF) atau dokumen PDF.',
+            'file.mimes' => 'Format berkas harus berupa gambar (JPG, PNG, WEBP) atau dokumen PDF.',
             'file.max' => 'Ukuran berkas maksimal 10 MB.',
         ]);
 
@@ -44,7 +45,14 @@ class EditorMediaUploadController extends Controller
         $extension = strtolower($uploaded->getClientOriginalExtension());
         $isPdf = $extension === 'pdf' || $uploaded->getMimeType() === 'application/pdf';
 
-        if (! $isPdf) {
+        if ($isPdf) {
+            $pdfError = SafeUpload::validatePdf($uploaded);
+            if ($pdfError !== null) {
+                return response()->json([
+                    'message' => $pdfError,
+                ], 422);
+            }
+        } else {
             $realPath = $uploaded->getRealPath();
             $imageInfo = is_string($realPath) && is_file($realPath) ? @getimagesize($realPath) : false;
             if (is_array($imageInfo)) {
@@ -62,7 +70,7 @@ class EditorMediaUploadController extends Controller
             }
         }
 
-        $path = (! $isPdf && $extension !== 'gif')
+        $path = ! $isPdf
             ? app(ImageOptimizerService::class)->storeOptimized($uploaded, 'editor-media', 1280, 82)
             : $uploaded->store('editor-media', 'public');
 
